@@ -8,9 +8,10 @@ export async function verifyTelegramInitData(initData, botToken) {
 
   try {
     const params = new URLSearchParams(initData);
-    const hash = params.get("hash");
 
-    if (!hash) {
+    const receivedHash = params.get("hash");
+
+    if (!receivedHash) {
       return {
         ok: false,
         error: "Telegram hash is missing"
@@ -26,8 +27,15 @@ export async function verifyTelegramInitData(initData, botToken) {
 
     const encoder = new TextEncoder();
 
-    // Telegram Web Apps:
-    // secret_key = HMAC-SHA256(bot_token, "WebAppData")
+    /*
+     * Telegram Web Apps:
+     *
+     * secret_key = HMAC-SHA256(
+     *     key = "WebAppData",
+     *     message = bot_token
+     * )
+     */
+
     const webAppDataKey = await crypto.subtle.importKey(
       "raw",
       encoder.encode("WebAppData"),
@@ -39,15 +47,23 @@ export async function verifyTelegramInitData(initData, botToken) {
       ["sign"]
     );
 
-    const secretKeyBytes = await crypto.subtle.sign(
+    const secretKey = await crypto.subtle.sign(
       "HMAC",
       webAppDataKey,
       encoder.encode(botToken)
     );
 
-    const secretKey = await crypto.subtle.importKey(
+    /*
+     * calculated_hash =
+     * HMAC-SHA256(
+     *     key = secret_key,
+     *     message = data_check_string
+     * )
+     */
+
+    const secretHmacKey = await crypto.subtle.importKey(
       "raw",
-      secretKeyBytes,
+      secretKey,
       {
         name: "HMAC",
         hash: "SHA-256"
@@ -56,22 +72,51 @@ export async function verifyTelegramInitData(initData, botToken) {
       ["sign"]
     );
 
-    const calculatedHashBytes = await crypto.subtle.sign(
+    const calculatedHash = await crypto.subtle.sign(
       "HMAC",
-      secretKey,
+      secretHmacKey,
       encoder.encode(dataCheckString)
     );
 
-    const calculatedHash = [...new Uint8Array(calculatedHashBytes)]
-      .map(byte => byte.toString(16).padStart(2, "0"))
+    const calculatedHex = Array.from(
+      new Uint8Array(calculatedHash)
+    )
+      .map(byte =>
+        byte.toString(16).padStart(2, "0")
+      )
       .join("");
 
-    if (calculatedHash !== hash) {
+    /*
+     * Constant-time comparison
+     */
+
+    if (
+      calculatedHex.length !== receivedHash.length
+    ) {
       return {
         ok: false,
         error: "Invalid Telegram authentication"
       };
     }
+
+    let difference = 0;
+
+    for (let i = 0; i < calculatedHex.length; i++) {
+      difference |=
+        calculatedHex.charCodeAt(i) ^
+        receivedHash.charCodeAt(i);
+    }
+
+    if (difference !== 0) {
+      return {
+        ok: false,
+        error: "Invalid Telegram authentication"
+      };
+    }
+
+    /*
+     * Получаем Telegram user
+     */
 
     const userRaw = params.get("user");
 
@@ -93,10 +138,10 @@ export async function verifyTelegramInitData(initData, botToken) {
       };
     }
 
-    if (!user.id) {
+    if (!user || !user.id) {
       return {
         ok: false,
-        error: "Telegram user ID is missing"
+        error: "Invalid Telegram user"
       };
     }
 
@@ -106,6 +151,8 @@ export async function verifyTelegramInitData(initData, botToken) {
     };
 
   } catch (error) {
+    console.error("Telegram authentication error:", error);
+
     return {
       ok: false,
       error: "Telegram authentication failed"
