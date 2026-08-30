@@ -103,6 +103,9 @@ async function telegramAuth(request, env) {
 
   const initData = body?.initData;
 
+console.log("Telegram initData received:", !!initData);
+console.log("Telegram initData length:", initData?.length || 0);
+
   if (!initData) {
     return json(
       {
@@ -112,6 +115,9 @@ async function telegramAuth(request, env) {
       400
     );
   }
+
+console.log("Bot token available:", !!env.TELEGRAM_BOT_TOKEN);
+console.log("Bot token length:", env.TELEGRAM_BOT_TOKEN?.length || 0);
 
   const verification = await verifyTelegramInitData(
     initData,
