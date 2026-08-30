@@ -22,6 +22,39 @@ export default {
                 assets: !!env.ASSETS
             });
         }
+// Telegram auth diagnostic
+if (
+    url.pathname === "/api/auth-debug" &&
+    request.method === "POST"
+) {
+    try {
+        const body = await request.json();
+        const initData = body?.initData || "";
+
+        const params = new URLSearchParams(initData);
+
+        return json({
+            ok: true,
+            initData_received: !!initData,
+            initData_length: initData.length,
+            has_hash: params.has("hash"),
+            hash_length: params.get("hash")?.length || 0,
+            has_user: params.has("user"),
+            user_length: params.get("user")?.length || 0,
+            has_auth_date: params.has("auth_date"),
+            has_query_id: params.has("query_id"),
+            bot_token_configured: !!env.TELEGRAM_BOT_TOKEN,
+            bot_token_length:
+                env.TELEGRAM_BOT_TOKEN?.length || 0
+        });
+
+    } catch (error) {
+        return json({
+            ok: false,
+            error: "Invalid diagnostic request"
+        }, 400);
+    }
+}
         // Telegram authentication
         if (
             url.pathname === "/api/auth/telegram" &&
