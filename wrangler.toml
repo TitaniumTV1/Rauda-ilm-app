@@ -5,8 +5,7 @@ compatibility_date = "2026-08-30"
 [vars]
 APP_NAME = "RAUDA ILM"
 
-# После создания D1 сюда подставим настоящий ID базы.
-# database_id = "..."
-
-# После создания R2 сюда подставим настоящее имя bucket.
-# bucket_name = "..."
+[[d1_databases]]
+binding = "DB"
+database_name = "rauda-ilm-db"
+database_id = "d82a5615-e88a-49cf-90ab-1ec6c3bbdb3e"
