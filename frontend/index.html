@@ -36,8 +36,12 @@
         }
 
         body {
+            position: relative;
+            overflow-x: hidden;
+
             background: var(--bg);
             color: var(--text);
+
             font-family:
                 -apple-system,
                 BlinkMacSystemFont,
@@ -45,6 +49,90 @@
                 Roboto,
                 Arial,
                 sans-serif;
+        }
+
+        /*
+         * ФОНОВЫЙ УЗОР
+         */
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+
+            z-index: -2;
+
+            pointer-events: none;
+
+            opacity: .42;
+
+            background-image:
+                linear-gradient(
+                    30deg,
+                    rgba(18,60,50,.035) 12%,
+                    transparent 12.5%,
+                    transparent 87%,
+                    rgba(18,60,50,.035) 87.5%,
+                    rgba(18,60,50,.035)
+                ),
+                linear-gradient(
+                    150deg,
+                    rgba(18,60,50,.035) 12%,
+                    transparent 12.5%,
+                    transparent 87%,
+                    rgba(18,60,50,.035) 87.5%,
+                    rgba(18,60,50,.035)
+                ),
+                linear-gradient(
+                    30deg,
+                    rgba(18,60,50,.035) 12%,
+                    transparent 12.5%,
+                    transparent 87%,
+                    rgba(18,60,50,.035) 87.5%,
+                    rgba(18,60,50,.035)
+                ),
+                linear-gradient(
+                    150deg,
+                    rgba(18,60,50,.035) 12%,
+                    transparent 12.5%,
+                    transparent 87%,
+                    rgba(18,60,50,.035) 87.5%,
+                    rgba(18,60,50,.035)
+                );
+
+            background-position:
+                0 0,
+                0 0,
+                20px 35px,
+                20px 35px;
+
+            background-size:
+                40px 70px,
+                40px 70px,
+                40px 70px,
+                40px 70px;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+
+            z-index: -1;
+
+            pointer-events: none;
+
+            background:
+                radial-gradient(
+                    circle at 10% 10%,
+                    rgba(197,164,109,.07),
+                    transparent 24%
+                ),
+                radial-gradient(
+                    circle at 90% 75%,
+                    rgba(18,60,50,.055),
+                    transparent 27%
+                );
         }
 
         button,
@@ -62,6 +150,10 @@
             min-height: 100vh;
         }
 
+        /*
+         * HEADER
+         */
+
         .header {
             position: sticky;
             top: 0;
@@ -78,10 +170,12 @@
                 18px
                 8px;
 
-            background: rgba(245, 246, 243, .94);
-            backdrop-filter: blur(16px);
+            background: rgba(245,246,243,.86);
 
-            border-bottom: 1px solid rgba(0, 0, 0, .03);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            border-bottom: 1px solid rgba(0,0,0,.035);
         }
 
         .logo {
@@ -129,7 +223,7 @@
             border: 1px solid var(--line);
             border-radius: 13px;
 
-            background: white;
+            background: rgba(255,255,255,.92);
         }
 
         .hamburger {
@@ -150,15 +244,24 @@
             background: var(--green);
         }
 
+        /*
+         * CONTENT
+         */
+
         .content {
             width: 100%;
             max-width: 720px;
+
             margin: 0 auto;
 
             padding:
                 12px 18px
                 calc(40px + env(safe-area-inset-bottom));
         }
+
+        /*
+         * PAGES
+         */
 
         .page {
             display: none;
@@ -168,9 +271,15 @@
             display: block;
         }
 
+        /*
+         * LOADING
+         */
+
         .loading {
             padding: 80px 20px;
+
             text-align: center;
+
             color: var(--muted);
         }
 
@@ -193,6 +302,10 @@
                 transform: rotate(360deg);
             }
         }
+
+        /*
+         * HOME
+         */
 
         .welcome {
             margin: 15px 2px 20px;
@@ -228,7 +341,25 @@
             color: white;
 
             box-shadow:
-                0 15px 35px rgba(18, 60, 50, .18);
+                0 15px 35px rgba(18,60,50,.18);
+        }
+
+        .hero::after {
+            content: "";
+
+            position: absolute;
+
+            width: 180px;
+            height: 180px;
+
+            right: -75px;
+            top: -80px;
+
+            border: 1px solid rgba(255,255,255,.09);
+
+            transform: rotate(45deg);
+
+            border-radius: 30px;
         }
 
         .hero-label {
@@ -255,15 +386,19 @@
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
+
+            gap: 10px;
         }
 
         .semester {
             color: rgba(255,255,255,.72);
+
             font-size: 13px;
         }
 
         .semester strong {
             display: block;
+
             margin-top: 4px;
 
             color: white;
@@ -281,6 +416,7 @@
             margin-top: 17px;
 
             overflow: hidden;
+
             border-radius: 10px;
 
             background: rgba(255,255,255,.17);
@@ -297,6 +433,10 @@
             transition: width .3s ease;
         }
 
+        /*
+         * BUTTONS
+         */
+
         .primary-button {
             width: 100%;
 
@@ -309,6 +449,10 @@
             color: white;
 
             font-weight: 700;
+        }
+
+        .primary-button:disabled {
+            opacity: .6;
         }
 
         .secondary-button {
@@ -338,7 +482,7 @@
             border: 0;
             border-radius: 17px;
 
-            background: white;
+            background: rgba(255,255,255,.94);
             color: var(--green);
 
             box-shadow:
@@ -380,6 +524,10 @@
             font-size: 18px;
         }
 
+        /*
+         * SECTIONS
+         */
+
         .section {
             margin-top: 25px;
         }
@@ -393,7 +541,10 @@
 
         .quick-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+
+            grid-template-columns:
+                1fr 1fr;
+
             gap: 10px;
         }
 
@@ -405,7 +556,7 @@
             border: 1px solid rgba(0,0,0,.035);
             border-radius: 19px;
 
-            background: white;
+            background: rgba(255,255,255,.94);
 
             text-align: left;
 
@@ -441,8 +592,13 @@
             margin-top: 3px;
 
             color: var(--muted);
+
             font-size: 11px;
         }
+
+        /*
+         * PAGE HEADER
+         */
 
         .page-header {
             margin: 17px 0 20px;
@@ -470,6 +626,7 @@
             gap: 7px;
 
             margin-bottom: 15px;
+
             padding: 5px 0;
 
             border: 0;
@@ -480,9 +637,15 @@
             font-weight: 700;
         }
 
+        /*
+         * LEARNING
+         */
+
         .learning-summary {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+
+            grid-template-columns:
+                1fr 1fr;
 
             gap: 10px;
 
@@ -491,8 +654,10 @@
 
         .summary-card {
             padding: 15px;
+
             border-radius: 17px;
-            background: white;
+
+            background: rgba(255,255,255,.94);
         }
 
         .summary-number {
@@ -506,6 +671,7 @@
             margin-top: 4px;
 
             color: var(--muted);
+
             font-size: 12px;
         }
 
@@ -513,9 +679,10 @@
             margin-bottom: 12px;
 
             overflow: hidden;
+
             border-radius: 19px;
 
-            background: white;
+            background: rgba(255,255,255,.96);
 
             box-shadow:
                 0 5px 18px rgba(0,0,0,.035);
@@ -537,7 +704,8 @@
 
         .year-header {
             padding: 17px;
-            background: white;
+
+            background: transparent;
         }
 
         .year-title {
@@ -549,6 +717,7 @@
             margin-top: 3px;
 
             color: var(--muted);
+
             font-size: 12px;
         }
 
@@ -559,6 +728,7 @@
 
         .year-content {
             display: none;
+
             padding: 0 12px 12px;
         }
 
@@ -577,6 +747,7 @@
 
         .semester-header {
             padding: 14px;
+
             background: #fafaf7;
         }
 
@@ -592,6 +763,7 @@
 
         .semester-content {
             display: none;
+
             padding: 8px;
         }
 
@@ -612,6 +784,7 @@
 
         .subject-header {
             padding: 13px;
+
             background: white;
         }
 
@@ -622,11 +795,13 @@
 
         .subject-progress {
             color: var(--muted);
+
             font-size: 11px;
         }
 
         .lessons {
             display: none;
+
             padding: 0 8px 8px;
         }
 
@@ -689,14 +864,20 @@
             margin-top: 3px;
 
             color: var(--muted);
+
             font-size: 10px;
         }
+
+        /*
+         * LESSON
+         */
 
         .lesson-page-card {
             padding: 19px;
 
             border-radius: 20px;
-            background: white;
+
+            background: rgba(255,255,255,.96);
 
             box-shadow:
                 0 5px 18px rgba(0,0,0,.04);
@@ -754,6 +935,7 @@
             padding: 12px;
 
             border-radius: 14px;
+
             background: var(--green-light);
         }
 
@@ -762,6 +944,7 @@
             padding: 15px;
 
             border-radius: 15px;
+
             background: #fafaf7;
         }
 
@@ -781,12 +964,17 @@
             white-space: pre-wrap;
         }
 
+        /*
+         * GENERIC
+         */
+
         .info-card {
             margin-bottom: 11px;
             padding: 18px;
 
             border-radius: 18px;
-            background: white;
+
+            background: rgba(255,255,255,.96);
 
             box-shadow:
                 0 5px 18px rgba(0,0,0,.035);
@@ -806,16 +994,21 @@
             line-height: 1.5;
         }
 
+        /*
+         * PROFILE
+         */
+
         .profile-main {
             padding: 20px;
 
             border-radius: 20px;
-            background: white;
+
+            background: rgba(255,255,255,.96);
         }
 
         .profile-avatar {
-            width: 72px;
-            height: 72px;
+            width: 78px;
+            height: 78px;
 
             margin-bottom: 15px;
 
@@ -823,13 +1016,22 @@
             align-items: center;
             justify-content: center;
 
-            border-radius: 22px;
+            overflow: hidden;
+
+            border-radius: 23px;
 
             background: var(--green);
             color: white;
 
             font-size: 24px;
             font-weight: 800;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
         }
 
         .profile-name-big {
@@ -841,7 +1043,34 @@
             margin-top: 4px;
 
             color: var(--muted);
+
             font-size: 13px;
+        }
+
+        .telegram-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+
+            margin-top: 13px;
+            padding: 8px 11px;
+
+            border-radius: 10px;
+
+            background: var(--green-light);
+            color: var(--green);
+
+            font-size: 11px;
+            font-weight: 750;
+        }
+
+        .telegram-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: var(--green);
         }
 
         .profile-row {
@@ -853,6 +1082,7 @@
 
         .profile-row-label {
             color: var(--muted);
+
             font-size: 11px;
         }
 
@@ -861,7 +1091,13 @@
 
             font-size: 14px;
             font-weight: 700;
+
+            word-break: break-word;
         }
+
+        /*
+         * MENU
+         */
 
         .overlay {
             position: fixed;
@@ -872,6 +1108,7 @@
             background: rgba(5,20,16,.35);
 
             backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
 
             opacity: 0;
             pointer-events: none;
@@ -942,25 +1179,82 @@
             font-size: 22px;
         }
 
+        /*
+         * TELEGRAM MENU PROFILE
+         */
+
         .profile-card {
             padding: 16px;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
 
             border-radius: 17px;
 
             background: var(--green);
+
             color: white;
+        }
+
+        .menu-avatar {
+            width: 48px;
+            height: 48px;
+
+            flex: 0 0 48px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+
+            border-radius: 15px;
+
+            background: rgba(255,255,255,.16);
+
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .menu-avatar img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+        }
+
+        .profile-details {
+            min-width: 0;
         }
 
         .profile-name {
             font-size: 16px;
             font-weight: 750;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .profile-username {
             margin-top: 4px;
 
             color: rgba(255,255,255,.62);
+
             font-size: 12px;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .profile-auth {
+            margin-top: 5px;
+
+            color: rgba(255,255,255,.48);
+
+            font-size: 10px;
         }
 
         .menu-list {
@@ -985,6 +1279,7 @@
             border-radius: 13px;
 
             background: transparent;
+
             color: var(--text);
 
             text-align: left;
@@ -1008,6 +1303,7 @@
             border-radius: 10px;
 
             background: #e8eee9;
+
             color: var(--green);
 
             font-size: 10px;
@@ -1018,16 +1314,23 @@
             margin-top: 10px;
 
             background: var(--green-light);
+
             color: var(--green);
         }
 
+        /*
+         * NOTICES
+         */
+
         .notice {
             margin-bottom: 11px;
+
             padding: 15px 16px;
 
             border-radius: 16px;
 
-            background: white;
+            background: rgba(255,255,255,.96);
+
             border-left: 4px solid var(--gold);
 
             box-shadow:
@@ -1052,6 +1355,7 @@
             padding: 35px 20px;
 
             text-align: center;
+
             color: var(--muted);
         }
 
@@ -1073,6 +1377,7 @@
         }
 
         @media (max-width: 390px) {
+
             .content {
                 padding-left: 14px;
                 padding-right: 14px;
@@ -1097,10 +1402,22 @@
 
 <div class="app">
 
+    <!-- HEADER -->
+
     <header class="header">
-        <button class="logo" type="button" onclick="showPage('home')">
-            <div class="logo-mark">RI</div>
-            <div class="logo-name">RAUDA ILM</div>
+
+        <button
+            class="logo"
+            type="button"
+            onclick="showPage('home')"
+        >
+            <div class="logo-mark">
+                RI
+            </div>
+
+            <div class="logo-name">
+                RAUDA ILM
+            </div>
         </button>
 
         <button
@@ -1115,25 +1432,50 @@
                 <span></span>
             </div>
         </button>
+
     </header>
+
+
+    <!-- CONTENT -->
 
     <main class="content">
 
         <!-- HOME -->
 
-        <section id="page-home" class="page active">
+        <section
+            id="page-home"
+            class="page active"
+        >
 
-            <div id="home-loading" class="loading">
+            <div
+                id="home-loading"
+                class="loading"
+            >
                 <div class="loader"></div>
                 <div>Загрузка...</div>
             </div>
 
-            <div id="home-content" class="hidden">
+
+            <div
+                id="home-content"
+                class="hidden"
+            >
 
                 <div class="welcome">
-                    <div class="welcome-small">С возвращением</div>
-                    <div id="welcome-name" class="welcome-name">Студент</div>
+
+                    <div class="welcome-small">
+                        С возвращением
+                    </div>
+
+                    <div
+                        id="welcome-name"
+                        class="welcome-name"
+                    >
+                        Студент
+                    </div>
+
                 </div>
+
 
                 <div class="hero">
 
@@ -1141,33 +1483,52 @@
                         Образовательная программа
                     </div>
 
-                    <div id="hero-program" class="hero-program">
+                    <div
+                        id="hero-program"
+                        class="hero-program"
+                    >
                         Biology — sanitary epidemiology
                     </div>
+
 
                     <div class="hero-bottom">
 
                         <div class="semester">
                             Программа
-                            <strong id="hero-code">6В05102</strong>
+
+                            <strong id="hero-code">
+                                6В05102
+                            </strong>
                         </div>
+
 
                         <div class="semester">
                             Семестр
-                            <strong id="hero-semester">2</strong>
+
+                            <strong id="hero-semester">
+                                2
+                            </strong>
                         </div>
 
+
                         <div class="progress-number">
-                            <span id="hero-progress">0</span>%
+                            <span id="hero-progress">
+                                0
+                            </span>%
                         </div>
 
                     </div>
 
+
                     <div class="progress-line">
-                        <div id="progress-fill" class="progress-fill"></div>
+                        <div
+                            id="progress-fill"
+                            class="progress-fill"
+                        ></div>
                     </div>
 
                 </div>
+
 
                 <button
                     id="continue-button"
@@ -1175,24 +1536,35 @@
                     type="button"
                     onclick="continueLearning()"
                 >
+
                     <div class="continue-left">
+
                         <span class="continue-label">
                             Продолжить обучение
                         </span>
 
-                        <span id="continue-title" class="continue-title">
+                        <span
+                            id="continue-title"
+                            class="continue-title"
+                        >
                             Мои уроки
                         </span>
+
                     </div>
 
-                    <span class="arrow">→</span>
+                    <span class="arrow">
+                        →
+                    </span>
+
                 </button>
+
 
                 <div class="section">
 
                     <div class="section-title">
                         Быстрый доступ
                     </div>
+
 
                     <div class="quick-grid">
 
@@ -1201,7 +1573,10 @@
                             type="button"
                             onclick="showPage('lessons')"
                         >
-                            <div class="quick-icon">У</div>
+
+                            <div class="quick-icon">
+                                У
+                            </div>
 
                             <div class="quick-title">
                                 Мои уроки
@@ -1210,14 +1585,19 @@
                             <div class="quick-description">
                                 Учебная программа
                             </div>
+
                         </button>
+
 
                         <button
                             class="quick-card"
                             type="button"
                             onclick="showPage('schedule')"
                         >
-                            <div class="quick-icon">Р</div>
+
+                            <div class="quick-icon">
+                                Р
+                            </div>
 
                             <div class="quick-title">
                                 Расписание
@@ -1226,14 +1606,19 @@
                             <div class="quick-description">
                                 Занятия и пары
                             </div>
+
                         </button>
+
 
                         <button
                             class="quick-card"
                             type="button"
                             onclick="showPage('exams')"
                         >
-                            <div class="quick-icon">Э</div>
+
+                            <div class="quick-icon">
+                                Э
+                            </div>
 
                             <div class="quick-title">
                                 Экзамены
@@ -1242,14 +1627,19 @@
                             <div class="quick-description">
                                 Контроль знаний
                             </div>
+
                         </button>
+
 
                         <button
                             class="quick-card"
                             type="button"
                             onclick="showPage('science')"
                         >
-                            <div class="quick-icon">Н</div>
+
+                            <div class="quick-icon">
+                                Н
+                            </div>
 
                             <div class="quick-title">
                                 Научные материалы
@@ -1258,6 +1648,7 @@
                             <div class="quick-description">
                                 Материалы для изучения
                             </div>
+
                         </button>
 
                     </div>
@@ -1271,7 +1662,10 @@
 
         <!-- LESSONS -->
 
-        <section id="page-lessons" class="page">
+        <section
+            id="page-lessons"
+            class="page"
+        >
 
             <button
                 class="back-button"
@@ -1281,40 +1675,66 @@
                 ← Главная
             </button>
 
+
             <div class="page-header">
-                <h1>Мои уроки</h1>
+
+                <h1>
+                    Мои уроки
+                </h1>
+
                 <p>
                     Учебная программа и материалы курса
                 </p>
+
             </div>
+
 
             <div class="learning-summary">
 
                 <div class="summary-card">
-                    <div id="summary-lessons" class="summary-number">
+
+                    <div
+                        id="summary-lessons"
+                        class="summary-number"
+                    >
                         0
                     </div>
+
                     <div class="summary-label">
                         уроков
                     </div>
+
                 </div>
 
+
                 <div class="summary-card">
-                    <div id="summary-completed" class="summary-number">
+
+                    <div
+                        id="summary-completed"
+                        class="summary-number"
+                    >
                         0
                     </div>
+
                     <div class="summary-label">
                         завершено
                     </div>
+
                 </div>
 
             </div>
 
+
             <div id="curriculum">
+
                 <div class="loading">
+
                     <div class="loader"></div>
+
                     Загрузка программы...
+
                 </div>
+
             </div>
 
         </section>
@@ -1322,7 +1742,10 @@
 
         <!-- LESSON -->
 
-        <section id="page-lesson" class="page">
+        <section
+            id="page-lesson"
+            class="page"
+        >
 
             <button
                 class="back-button"
@@ -1332,11 +1755,17 @@
                 ← Мои уроки
             </button>
 
+
             <div id="lesson-container">
+
                 <div class="loading">
+
                     <div class="loader"></div>
+
                     Загрузка урока...
+
                 </div>
+
             </div>
 
         </section>
@@ -1344,7 +1773,10 @@
 
         <!-- SCHEDULE -->
 
-        <section id="page-schedule" class="page">
+        <section
+            id="page-schedule"
+            class="page"
+        >
 
             <button
                 class="back-button"
@@ -1354,17 +1786,26 @@
                 ← Главная
             </button>
 
+
             <div class="page-header">
-                <h1>Расписание</h1>
+
+                <h1>
+                    Расписание
+                </h1>
+
                 <p>
                     Ваши учебные занятия
                 </p>
+
             </div>
 
+
             <div id="schedule-container">
+
                 <div class="empty">
                     Расписание пока не добавлено.
                 </div>
+
             </div>
 
         </section>
@@ -1372,7 +1813,10 @@
 
         <!-- EXAMS -->
 
-        <section id="page-exams" class="page">
+        <section
+            id="page-exams"
+            class="page"
+        >
 
             <button
                 class="back-button"
@@ -1382,17 +1826,26 @@
                 ← Главная
             </button>
 
+
             <div class="page-header">
-                <h1>Экзамены</h1>
+
+                <h1>
+                    Экзамены
+                </h1>
+
                 <p>
                     Экзамены и контрольные мероприятия
                 </p>
+
             </div>
 
+
             <div id="exams-container">
+
                 <div class="empty">
                     Информация об экзаменах пока не добавлена.
                 </div>
+
             </div>
 
         </section>
@@ -1400,7 +1853,10 @@
 
         <!-- SCIENCE -->
 
-        <section id="page-science" class="page">
+        <section
+            id="page-science"
+            class="page"
+        >
 
             <button
                 class="back-button"
@@ -1410,17 +1866,26 @@
                 ← Главная
             </button>
 
+
             <div class="page-header">
-                <h1>Научные материалы</h1>
+
+                <h1>
+                    Научные материалы
+                </h1>
+
                 <p>
                     Дополнительные материалы для обучения
                 </p>
+
             </div>
 
+
             <div id="science-container">
+
                 <div class="empty">
                     Научные материалы пока не добавлены.
                 </div>
+
             </div>
 
         </section>
@@ -1428,7 +1893,10 @@
 
         <!-- PROFILE -->
 
-        <section id="page-profile" class="page">
+        <section
+            id="page-profile"
+            class="page"
+        >
 
             <button
                 class="back-button"
@@ -1438,55 +1906,119 @@
                 ← Главная
             </button>
 
+
             <div class="page-header">
-                <h1>Профиль</h1>
+
+                <h1>
+                    Профиль
+                </h1>
+
                 <p>
-                    Данные пользователя
+                    Ваш профиль Telegram
                 </p>
+
             </div>
+
 
             <div class="profile-main">
 
-                <div id="profile-avatar" class="profile-avatar">
+                <div
+                    id="profile-avatar"
+                    class="profile-avatar"
+                >
                     С
                 </div>
 
-                <div id="profile-name-big" class="profile-name-big">
+
+                <div
+                    id="profile-name-big"
+                    class="profile-name-big"
+                >
                     Студент
                 </div>
 
-                <div id="profile-username-big" class="profile-username-big">
+
+                <div
+                    id="profile-username-big"
+                    class="profile-username-big"
+                >
                     —
                 </div>
 
+
+                <div
+                    id="telegram-status"
+                    class="telegram-status"
+                >
+                    <span class="telegram-dot"></span>
+
+                    <span id="telegram-status-text">
+                        Telegram не подключён
+                    </span>
+                </div>
+
+
                 <div class="profile-row">
+
+                    <div class="profile-row-label">
+                        Telegram ID
+                    </div>
+
+                    <div
+                        id="profile-telegram-id"
+                        class="profile-row-value"
+                    >
+                        —
+                    </div>
+
+                </div>
+
+
+                <div class="profile-row">
+
                     <div class="profile-row-label">
                         Образовательная программа
                     </div>
 
-                    <div id="profile-program" class="profile-row-value">
+                    <div
+                        id="profile-program"
+                        class="profile-row-value"
+                    >
                         Biology — sanitary epidemiology
                     </div>
+
                 </div>
 
+
                 <div class="profile-row">
+
                     <div class="profile-row-label">
                         Код программы
                     </div>
 
-                    <div id="profile-code" class="profile-row-value">
+                    <div
+                        id="profile-code"
+                        class="profile-row-value"
+                    >
                         6В05102
                     </div>
+
                 </div>
 
+
                 <div class="profile-row">
+
                     <div class="profile-row-label">
                         Семестр
                     </div>
 
-                    <div id="profile-semester" class="profile-row-value">
+                    <div
+                        id="profile-semester"
+                        class="profile-row-value"
+                    >
                         2
                     </div>
+
                 </div>
 
             </div>
@@ -1496,7 +2028,10 @@
 
         <!-- INFO -->
 
-        <section id="page-info" class="page">
+        <section
+            id="page-info"
+            class="page"
+        >
 
             <button
                 class="back-button"
@@ -1506,14 +2041,22 @@
                 ← Главная
             </button>
 
+
             <div class="page-header">
-                <h1>О приложении</h1>
+
+                <h1>
+                    О приложении
+                </h1>
+
                 <p>
                     RAUDA ILM
                 </p>
+
             </div>
 
+
             <div class="info-card">
+
                 <div class="info-card-title">
                     RAUDA ILM
                 </div>
@@ -1523,21 +2066,26 @@
                     Здесь находятся уроки, учебные материалы,
                     расписание и информация об экзаменах.
                 </div>
+
             </div>
 
+
             <div class="info-card">
+
                 <div class="info-card-title">
                     Версия
                 </div>
 
                 <div class="info-card-text">
-                    1.0
+                    1.1
                 </div>
+
             </div>
 
         </section>
 
     </main>
+
 </div>
 
 
@@ -1552,7 +2100,10 @@
 
 <!-- SIDE MENU -->
 
-<aside id="side-menu" class="side-menu">
+<aside
+    id="side-menu"
+    class="side-menu"
+>
 
     <div class="menu-header">
 
@@ -1572,14 +2123,41 @@
     </div>
 
 
+    <!-- TELEGRAM PROFILE -->
+
     <div class="profile-card">
 
-        <div id="menu-profile-name" class="profile-name">
-            Студент
+        <div
+            id="menu-avatar"
+            class="menu-avatar"
+        >
+            С
         </div>
 
-        <div id="menu-profile-username" class="profile-username">
-            —
+
+        <div class="profile-details">
+
+            <div
+                id="menu-profile-name"
+                class="profile-name"
+            >
+                Студент
+            </div>
+
+            <div
+                id="menu-profile-username"
+                class="profile-username"
+            >
+                Telegram
+            </div>
+
+            <div
+                id="menu-profile-auth"
+                class="profile-auth"
+            >
+                Режим предпросмотра
+            </div>
+
         </div>
 
     </div>
@@ -1592,63 +2170,119 @@
             type="button"
             onclick="navigateMenu('profile')"
         >
-            <span class="menu-item-icon">П</span>
-            <span>Перейти в профиль</span>
+
+            <span class="menu-item-icon">
+                П
+            </span>
+
+            <span>
+                Пользователь Telegram
+            </span>
+
         </button>
+
 
         <button
             class="menu-item"
             type="button"
             onclick="navigateMenu('lessons')"
         >
-            <span class="menu-item-icon">У</span>
-            <span>Мои уроки</span>
+
+            <span class="menu-item-icon">
+                У
+            </span>
+
+            <span>
+                Мои уроки
+            </span>
+
         </button>
+
 
         <button
             class="menu-item"
             type="button"
             onclick="navigateMenu('schedule')"
         >
-            <span class="menu-item-icon">Р</span>
-            <span>Расписание</span>
+
+            <span class="menu-item-icon">
+                Р
+            </span>
+
+            <span>
+                Расписание
+            </span>
+
         </button>
+
 
         <button
             class="menu-item"
             type="button"
             onclick="navigateMenu('exams')"
         >
-            <span class="menu-item-icon">Э</span>
-            <span>Экзамены</span>
+
+            <span class="menu-item-icon">
+                Э
+            </span>
+
+            <span>
+                Экзамены
+            </span>
+
         </button>
+
 
         <button
             class="menu-item"
             type="button"
             onclick="navigateMenu('science')"
         >
-            <span class="menu-item-icon">Н</span>
-            <span>Научные материалы</span>
+
+            <span class="menu-item-icon">
+                Н
+            </span>
+
+            <span>
+                Научные материалы
+            </span>
+
         </button>
+
 
         <button
             class="menu-item"
             type="button"
             onclick="navigateMenu('home')"
         >
-            <span class="menu-item-icon">Г</span>
-            <span>Главная</span>
+
+            <span class="menu-item-icon">
+                Г
+            </span>
+
+            <span>
+                Главная
+            </span>
+
         </button>
+
 
         <button
             class="menu-item"
             type="button"
             onclick="navigateMenu('info')"
         >
-            <span class="menu-item-icon">i</span>
-            <span>О приложении</span>
+
+            <span class="menu-item-icon">
+                i
+            </span>
+
+            <span>
+                О приложении
+            </span>
+
         </button>
+
 
         <button
             id="admin-menu-item"
@@ -1656,8 +2290,15 @@
             type="button"
             onclick="openAdmin()"
         >
-            <span class="menu-item-icon">А</span>
-            <span>Администрирование</span>
+
+            <span class="menu-item-icon">
+                А
+            </span>
+
+            <span>
+                Администрирование
+            </span>
+
         </button>
 
     </div>
@@ -1668,44 +2309,53 @@
 <script>
 "use strict";
 
-/*
- * RAUDA ILM FRONTEND
- *
- * ВАЖНО:
- * Этот frontend специально работает и без Telegram.
- *
- * В обычном Cloudflare Preview:
- * - приложение не падает;
- * - используется тестовый пользователь;
- * - запрос авторизации в backend не обязателен.
- *
- * В Telegram Mini App:
- * - Telegram.WebApp доступен;
- * - берётся реальный Telegram user;
- * - initData отправляется на /api/auth/telegram.
- */
 
+/*
+|--------------------------------------------------------------------------
+| CONFIG
+|--------------------------------------------------------------------------
+*/
 
 const API_BASE = "";
 
 
+/*
+|--------------------------------------------------------------------------
+| STATE
+|--------------------------------------------------------------------------
+*/
+
 const state = {
+
     user: null,
+
     profile: null,
+
     curriculum: null,
+
     schedule: [],
+
     exams: [],
+
     science: [],
+
     currentLesson: null,
-    authorized: false
+
+    authorized: false,
+
+    telegram: false
+
 };
 
 
-/* -----------------------------
-   TELEGRAM
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| TELEGRAM
+|--------------------------------------------------------------------------
+*/
 
 function getTelegramWebApp() {
+
     if (
         window.Telegram &&
         window.Telegram.WebApp
@@ -1718,7 +2368,10 @@ function getTelegramWebApp() {
 
 
 function getTelegramUser() {
-    const tg = getTelegramWebApp();
+
+    const tg =
+        getTelegramWebApp();
+
 
     if (
         tg &&
@@ -1728,12 +2381,16 @@ function getTelegramUser() {
         return tg.initDataUnsafe.user;
     }
 
+
     return null;
 }
 
 
 function getInitData() {
-    const tg = getTelegramWebApp();
+
+    const tg =
+        getTelegramWebApp();
+
 
     if (
         tg &&
@@ -1743,46 +2400,93 @@ function getInitData() {
         return tg.initData;
     }
 
+
     return "";
 }
 
 
-/* -----------------------------
-   SAFE FETCH
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| TELEGRAM AVATAR
+|--------------------------------------------------------------------------
+*/
+
+function getTelegramPhotoUrl(user) {
+
+    if (!user) {
+        return "";
+    }
+
+
+    return (
+        user.photo_url ||
+        user.photoUrl ||
+        ""
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| SAFE API
+|--------------------------------------------------------------------------
+*/
 
 async function apiRequest(
     path,
     options = {}
 ) {
+
     try {
-        const response = await fetch(
-            API_BASE + path,
-            {
-                ...options,
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(options.headers || {})
+
+        const response =
+            await fetch(
+                API_BASE + path,
+                {
+                    ...options,
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        ...(options.headers || {})
+                    }
                 }
-            }
-        );
+            );
+
 
         const contentType =
-            response.headers.get("content-type") || "";
+            response.headers.get(
+                "content-type"
+            ) || "";
+
 
         let data = null;
 
-        if (contentType.includes("application/json")) {
-            data = await response.json();
-        } else {
-            const text = await response.text();
 
-            data = text
-                ? { text }
-                : null;
+        if (
+            contentType.includes(
+                "application/json"
+            )
+        ) {
+
+            data =
+                await response.json();
+
+        } else {
+
+            const text =
+                await response.text();
+
+            data =
+                text
+                    ? { text }
+                    : null;
         }
 
+
         if (!response.ok) {
+
             throw new Error(
                 data?.error ||
                 data?.message ||
@@ -1790,65 +2494,97 @@ async function apiRequest(
             );
         }
 
+
         return data;
+
     } catch (error) {
+
         console.warn(
             "API request failed:",
             path,
             error
         );
 
+
         return null;
     }
 }
 
 
-/* -----------------------------
-   AUTH
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| AUTHENTICATION
+|--------------------------------------------------------------------------
+*/
 
 async function authenticate() {
 
-    const telegramUser = getTelegramUser();
-    const initData = getInitData();
+    const telegramUser =
+        getTelegramUser();
+
+    const initData =
+        getInitData();
+
 
     /*
-     * Telegram mode
+     * Настоящий Telegram Mini App
      */
-    if (telegramUser && initData) {
 
-        const result = await apiRequest(
-            "/api/auth/telegram",
-            {
-                method: "POST",
+    if (
+        telegramUser &&
+        initData
+    ) {
 
-                body: JSON.stringify({
-                    initData: initData
-                })
-            }
-        );
+        state.telegram = true;
+
+        state.user =
+            telegramUser;
+
+
+        /*
+         * Отправляем initData
+         * на backend.
+         */
+
+        const result =
+            await apiRequest(
+                "/api/auth/telegram",
+                {
+                    method: "POST",
+
+                    body: JSON.stringify({
+                        initData: initData
+                    })
+                }
+            );
+
 
         if (result) {
 
             state.authorized = true;
 
+
             state.user =
                 result.user ||
                 telegramUser;
+
 
             state.profile =
                 result.profile ||
                 null;
 
+
             return true;
         }
 
-        /*
-         * Backend временно недоступен.
-         * Не ломаем Mini App.
-         */
 
-        state.user = telegramUser;
+        /*
+         * Backend пока не подключён
+         * или ещё не настроен.
+         *
+         * Пользователь всё равно
+         * отображается из Telegram.
+         */
 
         state.profile = null;
 
@@ -1857,30 +2593,56 @@ async function authenticate() {
 
 
     /*
-     * Обычный браузер / Cloudflare Preview
+     * Обычный браузер / Cloudflare Preview.
      */
 
+    state.telegram = false;
+
+    state.authorized = false;
+
+
     state.user = {
+
         id: 0,
-        first_name: "Студент",
-        last_name: "",
-        username: ""
+
+        first_name:
+            "Студент",
+
+        last_name:
+            "",
+
+        username:
+            ""
+
     };
 
+
     state.profile = {
-        program_code: "6В05102",
-        program_name: "Biology — sanitary epidemiology",
-        semester: 2,
-        progress: 0
+
+        program_code:
+            "6В05102",
+
+        program_name:
+            "Biology — sanitary epidemiology",
+
+        semester:
+            2,
+
+        progress:
+            0
+
     };
+
 
     return false;
 }
 
 
-/* -----------------------------
-   USER HELPERS
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| USER HELPERS
+|--------------------------------------------------------------------------
+*/
 
 function getUserName() {
 
@@ -1888,16 +2650,23 @@ function getUserName() {
         return "Студент";
     }
 
+
     const first =
-        state.user.first_name || "";
+        state.user.first_name ||
+        "";
+
 
     const last =
-        state.user.last_name || "";
+        state.user.last_name ||
+        "";
+
 
     const full =
         `${first} ${last}`.trim();
 
-    return full || "Студент";
+
+    return full ||
+        "Студент";
 }
 
 
@@ -1907,10 +2676,33 @@ function getUsername() {
         state.user &&
         state.user.username
     ) {
-        return "@" + state.user.username;
+        return "@" +
+            state.user.username;
     }
 
-    return "Telegram";
+
+    if (state.telegram) {
+        return "Telegram";
+    }
+
+
+    return "Предпросмотр";
+}
+
+
+function getTelegramId() {
+
+    if (
+        state.user &&
+        state.user.id
+    ) {
+        return String(
+            state.user.id
+        );
+    }
+
+
+    return "—";
 }
 
 
@@ -1922,15 +2714,19 @@ function getInitials(name) {
             .split(/\s+/)
             .filter(Boolean);
 
+
     if (!parts.length) {
         return "С";
     }
 
+
     if (parts.length === 1) {
+
         return parts[0]
             .slice(0, 1)
             .toUpperCase();
     }
+
 
     return (
         parts[0].slice(0, 1) +
@@ -1939,21 +2735,96 @@ function getInitials(name) {
 }
 
 
-/* -----------------------------
-   PROFILE
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| AVATAR
+|--------------------------------------------------------------------------
+*/
+
+function setAvatar(
+    containerId,
+    user
+) {
+
+    const container =
+        document.getElementById(
+            containerId
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const name =
+        getUserName();
+
+
+    const photo =
+        getTelegramPhotoUrl(
+            user
+        );
+
+
+    container.innerHTML = "";
+
+
+    if (photo) {
+
+        const img =
+            document.createElement(
+                "img"
+            );
+
+
+        img.src = photo;
+
+        img.alt = name;
+
+
+        img.onerror = () => {
+
+            container.innerHTML =
+                escapeHtml(
+                    getInitials(name)
+                );
+        };
+
+
+        container.appendChild(
+            img
+        );
+
+        return;
+    }
+
+
+    container.textContent =
+        getInitials(name);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PROFILE
+|--------------------------------------------------------------------------
+*/
 
 function getProfileValue(
     key,
     fallback
 ) {
+
     if (
         state.profile &&
         state.profile[key] !== undefined &&
         state.profile[key] !== null
     ) {
+
         return state.profile[key];
     }
+
 
     return fallback;
 }
@@ -1961,8 +2832,17 @@ function getProfileValue(
 
 function renderUser() {
 
-    const name = getUserName();
-    const username = getUsername();
+    const name =
+        getUserName();
+
+
+    const username =
+        getUsername();
+
+
+    const telegramId =
+        getTelegramId();
+
 
     const programCode =
         getProfileValue(
@@ -1970,17 +2850,20 @@ function renderUser() {
             "6В05102"
         );
 
+
     const programName =
         getProfileValue(
             "program_name",
             "Biology — sanitary epidemiology"
         );
 
+
     const semester =
         getProfileValue(
             "semester",
             2
         );
+
 
     let progress =
         Number(
@@ -1990,99 +2873,176 @@ function renderUser() {
             )
         );
 
-    if (!Number.isFinite(progress)) {
+
+    if (
+        !Number.isFinite(progress)
+    ) {
         progress = 0;
     }
+
 
     progress =
         Math.max(
             0,
-            Math.min(100, progress)
+            Math.min(
+                100,
+                progress
+            )
         );
 
 
+    /*
+     * HOME
+     */
+
     document.getElementById(
         "welcome-name"
-    ).textContent = name;
+    ).textContent =
+        name;
 
 
     document.getElementById(
         "hero-program"
-    ).textContent = programName;
+    ).textContent =
+        programName;
 
 
     document.getElementById(
         "hero-code"
-    ).textContent = programCode;
+    ).textContent =
+        programCode;
 
 
     document.getElementById(
         "hero-semester"
-    ).textContent = semester;
+    ).textContent =
+        semester;
 
 
     document.getElementById(
         "hero-progress"
-    ).textContent = Math.round(progress);
+    ).textContent =
+        Math.round(progress);
 
 
     document.getElementById(
         "progress-fill"
-    ).style.width = progress + "%";
+    ).style.width =
+        progress + "%";
 
+
+    /*
+     * MENU
+     */
 
     document.getElementById(
         "menu-profile-name"
-    ).textContent = name;
+    ).textContent =
+        name;
 
 
     document.getElementById(
         "menu-profile-username"
-    ).textContent = username;
+    ).textContent =
+        username;
 
 
     document.getElementById(
-        "profile-avatar"
+        "menu-profile-auth"
     ).textContent =
-        getInitials(name);
+        state.telegram
+            ? (
+                state.authorized
+                    ? "Telegram авторизован"
+                    : "Telegram подключён"
+            )
+            : "Режим предпросмотра";
+
+
+    setAvatar(
+        "menu-avatar",
+        state.user
+    );
+
+
+    /*
+     * PROFILE
+     */
+
+    setAvatar(
+        "profile-avatar",
+        state.user
+    );
 
 
     document.getElementById(
         "profile-name-big"
-    ).textContent = name;
+    ).textContent =
+        name;
 
 
     document.getElementById(
         "profile-username-big"
-    ).textContent = username;
+    ).textContent =
+        username;
+
+
+    document.getElementById(
+        "profile-telegram-id"
+    ).textContent =
+        telegramId;
 
 
     document.getElementById(
         "profile-program"
-    ).textContent = programName;
+    ).textContent =
+        programName;
 
 
     document.getElementById(
         "profile-code"
-    ).textContent = programCode;
+    ).textContent =
+        programCode;
 
 
     document.getElementById(
         "profile-semester"
-    ).textContent = semester;
+    ).textContent =
+        semester;
+
+
+    /*
+     * STATUS
+     */
+
+    const statusText =
+        document.getElementById(
+            "telegram-status-text"
+        );
+
+
+    if (state.telegram) {
+
+        statusText.textContent =
+            state.authorized
+                ? "Telegram авторизован"
+                : "Telegram подключён";
+
+    } else {
+
+        statusText.textContent =
+            "Открыто в предпросмотре";
+    }
 }
 
 
-/* -----------------------------
-   DATA
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| DATA
+|--------------------------------------------------------------------------
+*/
 
 async function loadData() {
-
-    /*
-     * Эти запросы будут работать
-     * после подключения согласованного backend.
-     */
 
     const [
         curriculum,
@@ -2090,14 +3050,28 @@ async function loadData() {
         exams,
         science
     ] = await Promise.all([
-        apiRequest("/api/curriculum"),
-        apiRequest("/api/schedule"),
-        apiRequest("/api/exams"),
-        apiRequest("/api/science")
+
+        apiRequest(
+            "/api/curriculum"
+        ),
+
+        apiRequest(
+            "/api/schedule"
+        ),
+
+        apiRequest(
+            "/api/exams"
+        ),
+
+        apiRequest(
+            "/api/science"
+        )
+
     ]);
 
 
     if (curriculum) {
+
         state.curriculum =
             curriculum.curriculum ||
             curriculum;
@@ -2105,6 +3079,7 @@ async function loadData() {
 
 
     if (schedule) {
+
         state.schedule =
             schedule.schedule ||
             schedule.items ||
@@ -2113,6 +3088,7 @@ async function loadData() {
 
 
     if (exams) {
+
         state.exams =
             exams.exams ||
             exams.items ||
@@ -2121,6 +3097,7 @@ async function loadData() {
 
 
     if (science) {
+
         state.science =
             science.science ||
             science.items ||
@@ -2129,74 +3106,119 @@ async function loadData() {
 
 
     renderCurriculum();
+
     renderSchedule();
+
     renderExams();
+
     renderScience();
 }
 
 
-/* -----------------------------
-   DEFAULT CURRICULUM
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| DEFAULT CURRICULUM
+|--------------------------------------------------------------------------
+*/
 
 function getDefaultCurriculum() {
 
     return [
+
         {
-            year: "1 курс",
+
+            year:
+                "1 курс",
+
             semesters: [
+
                 {
-                    title: "1 семестр",
+
+                    title:
+                        "1 семестр",
+
                     subjects: [
+
                         {
-                            name: "Общие дисциплины",
+
+                            name:
+                                "Общие дисциплины",
+
                             lessons: [
+
                                 {
-                                    id: "demo-1",
-                                    title: "Введение в обучение",
+
+                                    id:
+                                        "demo-1",
+
+                                    title:
+                                        "Введение в обучение",
+
                                     description:
                                         "Учебный материал пока не добавлен.",
-                                    completed: false
+
+                                    completed:
+                                        false
+
                                 }
+
                             ]
+
                         }
+
                     ]
+
                 }
+
             ]
+
         }
+
     ];
 }
 
 
-/* -----------------------------
-   CURRICULUM NORMALIZATION
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| CURRICULUM
+|--------------------------------------------------------------------------
+*/
 
 function normalizeCurriculum(data) {
 
     if (!data) {
+
         return getDefaultCurriculum();
     }
 
+
     if (Array.isArray(data)) {
+
         return data;
     }
 
+
     if (Array.isArray(data.years)) {
+
         return data.years;
     }
 
+
     if (Array.isArray(data.courses)) {
+
         return data.courses;
     }
+
 
     return getDefaultCurriculum();
 }
 
 
-/* -----------------------------
-   RENDER CURRICULUM
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| RENDER CURRICULUM
+|--------------------------------------------------------------------------
+*/
 
 function renderCurriculum() {
 
@@ -2205,41 +3227,54 @@ function renderCurriculum() {
             "curriculum"
         );
 
+
     const curriculum =
         normalizeCurriculum(
             state.curriculum
         );
 
+
     let totalLessons = 0;
+
     let completedLessons = 0;
 
 
-    curriculum.forEach(year => {
+    curriculum.forEach(
+        year => {
 
-        (year.semesters || [])
-            .forEach(semester => {
+            (year.semesters || [])
+                .forEach(
+                    semester => {
 
-                (semester.subjects || [])
-                    .forEach(subject => {
+                        (semester.subjects || [])
+                            .forEach(
+                                subject => {
 
-                        (subject.lessons || [])
-                            .forEach(lesson => {
+                                    (subject.lessons || [])
+                                        .forEach(
+                                            lesson => {
 
-                                totalLessons++;
+                                                totalLessons++;
 
-                                if (
-                                    lesson.completed
-                                ) {
-                                    completedLessons++;
+
+                                                if (
+                                                    lesson.completed
+                                                ) {
+
+                                                    completedLessons++;
+                                                }
+
+                                            }
+                                        );
+
                                 }
+                            );
 
-                            });
+                    }
+                );
 
-                    });
-
-            });
-
-    });
+        }
+    );
 
 
     document.getElementById(
@@ -2274,9 +3309,15 @@ function renderCurriculum() {
                     const semesters =
                         year.semesters || [];
 
+
                     return `
+
                         <div
-                            class="year-card ${yearIndex === 0 ? "open" : ""}"
+                            class="year-card ${
+                                yearIndex === 0
+                                    ? "open"
+                                    : ""
+                            }"
                         >
 
                             <button
@@ -2286,6 +3327,7 @@ function renderCurriculum() {
                             >
 
                                 <div>
+
                                     <div class="year-title">
                                         ${escapeHtml(
                                             year.title ||
@@ -2303,28 +3345,36 @@ function renderCurriculum() {
                                             "семестров"
                                         )}
                                     </div>
+
                                 </div>
 
                                 <div class="year-arrow">
-                                    ${yearIndex === 0 ? "⌃" : "⌄"}
+                                    ${
+                                        yearIndex === 0
+                                            ? "⌃"
+                                            : "⌄"
+                                    }
                                 </div>
 
                             </button>
 
+
                             <div class="year-content">
 
-                                ${semesters
-                                    .map(
-                                        (
-                                            semester,
-                                            semesterIndex
-                                        ) =>
-                                            renderSemester(
+                                ${
+                                    semesters
+                                        .map(
+                                            (
                                                 semester,
                                                 semesterIndex
-                                            )
-                                    )
-                                    .join("")}
+                                            ) =>
+                                                renderSemester(
+                                                    semester,
+                                                    semesterIndex
+                                                )
+                                        )
+                                        .join("")
+                                }
 
                             </div>
 
@@ -2336,9 +3386,11 @@ function renderCurriculum() {
 }
 
 
-/* -----------------------------
-   RENDER SEMESTER
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| SEMESTER
+|--------------------------------------------------------------------------
+*/
 
 function renderSemester(
     semester,
@@ -2351,14 +3403,21 @@ function renderSemester(
 
     const lessonCount =
         subjects.reduce(
-            (sum, subject) =>
+            (
+                sum,
+                subject
+            ) =>
                 sum +
-                (subject.lessons || []).length,
+                (
+                    subject.lessons ||
+                    []
+                ).length,
             0
         );
 
 
     return `
+
         <div class="semester-card">
 
             <button
@@ -2368,6 +3427,7 @@ function renderSemester(
             >
 
                 <div>
+
                     <div class="semester-title">
                         ${escapeHtml(
                             semester.title ||
@@ -2385,6 +3445,7 @@ function renderSemester(
                             "уроков"
                         )}
                     </div>
+
                 </div>
 
                 <div class="semester-arrow">
@@ -2392,6 +3453,7 @@ function renderSemester(
                 </div>
 
             </button>
+
 
             <div class="semester-content">
 
@@ -2423,9 +3485,11 @@ function renderSemester(
 }
 
 
-/* -----------------------------
-   RENDER SUBJECT
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| SUBJECT
+|--------------------------------------------------------------------------
+*/
 
 function renderSubject(
     subject,
@@ -2444,6 +3508,7 @@ function renderSubject(
 
 
     return `
+
         <div class="subject">
 
             <button
@@ -2453,6 +3518,7 @@ function renderSubject(
             >
 
                 <div>
+
                     <div class="subject-name">
                         ${escapeHtml(
                             subject.name ||
@@ -2460,6 +3526,7 @@ function renderSubject(
                             `Предмет ${subjectIndex + 1}`
                         )}
                     </div>
+
                 </div>
 
                 <div class="subject-progress">
@@ -2467,6 +3534,7 @@ function renderSubject(
                 </div>
 
             </button>
+
 
             <div class="lessons">
 
@@ -2494,9 +3562,11 @@ function renderSubject(
 }
 
 
-/* -----------------------------
-   LESSON ROW
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| LESSON ROW
+|--------------------------------------------------------------------------
+*/
 
 function renderLessonRow(lesson) {
 
@@ -2507,6 +3577,7 @@ function renderLessonRow(lesson) {
 
 
     return `
+
         <button
             class="lesson-row ${
                 lesson.completed
@@ -2514,7 +3585,9 @@ function renderLessonRow(lesson) {
                     : ""
             }"
             type="button"
-            onclick="openLesson('${escapeJs(String(id))}')"
+            onclick="openLesson('${escapeJs(
+                String(id)
+            )}')"
         >
 
             <div class="lesson-status">
@@ -2524,6 +3597,7 @@ function renderLessonRow(lesson) {
                         : "•"
                 }
             </div>
+
 
             <div class="lesson-info">
 
@@ -2549,6 +3623,7 @@ function renderLessonRow(lesson) {
 
             </div>
 
+
             <div class="arrow">
                 →
             </div>
@@ -2558,23 +3633,33 @@ function renderLessonRow(lesson) {
 }
 
 
-/* -----------------------------
-   OPEN LESSON
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| OPEN LESSON
+|--------------------------------------------------------------------------
+*/
 
 async function openLesson(id) {
 
-    showPage("lesson");
+    showPage(
+        "lesson"
+    );
+
 
     const container =
         document.getElementById(
             "lesson-container"
         );
 
+
     container.innerHTML = `
+
         <div class="loading">
+
             <div class="loader"></div>
+
             Загрузка урока...
+
         </div>
     `;
 
@@ -2597,11 +3682,6 @@ async function openLesson(id) {
     }
 
 
-    /*
-     * Если backend ещё не подключён,
-     * ищем урок в локальной программе.
-     */
-
     if (!lesson) {
 
         const curriculum =
@@ -2609,32 +3689,45 @@ async function openLesson(id) {
                 state.curriculum
             );
 
+
         for (
-            const year of curriculum
+            const year
+            of curriculum
         ) {
 
             for (
                 const semester
-                of (year.semesters || [])
+                of (
+                    year.semesters ||
+                    []
+                )
             ) {
 
                 for (
                     const subject
-                    of (semester.subjects || [])
+                    of (
+                        semester.subjects ||
+                        []
+                    )
                 ) {
 
                     for (
                         const item
-                        of (subject.lessons || [])
+                        of (
+                            subject.lessons ||
+                            []
+                        )
                     ) {
 
                         if (
                             String(
                                 item.id
-                            ) === String(id)
+                            ) ===
+                            String(id)
                         ) {
 
                             lesson = {
+
                                 ...item,
 
                                 subject:
@@ -2642,6 +3735,7 @@ async function openLesson(id) {
 
                                 semester:
                                     semester.title
+
                             };
 
                         }
@@ -2660,24 +3754,32 @@ async function openLesson(id) {
     if (!lesson) {
 
         container.innerHTML = `
+
             <div class="error-box">
                 Урок не найден.
             </div>
+
         `;
 
         return;
     }
 
 
-    state.currentLesson = lesson;
+    state.currentLesson =
+        lesson;
 
-    renderLesson(lesson);
+
+    renderLesson(
+        lesson
+    );
 }
 
 
-/* -----------------------------
-   RENDER LESSON
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| RENDER LESSON
+|--------------------------------------------------------------------------
+*/
 
 function renderLesson(lesson) {
 
@@ -2717,6 +3819,7 @@ function renderLesson(lesson) {
                 )}
             </div>
 
+
             <div class="lesson-page-title">
                 ${escapeHtml(
                     lesson.title ||
@@ -2724,6 +3827,7 @@ function renderLesson(lesson) {
                     "Учебный урок"
                 )}
             </div>
+
 
             ${
                 lesson.description
@@ -2844,9 +3948,11 @@ function renderLesson(lesson) {
 }
 
 
-/* -----------------------------
-   COMPLETE LESSON
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| COMPLETE LESSON
+|--------------------------------------------------------------------------
+*/
 
 async function completeLesson(id) {
 
@@ -2856,11 +3962,14 @@ async function completeLesson(id) {
             encodeURIComponent(id) +
             "/complete",
             {
-                method: "POST",
+                method:
+                    "POST",
 
-                body: JSON.stringify({
-                    lesson_id: id
-                })
+                body:
+                    JSON.stringify({
+                        lesson_id:
+                            id
+                    })
             }
         );
 
@@ -2869,17 +3978,21 @@ async function completeLesson(id) {
         result &&
         result.lesson
     ) {
+
         state.currentLesson =
             result.lesson;
+
     } else if (
         state.currentLesson
     ) {
+
         state.currentLesson.completed =
             true;
     }
 
 
     if (state.currentLesson) {
+
         renderLesson(
             state.currentLesson
         );
@@ -2890,9 +4003,11 @@ async function completeLesson(id) {
 }
 
 
-/* -----------------------------
-   PROGRESS
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| PROGRESS
+|--------------------------------------------------------------------------
+*/
 
 function updateProgressFromLocalData() {
 
@@ -2903,29 +4018,41 @@ function updateProgressFromLocalData() {
 
 
     let total = 0;
+
     let completed = 0;
 
 
     curriculum.forEach(
         year => {
 
-            (year.semesters || [])
+            (
+                year.semesters ||
+                []
+            )
                 .forEach(
                     semester => {
 
-                        (semester.subjects || [])
+                        (
+                            semester.subjects ||
+                            []
+                        )
                             .forEach(
                                 subject => {
 
-                                    (subject.lessons || [])
+                                    (
+                                        subject.lessons ||
+                                        []
+                                    )
                                         .forEach(
                                             lesson => {
 
                                                 total++;
 
+
                                                 if (
                                                     lesson.completed
                                                 ) {
+
                                                     completed++;
                                                 }
 
@@ -2980,9 +4107,11 @@ function updateProgressFromLocalData() {
 }
 
 
-/* -----------------------------
-   SCHEDULE
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| SCHEDULE
+|--------------------------------------------------------------------------
+*/
 
 function renderSchedule() {
 
@@ -3000,9 +4129,11 @@ function renderSchedule() {
     ) {
 
         container.innerHTML = `
+
             <div class="empty">
                 Расписание пока не добавлено.
             </div>
+
         `;
 
         return;
@@ -3060,16 +4191,17 @@ function renderSchedule() {
                         </div>
 
                     </div>
-
                 `
             )
             .join("");
 }
 
 
-/* -----------------------------
-   EXAMS
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| EXAMS
+|--------------------------------------------------------------------------
+*/
 
 function renderExams() {
 
@@ -3087,9 +4219,11 @@ function renderExams() {
     ) {
 
         container.innerHTML = `
+
             <div class="empty">
                 Информация об экзаменах пока не добавлена.
             </div>
+
         `;
 
         return;
@@ -3145,9 +4279,11 @@ function renderExams() {
 }
 
 
-/* -----------------------------
-   SCIENCE
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| SCIENCE
+|--------------------------------------------------------------------------
+*/
 
 function renderScience() {
 
@@ -3165,9 +4301,11 @@ function renderScience() {
     ) {
 
         container.innerHTML = `
+
             <div class="empty">
                 Научные материалы пока не добавлены.
             </div>
+
         `;
 
         return;
@@ -3223,19 +4361,25 @@ function renderScience() {
 }
 
 
-/* -----------------------------
-   NAVIGATION
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| NAVIGATION
+|--------------------------------------------------------------------------
+*/
 
 function showPage(name) {
 
     document
-        .querySelectorAll(".page")
+        .querySelectorAll(
+            ".page"
+        )
         .forEach(
             page => {
+
                 page.classList.remove(
                     "active"
                 );
+
             }
         );
 
@@ -3267,18 +4411,24 @@ function showPage(name) {
 
 
 function navigateMenu(page) {
+
     showPage(page);
 }
 
 
 function continueLearning() {
-    showPage("lessons");
+
+    showPage(
+        "lessons"
+    );
 }
 
 
-/* -----------------------------
-   MENU
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| MENU
+|--------------------------------------------------------------------------
+*/
 
 function openMenu() {
 
@@ -3286,14 +4436,18 @@ function openMenu() {
         .getElementById(
             "overlay"
         )
-        .classList.add("open");
+        .classList.add(
+            "open"
+        );
 
 
     document
         .getElementById(
             "side-menu"
         )
-        .classList.add("open");
+        .classList.add(
+            "open"
+        );
 
 
     document.body.style.overflow =
@@ -3307,14 +4461,18 @@ function closeMenu() {
         .getElementById(
             "overlay"
         )
-        .classList.remove("open");
+        .classList.remove(
+            "open"
+        );
 
 
     document
         .getElementById(
             "side-menu"
         )
-        .classList.remove("open");
+        .classList.remove(
+            "open"
+        );
 
 
     document.body.style.overflow =
@@ -3322,9 +4480,11 @@ function closeMenu() {
 }
 
 
-/* -----------------------------
-   ACCORDIONS
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| ACCORDIONS
+|--------------------------------------------------------------------------
+*/
 
 function toggleYear(button) {
 
@@ -3351,6 +4511,7 @@ function toggleYear(button) {
 
 
     if (arrow) {
+
         arrow.textContent =
             card.classList.contains(
                 "open"
@@ -3386,6 +4547,7 @@ function toggleSemester(button) {
 
 
     if (arrow) {
+
         arrow.textContent =
             card.classList.contains(
                 "open"
@@ -3415,42 +4577,57 @@ function toggleSubject(button) {
 }
 
 
-/* -----------------------------
-   ADMIN
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| ADMIN
+|--------------------------------------------------------------------------
+*/
 
 function openAdmin() {
 
     closeMenu();
 
-    /*
-     * Пока backend/admin ещё не меняем.
-     * После подключения backend здесь
-     * будет открываться админ-панель.
-     */
 
     const url =
         "/admin/";
 
-    if (
-        window.Telegram &&
-        window.Telegram.WebApp
-    ) {
-        window.Telegram.WebApp.openLink(
-            url
-        );
-    } else {
-        window.open(
-            url,
-            "_blank"
-        );
+
+    const tg =
+        getTelegramWebApp();
+
+
+    if (tg) {
+
+        try {
+
+            tg.openLink(
+                url
+            );
+
+            return;
+
+        } catch (error) {
+
+            console.warn(
+                error
+            );
+        }
     }
+
+
+    window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+    );
 }
 
 
-/* -----------------------------
-   EXTERNAL LINKS
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| EXTERNAL
+|--------------------------------------------------------------------------
+*/
 
 function openExternal(url) {
 
@@ -3466,10 +4643,18 @@ function openExternal(url) {
     if (tg) {
 
         try {
-            tg.openLink(url);
+
+            tg.openLink(
+                url
+            );
+
             return;
+
         } catch (error) {
-            console.warn(error);
+
+            console.warn(
+                error
+            );
         }
     }
 
@@ -3482,13 +4667,17 @@ function openExternal(url) {
 }
 
 
-/* -----------------------------
-   HTML ESCAPING
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| ESCAPING
+|--------------------------------------------------------------------------
+*/
 
 function escapeHtml(value) {
 
-    return String(value ?? "")
+    return String(
+        value ?? ""
+    )
         .replace(
             /&/g,
             "&amp;"
@@ -3513,13 +4702,18 @@ function escapeHtml(value) {
 
 
 function escapeAttr(value) {
-    return escapeHtml(value);
+
+    return escapeHtml(
+        value
+    );
 }
 
 
 function escapeJs(value) {
 
-    return String(value ?? "")
+    return String(
+        value ?? ""
+    )
         .replace(
             /\\/g,
             "\\\\"
@@ -3543,9 +4737,11 @@ function escapeJs(value) {
 }
 
 
-/* -----------------------------
-   PLURAL
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| PLURAL
+|--------------------------------------------------------------------------
+*/
 
 function plural(
     number,
@@ -3559,6 +4755,7 @@ function plural(
             Number(number)
         ) % 100;
 
+
     const n1 =
         n % 10;
 
@@ -3567,11 +4764,13 @@ function plural(
         n > 10 &&
         n < 20
     ) {
+
         return many;
     }
 
 
     if (n1 === 1) {
+
         return one;
     }
 
@@ -3580,6 +4779,7 @@ function plural(
         n1 >= 2 &&
         n1 <= 4
     ) {
+
         return few;
     }
 
@@ -3588,9 +4788,11 @@ function plural(
 }
 
 
-/* -----------------------------
-   TELEGRAM INIT
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| TELEGRAM INIT
+|--------------------------------------------------------------------------
+*/
 
 function initTelegram() {
 
@@ -3609,25 +4811,30 @@ function initTelegram() {
 
         tg.expand();
 
+
         if (
             typeof tg.setHeaderColor ===
             "function"
         ) {
+
             tg.setHeaderColor(
                 "#f5f6f3"
             );
         }
 
+
         if (
             typeof tg.setBackgroundColor ===
             "function"
         ) {
+
             tg.setBackgroundColor(
                 "#f5f6f3"
             );
         }
 
     } catch (error) {
+
         console.warn(
             "Telegram initialization error:",
             error
@@ -3636,9 +4843,11 @@ function initTelegram() {
 }
 
 
-/* -----------------------------
-   APP START
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| APP START
+|--------------------------------------------------------------------------
+*/
 
 async function startApp() {
 
@@ -3651,28 +4860,19 @@ async function startApp() {
     renderUser();
 
 
-    document
-        .getElementById(
-            "home-loading"
-        )
-        .classList.add(
-            "hidden"
-        );
+    document.getElementById(
+        "home-loading"
+    ).classList.add(
+        "hidden"
+    );
 
 
-    document
-        .getElementById(
-            "home-content"
-        )
-        .classList.remove(
-            "hidden"
-        );
+    document.getElementById(
+        "home-content"
+    ).classList.remove(
+        "hidden"
+    );
 
-
-    /*
-     * Показываем приложение сразу.
-     * Backend может быть подключён позже.
-     */
 
     renderCurriculum();
 
@@ -3684,8 +4884,8 @@ async function startApp() {
 
 
     /*
-     * После запуска пробуем получить
-     * актуальные данные backend.
+     * Пытаемся получить
+     * данные backend.
      */
 
     await loadData();
@@ -3695,9 +4895,11 @@ async function startApp() {
 }
 
 
-/* -----------------------------
-   GLOBAL ERROR PROTECTION
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| ERROR PROTECTION
+|--------------------------------------------------------------------------
+*/
 
 window.addEventListener(
     "error",
@@ -3708,11 +4910,6 @@ window.addEventListener(
             event.error ||
             event.message
         );
-
-        /*
-         * Не показываем пользователю
-         * белый экран из-за JS-ошибки.
-         */
     }
 );
 
@@ -3725,14 +4922,15 @@ window.addEventListener(
             "Unhandled promise rejection:",
             event.reason
         );
-
     }
 );
 
 
-/* -----------------------------
-   START
------------------------------ */
+/*
+|--------------------------------------------------------------------------
+| START
+|--------------------------------------------------------------------------
+*/
 
 if (
     document.readyState ===
