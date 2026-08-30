@@ -4,7 +4,6 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // CORS
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -13,7 +12,7 @@ export default {
     }
 
     try {
-      // Проверка работоспособности
+      // Проверка Worker + D1
       if (url.pathname === "/api/health") {
         return json({
           ok: true,
@@ -22,7 +21,7 @@ export default {
         });
       }
 
-      // Регистрация / вход через Telegram
+      // Telegram authentication
       if (
         url.pathname === "/api/auth/telegram" &&
         request.method === "POST"
@@ -30,12 +29,17 @@ export default {
         return await telegramAuth(request, env);
       }
 
+      // Все остальные запросы отдаём frontend
+      if (env.ASSETS) {
+        return env.ASSETS.fetch(request);
+      }
+
       return json(
         {
           ok: false,
-          error: "Not found"
+          error: "Frontend assets are not configured"
         },
-        404
+        500
       );
 
     } catch (error) {
@@ -116,7 +120,6 @@ async function telegramAuth(request, env) {
   }
 
   const telegramUser = verification.user;
-
   const telegramId = Number(telegramUser.id);
 
   if (!Number.isSafeInteger(telegramId)) {
@@ -134,8 +137,7 @@ async function telegramAuth(request, env) {
   const lastName = telegramUser.last_name || null;
 
   let user = await env.DB
-    .prepare(
-      `
+    .prepare(`
       SELECT
         id,
         telegram_id,
@@ -151,16 +153,13 @@ async function telegramAuth(request, env) {
         updated_at
       FROM users
       WHERE telegram_id = ?
-      `
-    )
+    `)
     .bind(telegramId)
     .first();
 
-  // Новый пользователь
   if (!user) {
     const result = await env.DB
-      .prepare(
-        `
+      .prepare(`
         INSERT INTO users (
           telegram_id,
           username,
@@ -170,8 +169,7 @@ async function telegramAuth(request, env) {
           status
         )
         VALUES (?, ?, ?, ?, 'student', 'active')
-        `
-      )
+      `)
       .bind(
         telegramId,
         username,
@@ -181,8 +179,7 @@ async function telegramAuth(request, env) {
       .run();
 
     user = await env.DB
-      .prepare(
-        `
+      .prepare(`
         SELECT
           id,
           telegram_id,
@@ -198,15 +195,14 @@ async function telegramAuth(request, env) {
           updated_at
         FROM users
         WHERE id = ?
-        `
-      )
+      `)
       .bind(result.meta.last_row_id)
       .first();
+
   } else {
-    // Обновляем данные Telegram при каждом входе
+
     await env.DB
-      .prepare(
-        `
+      .prepare(`
         UPDATE users
         SET
           username = ?,
@@ -214,8 +210,7 @@ async function telegramAuth(request, env) {
           last_name = ?,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-        `
-      )
+      `)
       .bind(
         username,
         firstName,
@@ -225,8 +220,7 @@ async function telegramAuth(request, env) {
       .run();
 
     user = await env.DB
-      .prepare(
-        `
+      .prepare(`
         SELECT
           id,
           telegram_id,
@@ -242,8 +236,7 @@ async function telegramAuth(request, env) {
           updated_at
         FROM users
         WHERE id = ?
-        `
-      )
+      `)
       .bind(user.id)
       .first();
   }
@@ -258,17 +251,18 @@ async function telegramAuth(request, env) {
     );
   }
 
-  // Заблокированный пользователь
   if (user.status === "blocked") {
-    return json({
-      ok: false,
-      error: "USER_BLOCKED",
-      message: "Доступ к аккаунту заблокирован.",
-      user: safeUser(user)
-    }, 403);
+    return json(
+      {
+        ok: false,
+        error: "USER_BLOCKED",
+        message: "Доступ к аккаунту заблокирован.",
+        user: safeUser(user)
+      },
+      403
+    );
   }
 
-  // Ограниченный пользователь
   if (user.status === "restricted") {
     return json({
       ok: true,
