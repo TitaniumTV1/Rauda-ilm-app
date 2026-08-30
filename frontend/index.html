@@ -1,943 +1,2084 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <title>RAUDA ILM</title>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <style>
-        :root {
-            --green: #123c32;
-            --green-2: #1c5546;
-            --green-light: #e6eee9;
-            --gold: #c5a46d;
-
-            --cream: #f7f5ef;
-            --white: #ffffff;
-            --text: #18201d;
-            --muted: #7b827e;
-            --line: #e5e5df;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100%;
-        }
-
-        body {
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "SF Pro Display",
-                "Segoe UI",
-                Roboto,
-                Arial,
-                sans-serif;
-
-            background: var(--cream);
-            color: var(--text);
-        }
-
-        button {
-            font: inherit;
-        }
-
-        .app {
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        /* HEADER */
-
-        .header {
-            position: relative;
-            z-index: 10;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding:
-                calc(15px + env(safe-area-inset-top))
-                18px
-                14px;
-
-            background: var(--cream);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-mark {
-            width: 36px;
-            height: 36px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 11px;
-
-            background: var(--green);
-            color: white;
-
-            font-size: 14px;
-            font-weight: 800;
-            letter-spacing: .5px;
-        }
-
-        .logo-name {
-            font-size: 18px;
-            font-weight: 800;
-            letter-spacing: .4px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>RAUDA ILM</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+:root {
+    --green: #123c32;
+    --green-2: #1c5546;
+    --green-light: #e6eee9;
+    --gold: #c5a46d;
+
+    --cream: #f7f5ef;
+    --white: #ffffff;
+    --text: #18201d;
+    --muted: #7b827e;
+    --line: #e5e5df;
+    --danger: #9b3d35;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
+
+body {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+
+    background: var(--cream);
+    color: var(--text);
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.app {
+    min-height: 100vh;
+}
+
+/* HEADER */
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding:
+        calc(12px + env(safe-area-inset-top))
+        18px
+        12px;
+
+    background: rgba(247,245,239,.94);
+    backdrop-filter: blur(15px);
+
+    border-bottom: 1px solid rgba(0,0,0,.03);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    border: 0;
+    background: transparent;
+    color: var(--text);
+
+    padding: 0;
+}
+
+.logo-mark {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-        .menu-button {
-            width: 42px;
-            height: 42px;
+    border-radius: 11px;
 
-            border: 1px solid var(--line);
-            border-radius: 13px;
+    background: var(--green);
+    color: white;
 
-            background: rgba(255,255,255,.65);
+    font-size: 14px;
+    font-weight: 800;
+}
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+.logo-name {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: .4px;
+}
 
-            cursor: pointer;
-        }
+.menu-button {
+    width: 42px;
+    height: 42px;
 
-        .hamburger {
-            width: 19px;
-            height: 14px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
 
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+    background: rgba(255,255,255,.7);
 
-        .hamburger span {
-            height: 2px;
-            width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-            border-radius: 10px;
-            background: var(--green);
-        }
+.hamburger {
+    width: 19px;
+    height: 14px;
 
-        /* MAIN */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
 
-        .content {
-            max-width: 720px;
-            margin: 0 auto;
+.hamburger span {
+    width: 100%;
+    height: 2px;
 
-            padding:
-                8px
-                18px
-                calc(35px + env(safe-area-inset-bottom));
-        }
+    border-radius: 10px;
+    background: var(--green);
+}
 
-        .welcome {
-            margin: 14px 2px 20px;
-        }
+/* CONTENT */
 
-        .welcome-small {
-            color: var(--muted);
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
+.content {
+    width: 100%;
+    max-width: 720px;
 
-        .welcome-name {
-            font-size: 30px;
-            line-height: 1.12;
-            font-weight: 800;
-            letter-spacing: -.8px;
-        }
+    margin: 0 auto;
 
-        /* HERO */
+    padding:
+        10px 18px
+        calc(40px + env(safe-area-inset-bottom));
+}
 
-        .hero {
-            position: relative;
-            overflow: hidden;
+/* PAGES */
 
-            padding: 23px;
+.page {
+    display: none;
+}
 
-            border-radius: 26px;
+.page.active {
+    display: block;
+}
 
-            background:
-                linear-gradient(
-                    135deg,
-                    var(--green),
-                    #1a4d40
-                );
+/* HOME */
 
-            color: white;
+.welcome {
+    margin: 15px 2px 20px;
+}
 
-            box-shadow:
-                0 15px 35px rgba(18,60,50,.18);
-        }
+.welcome-small {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 5px;
+}
 
-        .hero::before {
-            content: "";
+.welcome-name {
+    font-size: 30px;
+    line-height: 1.12;
+    font-weight: 800;
+    letter-spacing: -.8px;
+}
 
-            position: absolute;
-            width: 210px;
-            height: 210px;
+.hero {
+    position: relative;
+    overflow: hidden;
 
-            right: -75px;
-            top: -70px;
+    padding: 23px;
 
-            border: 1px solid rgba(255,255,255,.12);
-            transform: rotate(45deg);
+    border-radius: 26px;
 
-            box-shadow:
-                0 0 0 22px rgba(255,255,255,.025),
-                0 0 0 44px rgba(255,255,255,.025),
-                0 0 0 66px rgba(255,255,255,.025);
-        }
+    background:
+        linear-gradient(
+            135deg,
+            var(--green),
+            #1a4d40
+        );
 
-        .hero::after {
-            content: "";
+    color: white;
 
-            position: absolute;
-            width: 130px;
-            height: 130px;
+    box-shadow:
+        0 15px 35px rgba(18,60,50,.18);
+}
 
-            right: -35px;
-            bottom: -55px;
+.hero::before {
+    content: "";
 
-            border: 1px solid rgba(255,255,255,.1);
-            transform: rotate(45deg);
-        }
+    position: absolute;
 
-        .hero-label {
-            position: relative;
-            z-index: 1;
+    width: 210px;
+    height: 210px;
 
-            color: rgba(255,255,255,.65);
+    right: -75px;
+    top: -70px;
 
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.3px;
-            text-transform: uppercase;
-        }
+    border: 1px solid rgba(255,255,255,.12);
 
-        .hero-program {
-            position: relative;
-            z-index: 1;
+    transform: rotate(45deg);
 
-            margin-top: 9px;
+    box-shadow:
+        0 0 0 22px rgba(255,255,255,.025),
+        0 0 0 44px rgba(255,255,255,.025),
+        0 0 0 66px rgba(255,255,255,.025);
+}
 
-            max-width: 90%;
+.hero-label {
+    position: relative;
+    z-index: 1;
 
-            font-size: 21px;
-            line-height: 1.3;
-            font-weight: 750;
-        }
+    color: rgba(255,255,255,.65);
 
-        .hero-bottom {
-            position: relative;
-            z-index: 1;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+}
 
-            margin-top: 20px;
+.hero-program {
+    position: relative;
+    z-index: 1;
 
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-        }
+    margin-top: 9px;
 
-        .semester {
-            color: rgba(255,255,255,.75);
-            font-size: 13px;
-        }
+    font-size: 21px;
+    line-height: 1.3;
+    font-weight: 750;
+}
 
-        .semester strong {
-            display: block;
+.hero-bottom {
+    position: relative;
+    z-index: 1;
 
-            margin-top: 4px;
+    margin-top: 20px;
 
-            color: white;
-            font-size: 15px;
-        }
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
 
-        .progress-number {
-            font-size: 25px;
-            font-weight: 800;
-        }
+.semester {
+    color: rgba(255,255,255,.75);
+    font-size: 13px;
+}
 
-        .progress-line {
-            position: relative;
-            z-index: 1;
+.semester strong {
+    display: block;
 
-            height: 5px;
+    margin-top: 4px;
 
-            margin-top: 17px;
+    color: white;
+    font-size: 15px;
+}
 
-            overflow: hidden;
+.progress-number {
+    font-size: 25px;
+    font-weight: 800;
+}
 
-            border-radius: 10px;
-            background: rgba(255,255,255,.17);
-        }
+.progress-line {
+    position: relative;
+    z-index: 1;
 
-        .progress-fill {
-            width: 68%;
-            height: 100%;
+    height: 5px;
 
-            border-radius: 10px;
+    margin-top: 17px;
 
-            background: var(--gold);
-        }
+    overflow: hidden;
 
-        /* CONTINUE */
+    border-radius: 10px;
 
-        .continue {
-            width: 100%;
+    background: rgba(255,255,255,.17);
+}
 
-            margin-top: 13px;
-            padding: 16px 18px;
+.progress-fill {
+    width: 0%;
+    height: 100%;
 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+    border-radius: 10px;
 
-            border: 0;
-            border-radius: 17px;
+    background: var(--gold);
 
-            background: var(--white);
+    transition: width .3s ease;
+}
 
-            color: var(--green);
+/* BUTTONS */
 
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.045);
+.primary-button {
+    width: 100%;
 
-            cursor: pointer;
-        }
+    border: 0;
+    border-radius: 14px;
 
-        .continue-left {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
+    padding: 14px 16px;
 
-        .continue-label {
-            font-size: 12px;
-            color: var(--muted);
-        }
+    background: var(--green);
+    color: white;
 
-        .continue-title {
-            margin-top: 3px;
+    font-weight: 700;
+}
 
-            font-size: 15px;
-            font-weight: 750;
-        }
+.secondary-button {
+    width: 100%;
 
-        .arrow {
-            width: 36px;
-            height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    padding: 13px 16px;
 
-            border-radius: 11px;
+    background: white;
+    color: var(--green);
 
-            background: var(--green-light);
+    font-weight: 700;
+}
 
-            font-size: 18px;
-        }
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
 
-        /* QUICK ACTIONS */
+    margin: 3px 0 18px;
 
-        .section {
-            margin-top: 25px;
-        }
+    border: 0;
+    background: transparent;
 
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+    color: var(--green);
 
-            margin-bottom: 12px;
-        }
+    padding: 5px 0;
 
-        .section-title {
-            font-size: 18px;
-            font-weight: 800;
-        }
+    font-weight: 700;
+}
 
-        .quick-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 11px;
-        }
+/* CONTINUE */
 
-        .quick-card {
-            min-height: 112px;
+.continue {
+    width: 100%;
 
-            padding: 17px;
+    margin-top: 13px;
+    padding: 16px 18px;
 
-            border: 1px solid rgba(0,0,0,.035);
-            border-radius: 19px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-            background: white;
+    border: 0;
+    border-radius: 17px;
 
-            text-align: left;
+    background: white;
+    color: var(--green);
 
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.035);
+    box-shadow:
+        0 5px 18px rgba(0,0,0,.045);
+}
 
-            cursor: pointer;
-        }
+.continue-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
 
-        .quick-icon {
-            width: 36px;
-            height: 36px;
+.continue-label {
+    font-size: 12px;
+    color: var(--muted);
+}
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+.continue-title {
+    margin-top: 3px;
 
-            border-radius: 11px;
+    font-size: 15px;
+    font-weight: 750;
+}
 
-            background: var(--green-light);
-            color: var(--green);
+.arrow {
+    width: 36px;
+    height: 36px;
 
-            font-size: 17px;
-            font-weight: 800;
-        }
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-        .quick-title {
-            margin-top: 13px;
+    border-radius: 11px;
 
-            font-size: 14px;
-            font-weight: 750;
-        }
+    background: var(--green-light);
 
-        .quick-description {
-            margin-top: 3px;
+    font-size: 18px;
+}
 
-            color: var(--muted);
-            font-size: 11px;
-        }
+/* SECTIONS */
 
-        /* LESSON */
+.section {
+    margin-top: 25px;
+}
 
-        .lesson {
-            padding: 18px;
+.section-title {
+    margin-bottom: 12px;
 
-            border-radius: 20px;
+    font-size: 18px;
+    font-weight: 800;
+}
 
-            background: white;
+.quick-grid {
+    display: grid;
 
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.04);
-        }
+    grid-template-columns: 1fr 1fr;
 
-        .lesson-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    gap: 11px;
+}
 
-        .lesson-subject {
-            color: var(--green);
+.quick-card {
+    min-height: 112px;
 
-            font-size: 12px;
-            font-weight: 750;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-        }
+    padding: 17px;
 
-        .lesson-number {
-            color: var(--muted);
-            font-size: 12px;
-        }
+    border: 1px solid rgba(0,0,0,.035);
+    border-radius: 19px;
 
-        .lesson-title {
-            margin-top: 10px;
+    background: white;
 
-            font-size: 18px;
-            line-height: 1.3;
-            font-weight: 800;
-        }
+    text-align: left;
 
-        .lesson-description {
-            margin-top: 7px;
+    box-shadow:
+        0 5px 18px rgba(0,0,0,.035);
+}
 
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.5;
-        }
+.quick-icon {
+    width: 36px;
+    height: 36px;
 
-        .lesson-button {
-            width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-            margin-top: 16px;
-            padding: 13px;
+    border-radius: 11px;
 
-            border: 0;
-            border-radius: 12px;
+    background: var(--green-light);
+    color: var(--green);
 
-            background: var(--green);
-            color: white;
+    font-size: 12px;
+    font-weight: 800;
+}
 
-            font-size: 14px;
-            font-weight: 700;
+.quick-title {
+    margin-top: 13px;
 
-            cursor: pointer;
-        }
+    font-size: 14px;
+    font-weight: 750;
+}
 
-        /* MENU */
+.quick-description {
+    margin-top: 3px;
 
-        .overlay {
-            position: fixed;
-            inset: 0;
+    color: var(--muted);
 
-            z-index: 40;
+    font-size: 11px;
+}
 
-            background: rgba(5,20,16,.35);
-            backdrop-filter: blur(3px);
+/* PAGE HEADER */
 
-            opacity: 0;
-            pointer-events: none;
+.page-header {
+    margin: 17px 0 20px;
+}
 
-            transition: .25s ease;
-        }
+.page-header h1 {
+    margin: 0;
 
-        .overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
+    font-size: 28px;
+    line-height: 1.15;
+}
 
-        .side-menu {
-            position: fixed;
+.page-header p {
+    margin: 7px 0 0;
 
-            top: 0;
-            right: 0;
-            bottom: 0;
+    color: var(--muted);
 
-            z-index: 50;
+    font-size: 13px;
+    line-height: 1.5;
+}
 
-            width: min(330px, 88vw);
+/* LEARNING */
 
-            padding:
-                calc(18px + env(safe-area-inset-top))
-                18px
-                calc(25px + env(safe-area-inset-bottom));
+.learning-summary {
+    display: grid;
 
-            background: #fafaf7;
+    grid-template-columns: 1fr 1fr;
 
-            transform: translateX(100%);
-            transition: transform .27s cubic-bezier(.2,.8,.2,1);
+    gap: 10px;
 
-            box-shadow:
-                -20px 0 45px rgba(0,0,0,.12);
-        }
+    margin-bottom: 20px;
+}
 
-        .side-menu.open {
-            transform: translateX(0);
-        }
+.summary-card {
+    padding: 15px;
 
-        .menu-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+    border-radius: 17px;
 
-            margin-bottom: 22px;
-        }
+    background: white;
+}
 
-        .menu-title {
-            font-size: 21px;
-            font-weight: 800;
-        }
+.summary-number {
+    font-size: 23px;
+    font-weight: 800;
 
-        .close {
-            width: 40px;
-            height: 40px;
+    color: var(--green);
+}
 
-            border: 0;
-            border-radius: 12px;
+.summary-label {
+    margin-top: 4px;
 
-            background: #ecece7;
+    color: var(--muted);
 
-            font-size: 22px;
+    font-size: 12px;
+}
 
-            cursor: pointer;
-        }
+.year-card {
+    margin-bottom: 12px;
 
-        .profile-card {
-            padding: 16px;
+    border-radius: 19px;
 
-            border-radius: 17px;
+    overflow: hidden;
 
-            background: var(--green);
-            color: white;
-        }
+    background: white;
 
-        .profile-name {
-            font-size: 16px;
-            font-weight: 750;
-        }
+    box-shadow:
+        0 5px 18px rgba(0,0,0,.035);
+}
 
-        .profile-username {
-            margin-top: 4px;
+.year-header {
+    width: 100%;
 
-            color: rgba(255,255,255,.62);
-            font-size: 12px;
-        }
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-        .menu-list {
-            margin-top: 22px;
+    padding: 17px;
 
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+    border: 0;
 
-        .menu-item {
-            width: 100%;
+    background: white;
 
-            display: flex;
-            align-items: center;
-            gap: 13px;
+    text-align: left;
+}
 
-            padding: 13px;
+.year-title {
+    font-size: 17px;
+    font-weight: 800;
+}
 
-            border: 0;
-            border-radius: 13px;
+.year-subtitle {
+    margin-top: 3px;
 
-            background: transparent;
+    color: var(--muted);
 
-            color: var(--text);
+    font-size: 12px;
+}
 
-            text-align: left;
+.year-arrow {
+    color: var(--green);
 
-            font-size: 14px;
-            font-weight: 650;
+    transition: transform .2s ease;
+}
 
-            cursor: pointer;
-        }
+.year-card.open .year-arrow {
+    transform: rotate(180deg);
+}
 
-        .menu-item:active {
-            background: #e9ebe5;
-        }
+.year-content {
+    display: none;
 
-        .menu-item-icon {
-            width: 34px;
-            height: 34px;
+    padding: 0 12px 12px;
+}
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+.year-card.open .year-content {
+    display: block;
+}
 
-            border-radius: 10px;
+.semester-card {
+    margin-top: 7px;
 
-            background: #e8eee9;
-            color: var(--green);
+    border: 1px solid var(--line);
+    border-radius: 15px;
 
-            font-size: 13px;
-            font-weight: 800;
-        }
+    overflow: hidden;
+}
 
-        /* LOADING */
+.semester-header {
+    width: 100%;
 
-        .loading {
-            padding: 80px 20px;
+    padding: 14px;
 
-            text-align: center;
-            color: var(--muted);
-        }
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-        .loader {
-            width: 28px;
-            height: 28px;
+    border: 0;
 
-            margin: 0 auto 12px;
+    background: #fafaf7;
 
-            border: 3px solid #dfe5df;
-            border-top-color: var(--green);
+    text-align: left;
+}
 
-            border-radius: 50%;
+.semester-title {
+    font-size: 14px;
+    font-weight: 750;
+}
 
-            animation: spin .7s linear infinite;
-        }
+.semester-count {
+    color: var(--muted);
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+    font-size: 11px;
+}
 
-        @media (min-width: 600px) {
-            .content {
-                padding-left: 25px;
-                padding-right: 25px;
-            }
-        }
-    </style>
+.semester-content {
+    display: none;
+
+    padding: 8px;
+}
+
+.semester-card.open .semester-content {
+    display: block;
+}
+
+.subject {
+    margin-bottom: 7px;
+
+    border-radius: 13px;
+
+    background: white;
+
+    border: 1px solid #eeeeea;
+}
+
+.subject-header {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 13px;
+
+    border: 0;
+
+    background: transparent;
+
+    text-align: left;
+}
+
+.subject-name {
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.subject-progress {
+    color: var(--muted);
+
+    font-size: 11px;
+}
+
+.lessons {
+    display: none;
+
+    padding: 0 8px 8px;
+}
+
+.subject.open .lessons {
+    display: block;
+}
+
+.lesson-row {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 12px;
+
+    margin-top: 5px;
+
+    border: 0;
+    border-radius: 12px;
+
+    background: #f8f8f4;
+
+    text-align: left;
+}
+
+.lesson-status {
+    width: 27px;
+    height: 27px;
+
+    flex: 0 0 27px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #e4e7e2;
+
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+.lesson-row.completed .lesson-status {
+    background: var(--green);
+    color: white;
+}
+
+.lesson-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.lesson-row-title {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.lesson-meta {
+    margin-top: 3px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+}
+
+.lesson-chevron {
+    color: var(--muted);
+}
+
+/* LESSON PAGE */
+
+.lesson-page-card {
+    padding: 19px;
+
+    border-radius: 20px;
+
+    background: white;
+
+    box-shadow: 0 5px 18px rgba(0,0,0,.04);
+}
+
+.lesson-tag {
+    color: var(--green);
+
+    font-size: 11px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: .5px;
+}
+
+.lesson-page-title {
+    margin-top: 9px;
+
+    font-size: 23px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.lesson-page-description {
+    margin-top: 9px;
+
+    color: var(--muted);
+
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.media-block {
+    margin-top: 18px;
+}
+
+.media-title {
+    margin-bottom: 8px;
+
+    font-size: 13px;
+    font-weight: 750;
+}
+
+video,
+audio {
+    width: 100%;
+
+    border-radius: 13px;
+
+    background: #111;
+}
+
+.audio-player {
+    padding: 12px;
+
+    border-radius: 14px;
+
+    background: var(--green-light);
+}
+
+.material-block {
+    margin-top: 18px;
+
+    padding: 15px;
+
+    border-radius: 15px;
+
+    background: #fafaf7;
+}
+
+.material-title {
+    font-weight: 750;
+    font-size: 14px;
+}
+
+.material-text {
+    margin-top: 7px;
+
+    color: var(--muted);
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.complete-button {
+    margin-top: 18px;
+}
+
+/* GENERIC CARDS */
+
+.info-card {
+    padding: 18px;
+
+    margin-bottom: 11px;
+
+    border-radius: 18px;
+
+    background: white;
+
+    box-shadow:
+        0 5px 18px rgba(0,0,0,.035);
+}
+
+.info-card-title {
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.info-card-text {
+    margin-top: 6px;
+
+    color: var(--muted);
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* ADMIN */
+
+.admin-warning {
+    padding: 15px;
+
+    margin-bottom: 15px;
+
+    border-radius: 15px;
+
+    background: #f2e9e5;
+
+    color: var(--danger);
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.admin-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 10px;
+}
+
+.admin-card {
+    min-height: 110px;
+
+    padding: 16px;
+
+    border: 1px solid var(--line);
+    border-radius: 17px;
+
+    background: white;
+
+    text-align: left;
+}
+
+.admin-card-number {
+    font-size: 21px;
+    font-weight: 800;
+
+    color: var(--green);
+}
+
+.admin-card-title {
+    margin-top: 8px;
+
+    font-size: 13px;
+    font-weight: 750;
+}
+
+/* FORMS */
+
+.form-card {
+    padding: 18px;
+
+    border-radius: 18px;
+
+    background: white;
+}
+
+.form-group {
+    margin-bottom: 13px;
+}
+
+.form-label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    width: 100%;
+
+    border: 1px solid var(--line);
+    border-radius: 12px;
+
+    padding: 12px;
+
+    background: #fafaf7;
+
+    outline: none;
+}
+
+.form-textarea {
+    min-height: 100px;
+
+    resize: vertical;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    border-color: var(--green);
+}
+
+/* MENU */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 40;
+
+    background: rgba(5,20,16,.35);
+
+    backdrop-filter: blur(3px);
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: .25s ease;
+}
+
+.overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.side-menu {
+    position: fixed;
+
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 50;
+
+    width: min(330px, 88vw);
+
+    padding:
+        calc(18px + env(safe-area-inset-top))
+        18px
+        calc(25px + env(safe-area-inset-bottom));
+
+    overflow-y: auto;
+
+    background: #fafaf7;
+
+    transform: translateX(100%);
+
+    transition:
+        transform .27s cubic-bezier(.2,.8,.2,1);
+
+    box-shadow:
+        -20px 0 45px rgba(0,0,0,.12);
+}
+
+.side-menu.open {
+    transform: translateX(0);
+}
+
+.menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 22px;
+}
+
+.menu-title {
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.close {
+    width: 40px;
+    height: 40px;
+
+    border: 0;
+    border-radius: 12px;
+
+    background: #ecece7;
+
+    font-size: 22px;
+}
+
+.profile-card {
+    padding: 16px;
+
+    border-radius: 17px;
+
+    background: var(--green);
+
+    color: white;
+}
+
+.profile-name {
+    font-size: 16px;
+    font-weight: 750;
+}
+
+.profile-username {
+    margin-top: 4px;
+
+    color: rgba(255,255,255,.62);
+
+    font-size: 12px;
+}
+
+.menu-list {
+    margin-top: 22px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.menu-item {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    padding: 13px;
+
+    border: 0;
+    border-radius: 13px;
+
+    background: transparent;
+
+    color: var(--text);
+
+    text-align: left;
+
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.menu-item:active {
+    background: #e9ebe5;
+}
+
+.menu-item-icon {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #e8eee9;
+
+    color: var(--green);
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.admin-menu-item {
+    margin-top: 10px;
+
+    color: var(--green);
+
+    background: var(--green-light);
+}
+
+/* LOADING */
+
+.loading {
+    padding: 80px 20px;
+
+    text-align: center;
+
+    color: var(--muted);
+}
+
+.loader {
+    width: 28px;
+    height: 28px;
+
+    margin: 0 auto 12px;
+
+    border: 3px solid #dfe5df;
+    border-top-color: var(--green);
+
+    border-radius: 50%;
+
+    animation: spin .7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* MOBILE */
+
+@media (max-width: 430px) {
+
+    .welcome-name {
+        font-size: 28px;
+    }
+
+    .hero {
+        padding: 20px;
+    }
+
+    .quick-grid,
+    .admin-grid {
+        gap: 8px;
+    }
+}
+</style>
 </head>
 
 <body>
 
 <div class="app">
 
-    <header class="header">
+<header class="header">
 
-        <div class="logo">
-            <div class="logo-mark">RI</div>
-            <div class="logo-name">RAUDA ILM</div>
+    <button class="logo" id="homeLogo">
+
+        <div class="logo-mark">RI</div>
+
+        <div class="logo-name">
+            RAUDA ILM
         </div>
 
-        <button class="menu-button" id="menuButton">
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
+    </button>
+
+    <button class="menu-button" id="menuButton">
+
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+    </button>
+
+</header>
+
+
+<main class="content">
+
+<div id="loading" class="loading">
+
+    <div class="loader"></div>
+
+    Загрузка...
+
+</div>
+
+
+<!-- ================= HOME ================= -->
+
+<section id="page-home" class="page active">
+
+    <div class="welcome">
+
+        <div class="welcome-small">
+            Ассаляму алейкум,
+        </div>
+
+        <div
+            class="welcome-name"
+            id="userName">
+            Пользователь
+        </div>
+
+    </div>
+
+
+    <section class="hero">
+
+        <div class="hero-label">
+            Моё обучение
+        </div>
+
+        <div
+            class="hero-program"
+            id="programName">
+            Основы исламских наук
+        </div>
+
+        <div class="hero-bottom">
+
+            <div class="semester">
+
+                Текущий семестр
+
+                <strong id="semesterName">
+                    1 семестр
+                </strong>
+
             </div>
-        </button>
 
-    </header>
+            <div class="progress-number">
+                <span id="progressNumber">
+                    0
+                </span>%
+            </div>
 
-    <main class="content">
-
-        <div id="loading" class="loading">
-            <div class="loader"></div>
-            Загрузка...
         </div>
 
-        <div id="dashboard" style="display:none;">
+        <div class="progress-line">
 
-            <section class="welcome">
-                <div class="welcome-small">
-                    Ассаляму алейкум,
+            <div
+                class="progress-fill"
+                id="progressFill">
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <button
+        class="continue"
+        data-page="learning">
+
+        <div class="continue-left">
+
+            <div class="continue-label">
+                Продолжить обучение
+            </div>
+
+            <div
+                class="continue-title"
+                id="continueLesson">
+                Введение в исламские науки
+            </div>
+
+        </div>
+
+        <div class="arrow">
+            →
+        </div>
+
+    </button>
+
+
+    <section class="section">
+
+        <div class="section-title">
+            Быстрый доступ
+        </div>
+
+        <div class="quick-grid">
+
+            <button
+                class="quick-card"
+                data-page="learning">
+
+                <div class="quick-icon">
+                    01
                 </div>
 
-                <div class="welcome-name" id="userName">
-                    Пользователь
-                </div>
-            </section>
-
-
-            <section class="hero">
-
-                <div class="hero-label">
+                <div class="quick-title">
                     Моё обучение
                 </div>
 
-                <div class="hero-program" id="programName">
-                    Основы исламских наук
-                </div>
-
-                <div class="hero-bottom">
-
-                    <div class="semester">
-                        Текущий семестр
-
-                        <strong id="semesterName">
-                            1 семестр
-                        </strong>
-                    </div>
-
-                    <div>
-                        <div class="progress-number">
-                            68%
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="progress-line">
-                    <div class="progress-fill"></div>
-                </div>
-
-            </section>
-
-
-            <button class="continue">
-
-                <div class="continue-left">
-
-                    <div class="continue-label">
-                        Продолжить обучение
-                    </div>
-
-                    <div class="continue-title">
-                        <span id="continueLesson">
-                            Введение в исламские науки
-                        </span>
-                    </div>
-
-                </div>
-
-                <div class="arrow">
-                    →
+                <div class="quick-description">
+                    Учебная программа
                 </div>
 
             </button>
 
 
-            <section class="section">
+            <button
+                class="quick-card"
+                data-page="schedule">
 
-                <div class="section-header">
-                    <div class="section-title">
-                        Быстрый доступ
-                    </div>
+                <div class="quick-icon">
+                    02
                 </div>
 
-                <div class="quick-grid">
-
-                    <button class="quick-card">
-
-                        <div class="quick-icon">
-                            01
-                        </div>
-
-                        <div class="quick-title">
-                            Мои уроки
-                        </div>
-
-                        <div class="quick-description">
-                            Учебная программа
-                        </div>
-
-                    </button>
-
-
-                    <button class="quick-card">
-
-                        <div class="quick-icon">
-                            02
-                        </div>
-
-                        <div class="quick-title">
-                            Расписание
-                        </div>
-
-                        <div class="quick-description">
-                            Занятия и события
-                        </div>
-
-                    </button>
-
-
-                    <button class="quick-card">
-
-                        <div class="quick-icon">
-                            03
-                        </div>
-
-                        <div class="quick-title">
-                            Экзамены
-                        </div>
-
-                        <div class="quick-description">
-                            Тесты и результаты
-                        </div>
-
-                    </button>
-
-
-                    <button class="quick-card">
-
-                        <div class="quick-icon">
-                            04
-                        </div>
-
-                        <div class="quick-title">
-                            Научные
-                        </div>
-
-                        <div class="quick-description">
-                            Материалы и статьи
-                        </div>
-
-                    </button>
-
+                <div class="quick-title">
+                    Расписание
                 </div>
 
-            </section>
-
-
-            <section class="section">
-
-                <div class="section-header">
-
-                    <div class="section-title">
-                        Последний урок
-                    </div>
-
+                <div class="quick-description">
+                    Занятия и события
                 </div>
 
-                <div class="lesson">
+            </button>
 
-                    <div class="lesson-top">
 
-                        <div class="lesson-subject">
-                            Учебный материал
-                        </div>
+            <button
+                class="quick-card"
+                data-page="exams">
 
-                        <div class="lesson-number">
-                            Урок 01
-                        </div>
-
-                    </div>
-
-                    <div
-                        class="lesson-title"
-                        id="lessonTitle"
-                    >
-                        Введение в исламские науки
-                    </div>
-
-                    <div
-                        class="lesson-description"
-                        id="lessonDescription"
-                    >
-                        Продолжите обучение с того места,
-                        где остановились.
-                    </div>
-
-                    <button class="lesson-button">
-                        Перейти к уроку
-                    </button>
-
+                <div class="quick-icon">
+                    03
                 </div>
 
-            </section>
+                <div class="quick-title">
+                    Экзамены
+                </div>
+
+                <div class="quick-description">
+                    Тесты и результаты
+                </div>
+
+            </button>
+
+
+            <button
+                class="quick-card"
+                data-page="materials">
+
+                <div class="quick-icon">
+                    04
+                </div>
+
+                <div class="quick-title">
+                    Материалы
+                </div>
+
+                <div class="quick-description">
+                    Книги и статьи
+                </div>
+
+            </button>
 
         </div>
 
-    </main>
+    </section>
+
+
+    <section class="section">
+
+        <div class="section-title">
+            Последний урок
+        </div>
+
+        <div class="lesson-page-card">
+
+            <div class="lesson-tag">
+                Учебный материал
+            </div>
+
+            <div
+                class="lesson-page-title"
+                id="homeLessonTitle">
+                Введение в исламские науки
+            </div>
+
+            <div class="lesson-page-description">
+                Продолжите обучение с того места,
+                где остановились.
+            </div>
+
+            <button
+                class="primary-button"
+                style="margin-top:15px"
+                id="homeLessonButton">
+                Перейти к уроку
+            </button>
+
+        </div>
+
+    </section>
+
+</section>
+
+
+<!-- ================= LEARNING ================= -->
+
+<section id="page-learning" class="page">
+
+    <div class="page-header">
+
+        <button
+            class="back-button"
+            data-page="home">
+            ← Главная
+        </button>
+
+        <h1>
+            Моё обучение
+        </h1>
+
+        <p>
+            Вся учебная программа,
+            семестры, предметы и уроки.
+        </p>
+
+    </div>
+
+
+    <div class="learning-summary">
+
+        <div class="summary-card">
+
+            <div
+                class="summary-number"
+                id="completedCount">
+                0
+            </div>
+
+            <div class="summary-label">
+                Пройдено
+            </div>
+
+        </div>
+
+        <div class="summary-card">
+
+            <div
+                class="summary-number"
+                id="remainingCount">
+                0
+            </div>
+
+            <div class="summary-label">
+                Не пройдено
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div id="programContainer">
+
+        <!-- Программа создаётся JavaScript -->
+
+    </div>
+
+</section>
+
+
+<!-- ================= LESSON ================= -->
+
+<section id="page-lesson" class="page">
+
+    <div class="page-header">
+
+        <button
+            class="back-button"
+            id="lessonBack">
+            ← К обучению
+        </button>
+
+    </div>
+
+
+    <div class="lesson-page-card">
+
+        <div
+            class="lesson-tag"
+            id="lessonSubject">
+            Учебный материал
+        </div>
+
+        <div
+            class="lesson-page-title"
+            id="lessonPageTitle">
+            Урок
+        </div>
+
+        <div
+            class="lesson-page-description"
+            id="lessonPageDescription">
+        </div>
+
+
+        <div
+            class="media-block"
+            id="videoBlock"
+            style="display:none">
+
+            <div class="media-title">
+                Видео
+            </div>
+
+            <video
+                id="lessonVideo"
+                controls
+                playsinline>
+            </video>
+
+        </div>
+
+
+        <div
+            class="media-block"
+            id="audioBlock"
+            style="display:none">
+
+            <div class="media-title">
+                Аудио
+            </div>
+
+            <div class="audio-player">
+
+                <audio
+                    id="lessonAudio"
+                    controls>
+                </audio>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="material-block"
+            id="textBlock">
+
+            <div class="material-title">
+                Материал урока
+            </div>
+
+            <div
+                class="material-text"
+                id="lessonText">
+            </div>
+
+        </div>
+
+
+        <button
+            class="primary-button complete-button"
+            id="completeLessonButton">
+            Отметить как пройденный
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- ================= SCHEDULE ================= -->
+
+<section id="page-schedule" class="page">
+
+    <div class="page-header">
+
+        <button
+            class="back-button"
+            data-page="home">
+            ← Главная
+        </button>
+
+        <h1>
+            Расписание
+        </h1>
+
+        <p>
+            Учебные занятия и события.
+        </p>
+
+    </div>
+
+    <div class="info-card">
+
+        <div class="info-card-title">
+            Расписание пока не добавлено
+        </div>
+
+        <div class="info-card-text">
+            Здесь будут отображаться ваши
+            занятия после подключения учебной программы.
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= EXAMS ================= -->
+
+<section id="page-exams" class="page">
+
+    <div class="page-header">
+
+        <button
+            class="back-button"
+            data-page="home">
+            ← Главная
+        </button>
+
+        <h1>
+            Экзамены
+        </h1>
+
+        <p>
+            Проверка знаний и результаты.
+        </p>
+
+    </div>
+
+    <div class="info-card">
+
+        <div class="info-card-title">
+            Экзамены
+        </div>
+
+        <div class="info-card-text">
+            Здесь будут доступны экзамены
+            по завершённым разделам обучения.
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= MATERIALS ================= -->
+
+<section id="page-materials" class="page">
+
+    <div class="page-header">
+
+        <button
+            class="back-button"
+            data-page="home">
+            ← Главная
+        </button>
+
+        <h1>
+            Научные материалы
+        </h1>
+
+        <p>
+            Книги, статьи, документы и дополнительные материалы.
+        </p>
+
+    </div>
+
+    <div class="info-card">
+
+        <div class="info-card-title">
+            Материалы
+        </div>
+
+        <div class="info-card-text">
+            Раздел будет связан с базой материалов
+            после подключения D1 и R2.
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= CERTIFICATES ================= -->
+
+<section id="page-certificates" class="page">
+
+    <div class="page-header">
+
+        <button
+            class="back-button"
+            data-page="home">
+            ← Главная
+        </button>
+
+        <h1>
+            Сертификаты
+        </h1>
+
+    </div>
+
+    <div class="info-card">
+
+        <div class="info-card-title">
+            Мои сертификаты
+        </div>
+
+        <div class="info-card-text">
+            После завершения семестров
+            и экзаменов здесь появятся сертификаты.
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= PROFILE ================= -->
+
+<section id="page-profile" class="page">
+
+    <div class="page-header">
+
+        <button
+            class="back-button"
+            data-page="home">
+            ← Главная
+        </button>
+
+        <h1>
+            Профиль
+        </h1>
+
+    </div>
+
+    <div class="info-card">
+
+        <div class="info-card-title"
+             id="profilePageName">
+            Пользователь
+        </div>
+
+        <div
+            class="info-card-text"
+            id="profilePageUsername">
+            Telegram
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= ADMIN ================= -->
+
+<section id="page-admin" class="page">
+
+    <div class="page-header">
+
+        <button
+            class="back-button"
+            data-page="home">
+            ← Главная
+        </button>
+
+        <h1>
+            Админ-панель
+        </h1>
+
+        <p>
+            Управление обучением и пользователями.
+        </p>
+
+    </div>
+
+
+    <div class="admin-warning">
+
+        Управление будет доступно только владельцу
+        и назначенным администраторам после серверной
+        проверки прав.
+
+    </div>
+
+
+    <div class="admin-grid">
+
+        <button
+            class="admin-card"
+            data-admin="programs">
+
+            <div class="admin-card-number">
+                01
+            </div>
+
+            <div class="admin-card-title">
+                Учебные программы
+            </div>
+
+        </button>
+
+
+        <button
+            class="admin-card"
+            data-admin="lessons">
+
+            <div class="admin-card-number">
+                02
+            </div>
+
+            <div class="admin-card-title">
+                Уроки
+            </div>
+
+        </button>
+
+
+        <button
+            class="admin-card"
+            data-admin="files">
+
+            <div class="admin-card-number">
+                03
+            </div>
+
+            <div class="admin-card-title">
+                Видео и аудио
+            </div>
+
+        </button>
+
+
+        <button
+            class="admin-card"
+            data-admin="users">
+
+            <div class="admin-card-number">
+                04
+            </div>
+
+            <div class="admin-card-title">
+                Пользователи
+            </div>
+
+        </button>
+
+
+        <button
+            class="admin-card"
+            data-admin="access">
+
+            <div class="admin-card-number">
+                05
+            </div>
+
+            <div class="admin-card-title">
+                Доступ
+            </div>
+
+        </button>
+
+
+        <button
+            class="admin-card"
+            data-admin="admins">
+
+            <div class="admin-card-number">
+                06
+            </div>
+
+            <div class="admin-card-title">
+                Администраторы
+            </div>
+
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- ================= ADMIN EDITOR ================= -->
+
+<section id="page-admin-editor" class="page">
+
+    <div class="page-header">
+
+        <button
+            class="back-button"
+            data-page="admin">
+            ← Админ-панель
+        </button>
+
+        <h1 id="adminEditorTitle">
+            Управление
+        </h1>
+
+    </div>
+
+
+    <div class="form-card">
+
+        <div class="form-group">
+
+            <label class="form-label">
+                Название
+            </label>
+
+            <input
+                class="form-input"
+                id="adminNameInput"
+                placeholder="Введите название">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label class="form-label">
+                Описание
+            </label>
+
+            <textarea
+                class="form-textarea"
+                id="adminDescriptionInput"
+                placeholder="Описание">
+            </textarea>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label class="form-label">
+                Тип материала
+            </label>
+
+            <select
+                class="form-select"
+                id="adminTypeInput">
+
+                <option value="lesson">
+                    Урок
+                </option>
+
+                <option value="video">
+                    Видео
+                </option>
+
+                <option value="audio">
+                    Аудио
+                </option>
+
+                <option value="pdf">
+                    PDF
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label class="form-label">
+                Файл
+            </label>
+
+            <input
+                class="form-input"
+                type="file"
+                id="adminFileInput">
+
+        </div>
+
+
+        <button
+            class="primary-button"
+            id="adminSaveButton">
+            Сохранить
+        </button>
+
+    </div>
+
+</section>
+
+</main>
 
 </div>
 
 
-<div class="overlay" id="overlay"></div>
+<!-- ================= MENU ================= -->
+
+<div
+    class="overlay"
+    id="overlay">
+</div>
 
 
-<aside class="side-menu" id="sideMenu">
+<aside
+    class="side-menu"
+    id="sideMenu">
 
     <div class="menu-header">
 
-        <div class="menu-title">
-            RАUDA ILM
-        </div>
+        <button
+            class="logo"
+            id="menuLogo">
 
-        <button class="close" id="closeButton">
+            <div class="logo-mark">
+                RI
+            </div>
+
+            <div class="menu-title">
+                RAUDA ILM
+            </div>
+
+        </button>
+
+
+        <button
+            class="close"
+            id="closeButton">
             ×
         </button>
 
@@ -946,11 +2087,15 @@
 
     <div class="profile-card">
 
-        <div class="profile-name" id="profileName">
+        <div
+            class="profile-name"
+            id="profileName">
             Пользователь
         </div>
 
-        <div class="profile-username" id="profileUsername">
+        <div
+            class="profile-username"
+            id="profileUsername">
             Telegram
         </div>
 
@@ -959,34 +2104,95 @@
 
     <div class="menu-list">
 
-        <button class="menu-item">
-            <span class="menu-item-icon">01</span>
-            Мои уроки
+        <button
+            class="menu-item"
+            data-page="learning">
+
+            <span class="menu-item-icon">
+                01
+            </span>
+
+            Моё обучение
+
         </button>
 
-        <button class="menu-item">
-            <span class="menu-item-icon">02</span>
+
+        <button
+            class="menu-item"
+            data-page="schedule">
+
+            <span class="menu-item-icon">
+                02
+            </span>
+
             Расписание
+
         </button>
 
-        <button class="menu-item">
-            <span class="menu-item-icon">03</span>
+
+        <button
+            class="menu-item"
+            data-page="exams">
+
+            <span class="menu-item-icon">
+                03
+            </span>
+
             Экзамены
+
         </button>
 
-        <button class="menu-item">
-            <span class="menu-item-icon">04</span>
+
+        <button
+            class="menu-item"
+            data-page="materials">
+
+            <span class="menu-item-icon">
+                04
+            </span>
+
             Научные материалы
+
         </button>
 
-        <button class="menu-item">
-            <span class="menu-item-icon">05</span>
+
+        <button
+            class="menu-item"
+            data-page="certificates">
+
+            <span class="menu-item-icon">
+                05
+            </span>
+
             Сертификаты
+
         </button>
 
-        <button class="menu-item">
-            <span class="menu-item-icon">06</span>
+
+        <button
+            class="menu-item"
+            data-page="profile">
+
+            <span class="menu-item-icon">
+                06
+            </span>
+
             Профиль
+
+        </button>
+
+
+        <button
+            class="menu-item admin-menu-item"
+            id="adminMenuButton"
+            style="display:none">
+
+            <span class="menu-item-icon">
+                A
+            </span>
+
+            Админ-панель
+
         </button>
 
     </div>
@@ -996,227 +2202,1385 @@
 
 <script>
 
-    const tg = window.Telegram?.WebApp;
+/* =========================================================
+   TELEGRAM
+========================================================= */
 
-    if (tg) {
-        tg.ready();
-        tg.expand();
+const tg = window.Telegram?.WebApp;
 
-        if (tg.setHeaderColor) {
-            tg.setHeaderColor("#f7f5ef");
+if (tg) {
+
+    tg.ready();
+
+    tg.expand();
+
+    if (tg.setHeaderColor) {
+        tg.setHeaderColor("#f7f5ef");
+    }
+
+    if (tg.setBackgroundColor) {
+        tg.setBackgroundColor("#f7f5ef");
+    }
+}
+
+
+/* =========================================================
+   DEMO DATA
+   Позже эти данные будут приходить из D1.
+========================================================= */
+
+const appData = {
+
+    program: {
+        name: "Основы исламских наук",
+        semester: "1 семестр"
+    },
+
+    years: [
+
+        {
+            title: "1 год",
+            subtitle: "Базовая подготовка",
+
+            semesters: [
+
+                {
+                    title: "1 семестр",
+
+                    subjects: [
+
+                        {
+                            name: "Основы знаний",
+
+                            lessons: [
+
+                                {
+                                    id: 1,
+                                    title: "Введение в исламские науки",
+                                    description:
+                                        "Введение в программу обучения.",
+                                    text:
+                                        "Учебный материал урока.",
+                                    completed: false,
+                                    video: "",
+                                    audio: ""
+                                },
+
+                                {
+                                    id: 2,
+                                    title: "Основы изучения религии",
+                                    description:
+                                        "Основные принципы системного обучения.",
+                                    text:
+                                        "Материал второго урока.",
+                                    completed: false,
+                                    video: "",
+                                    audio: ""
+                                }
+
+                            ]
+                        },
+
+                        {
+                            name: "Коран",
+
+                            lessons: [
+
+                                {
+                                    id: 3,
+                                    title: "Введение в изучение Корана",
+                                    description:
+                                        "Начальный урок.",
+                                    text:
+                                        "Учебный материал.",
+                                    completed: false,
+                                    video: "",
+                                    audio: ""
+                                }
+
+                            ]
+                        }
+
+                    ]
+                },
+
+                {
+                    title: "2 семестр",
+
+                    subjects: [
+
+                        {
+                            name: "Хадис",
+
+                            lessons: []
+
+                        }
+
+                    ]
+                }
+
+            ]
+        },
+
+        {
+            title: "2 год",
+            subtitle: "Углублённое обучение",
+
+            semesters: [
+
+                {
+                    title: "3 семестр",
+
+                    subjects: [
+
+                        {
+                            name: "Акыда",
+
+                            lessons: []
+
+                        }
+
+                    ]
+                }
+
+            ]
+        },
+
+        {
+            title: "3 год",
+            subtitle: "Продолжение обучения",
+
+            semesters: [
+
+                {
+                    title: "Продвинутый уровень",
+
+                    subjects: [
+
+                        {
+                            name: "Фикх",
+
+                            lessons: []
+
+                        }
+
+                    ]
+                }
+
+            ]
         }
 
-        if (tg.setBackgroundColor) {
-            tg.setBackgroundColor("#f7f5ef");
+    ]
+
+};
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const loading =
+    document.getElementById("loading");
+
+const menuButton =
+    document.getElementById("menuButton");
+
+const closeButton =
+    document.getElementById("closeButton");
+
+const sideMenu =
+    document.getElementById("sideMenu");
+
+const overlay =
+    document.getElementById("overlay");
+
+const homeLogo =
+    document.getElementById("homeLogo");
+
+const menuLogo =
+    document.getElementById("menuLogo");
+
+const adminMenuButton =
+    document.getElementById("adminMenuButton");
+
+
+/* =========================================================
+   MENU
+========================================================= */
+
+function openMenu() {
+
+    sideMenu.classList.add("open");
+
+    overlay.classList.add("open");
+}
+
+
+function closeMenu() {
+
+    sideMenu.classList.remove("open");
+
+    overlay.classList.remove("open");
+}
+
+
+menuButton.addEventListener(
+    "click",
+    openMenu
+);
+
+
+closeButton.addEventListener(
+    "click",
+    closeMenu
+);
+
+
+overlay.addEventListener(
+    "click",
+    closeMenu
+);
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function showPage(pageName) {
+
+    document
+        .querySelectorAll(".page")
+        .forEach(page => {
+
+            page.classList.remove("active");
+
+        });
+
+
+    const page =
+        document.getElementById(
+            "page-" + pageName
+        );
+
+
+    if (!page) {
+        return;
+    }
+
+
+    page.classList.add("active");
+
+    closeMenu();
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+document
+    .querySelectorAll("[data-page]")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                showPage(
+                    button.dataset.page
+                );
+
+            }
+        );
+
+    });
+
+
+homeLogo.addEventListener(
+    "click",
+    () => showPage("home")
+);
+
+
+menuLogo.addEventListener(
+    "click",
+    () => showPage("home")
+);
+
+
+/* =========================================================
+   PROGRAM
+========================================================= */
+
+function renderProgram() {
+
+    const container =
+        document.getElementById(
+            "programContainer"
+        );
+
+
+    container.innerHTML = "";
+
+
+    appData.years.forEach(
+        (year, yearIndex) => {
+
+            const yearCard =
+                document.createElement("div");
+
+            yearCard.className =
+                "year-card";
+
+
+            const yearHeader =
+                document.createElement("button");
+
+            yearHeader.className =
+                "year-header";
+
+
+            yearHeader.innerHTML = `
+
+                <div>
+
+                    <div class="year-title">
+                        ${escapeHtml(year.title)}
+                    </div>
+
+                    <div class="year-subtitle">
+                        ${escapeHtml(year.subtitle)}
+                    </div>
+
+                </div>
+
+                <div class="year-arrow">
+                    ▼
+                </div>
+
+            `;
+
+
+            const yearContent =
+                document.createElement("div");
+
+            yearContent.className =
+                "year-content";
+
+
+            year.semesters.forEach(
+                (semester, semesterIndex) => {
+
+                    const semesterCard =
+                        document.createElement("div");
+
+                    semesterCard.className =
+                        "semester-card";
+
+
+                    const semesterHeader =
+                        document.createElement("button");
+
+                    semesterHeader.className =
+                        "semester-header";
+
+
+                    const lessonCount =
+                        semester.subjects.reduce(
+                            (sum, subject) =>
+                                sum + subject.lessons.length,
+                            0
+                        );
+
+
+                    semesterHeader.innerHTML = `
+
+                        <div class="semester-title">
+                            ${escapeHtml(semester.title)}
+                        </div>
+
+                        <div class="semester-count">
+                            ${lessonCount} уроков
+                        </div>
+
+                    `;
+
+
+                    const semesterContent =
+                        document.createElement("div");
+
+                    semesterContent.className =
+                        "semester-content";
+
+
+                    semester.subjects.forEach(
+                        (subject, subjectIndex) => {
+
+                            const subjectBox =
+                                document.createElement("div");
+
+                            subjectBox.className =
+                                "subject";
+
+
+                            const completed =
+                                subject.lessons.filter(
+                                    lesson =>
+                                        lesson.completed
+                                ).length;
+
+
+                            const subjectHeader =
+                                document.createElement("button");
+
+                            subjectHeader.className =
+                                "subject-header";
+
+
+                            subjectHeader.innerHTML = `
+
+                                <div class="subject-name">
+                                    ${escapeHtml(subject.name)}
+                                </div>
+
+                                <div class="subject-progress">
+                                    ${completed}/${subject.lessons.length}
+                                </div>
+
+                            `;
+
+
+                            const lessons =
+                                document.createElement("div");
+
+                            lessons.className =
+                                "lessons";
+
+
+                            subject.lessons.forEach(
+                                lesson => {
+
+                                    const row =
+                                        document.createElement("button");
+
+                                    row.className =
+                                        "lesson-row" +
+                                        (
+                                            lesson.completed
+                                                ? " completed"
+                                                : ""
+                                        );
+
+
+                                    row.innerHTML = `
+
+                                        <div class="lesson-status">
+                                            ${
+                                                lesson.completed
+                                                    ? "✓"
+                                                    : "•"
+                                            }
+                                        </div>
+
+                                        <div class="lesson-info">
+
+                                            <div class="lesson-row-title">
+                                                ${escapeHtml(lesson.title)}
+                                            </div>
+
+                                            <div class="lesson-meta">
+                                                ${
+                                                    lesson.completed
+                                                        ? "Пройдено"
+                                                        : "Не пройдено"
+                                                }
+                                            </div>
+
+                                        </div>
+
+                                        <div class="lesson-chevron">
+                                            →
+                                        </div>
+
+                                    `;
+
+
+                                    row.addEventListener(
+                                        "click",
+                                        () => {
+
+                                            openLesson(
+                                                lesson,
+                                                yearIndex,
+                                                semesterIndex,
+                                                subjectIndex
+                                            );
+
+                                        }
+                                    );
+
+
+                                    lessons.appendChild(row);
+
+                                }
+                            );
+
+
+                            subjectHeader.addEventListener(
+                                "click",
+                                () => {
+
+                                    subjectBox.classList.toggle(
+                                        "open"
+                                    );
+
+                                }
+                            );
+
+
+                            subjectBox.appendChild(
+                                subjectHeader
+                            );
+
+                            subjectBox.appendChild(
+                                lessons
+                            );
+
+                            semesterContent.appendChild(
+                                subjectBox
+                            );
+
+                        }
+                    );
+
+
+                    semesterHeader.addEventListener(
+                        "click",
+                        () => {
+
+                            semesterCard.classList.toggle(
+                                "open"
+                            );
+
+                        }
+                    );
+
+
+                    semesterCard.appendChild(
+                        semesterHeader
+                    );
+
+                    semesterCard.appendChild(
+                        semesterContent
+                    );
+
+                    yearContent.appendChild(
+                        semesterCard
+                    );
+
+                }
+            );
+
+
+            yearHeader.addEventListener(
+                "click",
+                () => {
+
+                    yearCard.classList.toggle(
+                        "open"
+                    );
+
+                }
+            );
+
+
+            yearCard.appendChild(
+                yearHeader
+            );
+
+            yearCard.appendChild(
+                yearContent
+            );
+
+            container.appendChild(
+                yearCard
+            );
+
         }
-    }
-
-
-    const menuButton =
-        document.getElementById("menuButton");
-
-    const closeButton =
-        document.getElementById("closeButton");
-
-    const sideMenu =
-        document.getElementById("sideMenu");
-
-    const overlay =
-        document.getElementById("overlay");
-
-
-    function openMenu() {
-        sideMenu.classList.add("open");
-        overlay.classList.add("open");
-    }
-
-
-    function closeMenu() {
-        sideMenu.classList.remove("open");
-        overlay.classList.remove("open");
-    }
-
-
-    menuButton.addEventListener(
-        "click",
-        openMenu
     );
 
 
-    closeButton.addEventListener(
+    updateProgress();
+}
+
+
+/* =========================================================
+   LESSON
+========================================================= */
+
+let currentLesson = null;
+
+
+function openLesson(
+    lesson,
+    yearIndex,
+    semesterIndex,
+    subjectIndex
+) {
+
+    currentLesson = {
+        lesson,
+        yearIndex,
+        semesterIndex,
+        subjectIndex
+    };
+
+
+    document.getElementById(
+        "lessonSubject"
+    ).textContent =
+        appData.years[yearIndex]
+            .semesters[semesterIndex]
+            .subjects[subjectIndex]
+            .name;
+
+
+    document.getElementById(
+        "lessonPageTitle"
+    ).textContent =
+        lesson.title;
+
+
+    document.getElementById(
+        "lessonPageDescription"
+    ).textContent =
+        lesson.description || "";
+
+
+    document.getElementById(
+        "lessonText"
+    ).textContent =
+        lesson.text || "";
+
+
+    const videoBlock =
+        document.getElementById(
+            "videoBlock"
+        );
+
+    const video =
+        document.getElementById(
+            "lessonVideo"
+        );
+
+
+    if (lesson.video) {
+
+        video.src =
+            lesson.video;
+
+        videoBlock.style.display =
+            "block";
+
+    } else {
+
+        video.pause();
+
+        video.removeAttribute("src");
+
+        video.load();
+
+        videoBlock.style.display =
+            "none";
+    }
+
+
+    const audioBlock =
+        document.getElementById(
+            "audioBlock"
+        );
+
+    const audio =
+        document.getElementById(
+            "lessonAudio"
+        );
+
+
+    if (lesson.audio) {
+
+        audio.src =
+            lesson.audio;
+
+        audioBlock.style.display =
+            "block";
+
+    } else {
+
+        audio.pause();
+
+        audio.removeAttribute("src");
+
+        audio.load();
+
+        audioBlock.style.display =
+            "none";
+    }
+
+
+    const completeButton =
+        document.getElementById(
+            "completeLessonButton"
+        );
+
+
+    completeButton.textContent =
+        lesson.completed
+            ? "Урок пройден"
+            : "Отметить как пройденный";
+
+
+    completeButton.disabled =
+        lesson.completed;
+
+
+    showPage("lesson");
+}
+
+
+document
+    .getElementById("lessonBack")
+    .addEventListener(
         "click",
-        closeMenu
+        () => showPage("learning")
     );
 
 
-    overlay.addEventListener(
+document
+    .getElementById("completeLessonButton")
+    .addEventListener(
         "click",
-        closeMenu
+        () => {
+
+            if (!currentLesson) {
+                return;
+            }
+
+
+            currentLesson.lesson.completed =
+                true;
+
+
+            document.getElementById(
+                "completeLessonButton"
+            ).textContent =
+                "Урок пройден";
+
+
+            document.getElementById(
+                "completeLessonButton"
+            ).disabled = true;
+
+
+            renderProgram();
+
+            updateProgress();
+
+            saveProgress();
+
+        }
     );
 
 
-    async function authenticateTelegram() {
+/* =========================================================
+   PROGRESS
+========================================================= */
 
-        const loading =
-            document.getElementById("loading");
+function getAllLessons() {
 
-        const dashboard =
-            document.getElementById("dashboard");
+    const lessons = [];
 
 
-        /*
-         * Если страницу открыли обычным браузером,
-         * Telegram initData отсутствует.
-         *
-         * Для тестирования показываем демо.
-         */
+    appData.years.forEach(
+        year => {
 
-        if (!tg || !tg.initData) {
+            year.semesters.forEach(
+                semester => {
 
-            showDemo();
+                    semester.subjects.forEach(
+                        subject => {
 
-            loading.style.display = "none";
-            dashboard.style.display = "block";
+                            subject.lessons.forEach(
+                                lesson => {
 
+                                    lessons.push(
+                                        lesson
+                                    );
+
+                                }
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    return lessons;
+}
+
+
+function updateProgress() {
+
+    const lessons =
+        getAllLessons();
+
+
+    const completed =
+        lessons.filter(
+            lesson =>
+                lesson.completed
+        ).length;
+
+
+    const total =
+        lessons.length;
+
+
+    const remaining =
+        Math.max(
+            total - completed,
+            0
+        );
+
+
+    const percent =
+        total
+            ? Math.round(
+                completed / total * 100
+              )
+            : 0;
+
+
+    document.getElementById(
+        "completedCount"
+    ).textContent =
+        completed;
+
+
+    document.getElementById(
+        "remainingCount"
+    ).textContent =
+        remaining;
+
+
+    document.getElementById(
+        "progressNumber"
+    ).textContent =
+        percent;
+
+
+    document.getElementById(
+        "progressFill"
+    ).style.width =
+        percent + "%";
+}
+
+
+/* =========================================================
+   SAVE PROGRESS
+   Пока локально.
+   Позже заменяем на API / D1.
+========================================================= */
+
+function saveProgress() {
+
+    try {
+
+        localStorage.setItem(
+            "rauda_ilm_progress",
+            JSON.stringify(appData.years)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Progress save error:",
+            error
+        );
+
+    }
+}
+
+
+function loadProgress() {
+
+    try {
+
+        const saved =
+            localStorage.getItem(
+                "rauda_ilm_progress"
+            );
+
+
+        if (!saved) {
             return;
         }
 
 
-        try {
+        const savedYears =
+            JSON.parse(saved);
 
-            const response = await fetch(
-                "/api/auth/auth-debug",
+
+        if (
+            Array.isArray(savedYears)
+        ) {
+
+            appData.years =
+                savedYears;
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Progress load error:",
+            error
+        );
+
+    }
+}
+
+
+/* =========================================================
+   USER
+========================================================= */
+
+function displayUser(user) {
+
+    const fullName = [
+        user.first_name,
+        user.last_name
+    ]
+        .filter(Boolean)
+        .join(" ");
+
+
+    const name =
+        fullName ||
+        user.username ||
+        "Пользователь";
+
+
+    document.getElementById(
+        "userName"
+    ).textContent =
+        name;
+
+
+    document.getElementById(
+        "profileName"
+    ).textContent =
+        name;
+
+
+    document.getElementById(
+        "profilePageName"
+    ).textContent =
+        name;
+
+
+    const username =
+        user.username
+            ? "@" + user.username
+            : "Telegram";
+
+
+    document.getElementById(
+        "profileUsername"
+    ).textContent =
+        username;
+
+
+    document.getElementById(
+        "profilePageUsername"
+    ).textContent =
+        username;
+}
+
+
+function showDemo() {
+
+    displayUser({
+        first_name: "Пользователь"
+    });
+}
+
+
+/* =========================================================
+   TELEGRAM AUTH
+========================================================= */
+
+async function authenticateTelegram() {
+
+    if (!tg || !tg.initData) {
+
+        showDemo();
+
+        finishLoading();
+
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/auth/telegram",
                 {
                     method: "POST",
 
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type":
+                            "application/json"
                     },
 
                     body: JSON.stringify({
-                        initData: tg.initData
+                        initData:
+                            tg.initData
                     })
                 }
             );
 
 
-            const data =
-                await response.json();
+        const text =
+            await response.text();
 
 
-            if (!response.ok || !data.ok) {
-
-                throw new Error(
-                    data.error ||
-                    "Ошибка авторизации"
-                );
-            }
+        let data;
 
 
-            displayUser(data.user);
+        try {
 
-            loading.style.display = "none";
-            dashboard.style.display = "block";
+            data =
+                JSON.parse(text);
 
+        } catch {
 
-        } catch (error) {
+            throw new Error(
+                "Сервер вернул некорректный ответ"
+            );
 
-            console.error(error);
-
-            loading.innerHTML = `
-                <div style="
-                    color:#8b332b;
-                    font-weight:700;
-                    margin-bottom:8px;
-                ">
-                    Не удалось войти
-                </div>
-
-                <div style="
-                    font-size:13px;
-                    line-height:1.5;
-                ">
-                    ${escapeHtml(error.message)}
-                </div>
-            `;
         }
-    }
 
 
-    function displayUser(user) {
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
 
-        const fullName = [
-            user.first_name,
-            user.last_name
-        ]
-        .filter(Boolean)
-        .join(" ");
+            throw new Error(
+                data.error ||
+                "Ошибка авторизации"
+            );
 
-
-        const name =
-            fullName ||
-            user.username ||
-            "Пользователь";
+        }
 
 
-        document.getElementById(
-            "userName"
-        ).textContent = name;
-
-
-        document.getElementById(
-            "profileName"
-        ).textContent = name;
-
-
-        document.getElementById(
-            "profileUsername"
-        ).textContent =
-            user.username
-                ? "@" + user.username
-                : "Telegram";
+        displayUser(
+            data.user
+        );
 
 
         /*
-         * Пока программа и урок тестовые.
+         * Здесь позже сервер также
+         * вернёт роль пользователя:
          *
-         * Следующим этапом подключим реальные
-         * данные из D1.
+         * data.role
+         *
+         * owner
+         * admin
+         * student
          */
+
+
+        if (
+            data.role === "owner" ||
+            data.role === "admin"
+        ) {
+
+            adminMenuButton.style.display =
+                "flex";
+
+        }
+
+
+        finishLoading();
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        loading.innerHTML = `
+
+            <div style="
+                color:#9b3d35;
+                font-weight:700;
+                margin-bottom:8px;
+            ">
+                Не удалось войти
+            </div>
+
+            <div style="
+                font-size:13px;
+                line-height:1.5;
+            ">
+                ${escapeHtml(error.message)}
+            </div>
+
+        `;
+
     }
+}
 
 
-    function showDemo() {
+function finishLoading() {
 
-        document.getElementById(
-            "userName"
-        ).textContent = "Пользователь";
+    loading.style.display =
+        "none";
+
+    document
+        .querySelectorAll(".page")
+        .forEach(
+            page =>
+                page.classList.remove(
+                    "active"
+                )
+        );
 
 
-        document.getElementById(
-            "profileName"
-        ).textContent = "Пользователь";
+    document
+        .getElementById("page-home")
+        .classList.add("active");
+}
 
 
-        document.getElementById(
-            "profileUsername"
-        ).textContent =
-            "Откройте через Telegram";
+/* =========================================================
+   ADMIN
+========================================================= */
+
+adminMenuButton.addEventListener(
+    "click",
+    () => {
+
+        showPage("admin");
+
     }
+);
 
 
-    function escapeHtml(value) {
+document
+    .querySelectorAll("[data-admin]")
+    .forEach(button => {
 
-        return String(value)
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
+        button.addEventListener(
+            "click",
+            () => {
+
+                const type =
+                    button.dataset.admin;
 
 
-    authenticateTelegram();
+                let title =
+                    "Управление";
+
+
+                if (type === "programs") {
+                    title =
+                        "Учебные программы";
+                }
+
+                if (type === "lessons") {
+                    title =
+                        "Уроки";
+                }
+
+                if (type === "files") {
+                    title =
+                        "Видео и аудио";
+                }
+
+                if (type === "users") {
+                    title =
+                        "Пользователи";
+                }
+
+                if (type === "access") {
+                    title =
+                        "Управление доступом";
+                }
+
+                if (type === "admins") {
+                    title =
+                        "Администраторы";
+                }
+
+
+                document.getElementById(
+                    "adminEditorTitle"
+                ).textContent =
+                    title;
+
+
+                showPage(
+                    "admin-editor"
+                );
+
+            }
+        );
+
+    });
+
+
+document
+    .getElementById("adminSaveButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            /*
+             * Сейчас только интерфейс.
+             *
+             * Реальное сохранение будет:
+             *
+             * POST /api/admin/...
+             *
+             * с серверной проверкой роли.
+             */
+
+            alert(
+                "Интерфейс готов. Сохранение подключим через D1 и R2."
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   HOME LAST LESSON
+========================================================= */
+
+document
+    .getElementById("homeLessonButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const lessons =
+                getAllLessons();
+
+
+            const lesson =
+                lessons.find(
+                    item =>
+                        !item.completed
+                ) ||
+                lessons[0];
+
+
+            if (!lesson) {
+                showPage("learning");
+                return;
+            }
+
+
+            let found = null;
+
+
+            appData.years.forEach(
+                (year, yearIndex) => {
+
+                    year.semesters.forEach(
+                        (semester, semesterIndex) => {
+
+                            semester.subjects.forEach(
+                                (subject, subjectIndex) => {
+
+                                    subject.lessons.forEach(
+                                        item => {
+
+                                            if (
+                                                item.id ===
+                                                lesson.id
+                                            ) {
+
+                                                found = {
+                                                    lesson: item,
+                                                    yearIndex,
+                                                    semesterIndex,
+                                                    subjectIndex
+                                                };
+
+                                            }
+
+                                        }
+                                    );
+
+                                }
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+
+            if (found) {
+
+                openLesson(
+                    found.lesson,
+                    found.yearIndex,
+                    found.semesterIndex,
+                    found.subjectIndex
+                );
+
+            }
+
+        }
+    );
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+loadProgress();
+
+renderProgram();
+
+authenticateTelegram();
 
 </script>
 
