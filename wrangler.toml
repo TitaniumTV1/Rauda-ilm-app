@@ -5,6 +5,9 @@ compatibility_date = "2026-08-30"
 [vars]
 APP_NAME = "RAUDA ILM"
 
+[secrets]
+required = ["TELEGRAM_BOT_TOKEN"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "rauda-ilm-db"
