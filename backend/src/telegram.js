@@ -18,16 +18,35 @@ export async function verifyTelegramInitData(initData, botToken) {
             };
         }
 
+        const userRaw = params.get("user");
+
+        if (!userRaw) {
+            return {
+                ok: false,
+                error: "Telegram user data is missing"
+            };
+        }
+
+        // Удаляем hash перед созданием data-check-string
         params.delete("hash");
 
-        const dataCheckString = Array.from(params.entries())
-            .sort((a, b) => a[0].localeCompare(b[0]))
+        // Telegram требует сортировку параметров по ключу
+        const dataCheckString = [...params.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
             .map(([key, value]) => `${key}=${value}`)
             .join("\n");
 
         const encoder = new TextEncoder();
 
-        // Telegram Web Apps secret key
+        /*
+         * Telegram Web Apps:
+         *
+         * secret_key = HMAC-SHA256(
+         *     key = "WebAppData",
+         *     data = botToken
+         * )
+         */
+
         const secretKeyBase = await crypto.subtle.importKey(
             "raw",
             encoder.encode("WebAppData"),
@@ -45,7 +64,14 @@ export async function verifyTelegramInitData(initData, botToken) {
             encoder.encode(botToken)
         );
 
-        // Calculate hash
+        /*
+         * calculated_hash =
+         * HMAC-SHA256(
+         *     key = secretKey,
+         *     data = dataCheckString
+         * )
+         */
+
         const checkKey = await crypto.subtle.importKey(
             "raw",
             secretKey,
@@ -71,27 +97,36 @@ export async function verifyTelegramInitData(initData, botToken) {
             )
             .join("");
 
-        if (calculatedHex !== receivedHash) {
+        /*
+         * Сравниваем hash Telegram
+         */
+
+        if (
+            calculatedHex.toLowerCase() !==
+            receivedHash.toLowerCase()
+        ) {
+            console.error("Telegram hash mismatch");
+
             return {
                 ok: false,
                 error: "Invalid Telegram authentication"
             };
         }
 
-        const userRaw = params.get("user");
-
-        if (!userRaw) {
-            return {
-                ok: false,
-                error: "Telegram user data is missing"
-            };
-        }
+        /*
+         * Разбираем пользователя
+         */
 
         let user;
 
         try {
             user = JSON.parse(userRaw);
-        } catch {
+        } catch (error) {
+            console.error(
+                "Telegram user JSON error:",
+                error
+            );
+
             return {
                 ok: false,
                 error: "Invalid Telegram user data"
@@ -111,6 +146,7 @@ export async function verifyTelegramInitData(initData, botToken) {
         };
 
     } catch (error) {
+
         console.error(
             "Telegram verification error:",
             error
