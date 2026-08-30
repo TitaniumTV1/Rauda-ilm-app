@@ -120,10 +120,19 @@ console.log("Telegram initData length:", initData?.length || 0);
 console.log("Bot token available:", !!env.TELEGRAM_BOT_TOKEN);
 console.log("Bot token length:", env.TELEGRAM_BOT_TOKEN?.length || 0);
 
-  const verification = await verifyTelegramInitData(
-    initData,
-    env.TELEGRAM_BOT_TOKEN
-  );
+  const authParams = new URLSearchParams(initData);
+
+return json({
+    ok: false,
+    debug: true,
+    has_hash: authParams.has("hash"),
+    hash_length: authParams.get("hash")?.length || 0,
+    has_user: authParams.has("user"),
+    user_length: authParams.get("user")?.length || 0,
+    has_auth_date: authParams.has("auth_date"),
+    auth_date: authParams.get("auth_date") ? true : false,
+    init_data_length: initData.length
+});
 
   if (!verification.ok) {
     return json(
