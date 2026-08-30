@@ -2,11 +2,1223 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>RAUDA ILM</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        :root {
+            --green: #123c32;
+            --green-2: #1c5546;
+            --green-light: #e6eee9;
+            --gold: #c5a46d;
+
+            --cream: #f7f5ef;
+            --white: #ffffff;
+            --text: #18201d;
+            --muted: #7b827e;
+            --line: #e5e5df;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "SF Pro Display",
+                "Segoe UI",
+                Roboto,
+                Arial,
+                sans-serif;
+
+            background: var(--cream);
+            color: var(--text);
+        }
+
+        button {
+            font: inherit;
+        }
+
+        .app {
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+
+        .header {
+            position: relative;
+            z-index: 10;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding:
+                calc(15px + env(safe-area-inset-top))
+                18px
+                14px;
+
+            background: var(--cream);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background: var(--green);
+            color: white;
+
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+
+        .logo-name {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: .4px;
+        }
+
+        .menu-button {
+            width: 42px;
+            height: 42px;
+
+            border: 1px solid var(--line);
+            border-radius: 13px;
+
+            background: rgba(255,255,255,.65);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+        }
+
+        .hamburger {
+            width: 19px;
+            height: 14px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .hamburger span {
+            height: 2px;
+            width: 100%;
+
+            border-radius: 10px;
+            background: var(--green);
+        }
+
+        /* MAIN */
+
+        .content {
+            max-width: 720px;
+            margin: 0 auto;
+
+            padding:
+                8px
+                18px
+                calc(35px + env(safe-area-inset-bottom));
+        }
+
+        .welcome {
+            margin: 14px 2px 20px;
+        }
+
+        .welcome-small {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .welcome-name {
+            font-size: 30px;
+            line-height: 1.12;
+            font-weight: 800;
+            letter-spacing: -.8px;
+        }
+
+        /* HERO */
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+
+            padding: 23px;
+
+            border-radius: 26px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--green),
+                    #1a4d40
+                );
+
+            color: white;
+
+            box-shadow:
+                0 15px 35px rgba(18,60,50,.18);
+        }
+
+        .hero::before {
+            content: "";
+
+            position: absolute;
+            width: 210px;
+            height: 210px;
+
+            right: -75px;
+            top: -70px;
+
+            border: 1px solid rgba(255,255,255,.12);
+            transform: rotate(45deg);
+
+            box-shadow:
+                0 0 0 22px rgba(255,255,255,.025),
+                0 0 0 44px rgba(255,255,255,.025),
+                0 0 0 66px rgba(255,255,255,.025);
+        }
+
+        .hero::after {
+            content: "";
+
+            position: absolute;
+            width: 130px;
+            height: 130px;
+
+            right: -35px;
+            bottom: -55px;
+
+            border: 1px solid rgba(255,255,255,.1);
+            transform: rotate(45deg);
+        }
+
+        .hero-label {
+            position: relative;
+            z-index: 1;
+
+            color: rgba(255,255,255,.65);
+
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        .hero-program {
+            position: relative;
+            z-index: 1;
+
+            margin-top: 9px;
+
+            max-width: 90%;
+
+            font-size: 21px;
+            line-height: 1.3;
+            font-weight: 750;
+        }
+
+        .hero-bottom {
+            position: relative;
+            z-index: 1;
+
+            margin-top: 20px;
+
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .semester {
+            color: rgba(255,255,255,.75);
+            font-size: 13px;
+        }
+
+        .semester strong {
+            display: block;
+
+            margin-top: 4px;
+
+            color: white;
+            font-size: 15px;
+        }
+
+        .progress-number {
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .progress-line {
+            position: relative;
+            z-index: 1;
+
+            height: 5px;
+
+            margin-top: 17px;
+
+            overflow: hidden;
+
+            border-radius: 10px;
+            background: rgba(255,255,255,.17);
+        }
+
+        .progress-fill {
+            width: 68%;
+            height: 100%;
+
+            border-radius: 10px;
+
+            background: var(--gold);
+        }
+
+        /* CONTINUE */
+
+        .continue {
+            width: 100%;
+
+            margin-top: 13px;
+            padding: 16px 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            border: 0;
+            border-radius: 17px;
+
+            background: var(--white);
+
+            color: var(--green);
+
+            box-shadow:
+                0 5px 18px rgba(0,0,0,.045);
+
+            cursor: pointer;
+        }
+
+        .continue-left {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .continue-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .continue-title {
+            margin-top: 3px;
+
+            font-size: 15px;
+            font-weight: 750;
+        }
+
+        .arrow {
+            width: 36px;
+            height: 36px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background: var(--green-light);
+
+            font-size: 18px;
+        }
+
+        /* QUICK ACTIONS */
+
+        .section {
+            margin-top: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 11px;
+        }
+
+        .quick-card {
+            min-height: 112px;
+
+            padding: 17px;
+
+            border: 1px solid rgba(0,0,0,.035);
+            border-radius: 19px;
+
+            background: white;
+
+            text-align: left;
+
+            box-shadow:
+                0 5px 18px rgba(0,0,0,.035);
+
+            cursor: pointer;
+        }
+
+        .quick-icon {
+            width: 36px;
+            height: 36px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background: var(--green-light);
+            color: var(--green);
+
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .quick-title {
+            margin-top: 13px;
+
+            font-size: 14px;
+            font-weight: 750;
+        }
+
+        .quick-description {
+            margin-top: 3px;
+
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        /* LESSON */
+
+        .lesson {
+            padding: 18px;
+
+            border-radius: 20px;
+
+            background: white;
+
+            box-shadow:
+                0 5px 18px rgba(0,0,0,.04);
+        }
+
+        .lesson-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .lesson-subject {
+            color: var(--green);
+
+            font-size: 12px;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .lesson-number {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .lesson-title {
+            margin-top: 10px;
+
+            font-size: 18px;
+            line-height: 1.3;
+            font-weight: 800;
+        }
+
+        .lesson-description {
+            margin-top: 7px;
+
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .lesson-button {
+            width: 100%;
+
+            margin-top: 16px;
+            padding: 13px;
+
+            border: 0;
+            border-radius: 12px;
+
+            background: var(--green);
+            color: white;
+
+            font-size: 14px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        /* MENU */
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+
+            z-index: 40;
+
+            background: rgba(5,20,16,.35);
+            backdrop-filter: blur(3px);
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: .25s ease;
+        }
+
+        .overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .side-menu {
+            position: fixed;
+
+            top: 0;
+            right: 0;
+            bottom: 0;
+
+            z-index: 50;
+
+            width: min(330px, 88vw);
+
+            padding:
+                calc(18px + env(safe-area-inset-top))
+                18px
+                calc(25px + env(safe-area-inset-bottom));
+
+            background: #fafaf7;
+
+            transform: translateX(100%);
+            transition: transform .27s cubic-bezier(.2,.8,.2,1);
+
+            box-shadow:
+                -20px 0 45px rgba(0,0,0,.12);
+        }
+
+        .side-menu.open {
+            transform: translateX(0);
+        }
+
+        .menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 22px;
+        }
+
+        .menu-title {
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .close {
+            width: 40px;
+            height: 40px;
+
+            border: 0;
+            border-radius: 12px;
+
+            background: #ecece7;
+
+            font-size: 22px;
+
+            cursor: pointer;
+        }
+
+        .profile-card {
+            padding: 16px;
+
+            border-radius: 17px;
+
+            background: var(--green);
+            color: white;
+        }
+
+        .profile-name {
+            font-size: 16px;
+            font-weight: 750;
+        }
+
+        .profile-username {
+            margin-top: 4px;
+
+            color: rgba(255,255,255,.62);
+            font-size: 12px;
+        }
+
+        .menu-list {
+            margin-top: 22px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .menu-item {
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            gap: 13px;
+
+            padding: 13px;
+
+            border: 0;
+            border-radius: 13px;
+
+            background: transparent;
+
+            color: var(--text);
+
+            text-align: left;
+
+            font-size: 14px;
+            font-weight: 650;
+
+            cursor: pointer;
+        }
+
+        .menu-item:active {
+            background: #e9ebe5;
+        }
+
+        .menu-item-icon {
+            width: 34px;
+            height: 34px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background: #e8eee9;
+            color: var(--green);
+
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* LOADING */
+
+        .loading {
+            padding: 80px 20px;
+
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .loader {
+            width: 28px;
+            height: 28px;
+
+            margin: 0 auto 12px;
+
+            border: 3px solid #dfe5df;
+            border-top-color: var(--green);
+
+            border-radius: 50%;
+
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (min-width: 600px) {
+            .content {
+                padding-left: 25px;
+                padding-right: 25px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <h1>RAUDA ILM</h1>
-    <p>Приложение исламских наук</p>
+
+<div class="app">
+
+    <header class="header">
+
+        <div class="logo">
+            <div class="logo-mark">RI</div>
+            <div class="logo-name">RAUDA ILM</div>
+        </div>
+
+        <button class="menu-button" id="menuButton">
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+
+    </header>
+
+    <main class="content">
+
+        <div id="loading" class="loading">
+            <div class="loader"></div>
+            Загрузка...
+        </div>
+
+        <div id="dashboard" style="display:none;">
+
+            <section class="welcome">
+                <div class="welcome-small">
+                    Ассаляму алейкум,
+                </div>
+
+                <div class="welcome-name" id="userName">
+                    Пользователь
+                </div>
+            </section>
+
+
+            <section class="hero">
+
+                <div class="hero-label">
+                    Моё обучение
+                </div>
+
+                <div class="hero-program" id="programName">
+                    Основы исламских наук
+                </div>
+
+                <div class="hero-bottom">
+
+                    <div class="semester">
+                        Текущий семестр
+
+                        <strong id="semesterName">
+                            1 семестр
+                        </strong>
+                    </div>
+
+                    <div>
+                        <div class="progress-number">
+                            68%
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="progress-line">
+                    <div class="progress-fill"></div>
+                </div>
+
+            </section>
+
+
+            <button class="continue">
+
+                <div class="continue-left">
+
+                    <div class="continue-label">
+                        Продолжить обучение
+                    </div>
+
+                    <div class="continue-title">
+                        <span id="continueLesson">
+                            Введение в исламские науки
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="arrow">
+                    →
+                </div>
+
+            </button>
+
+
+            <section class="section">
+
+                <div class="section-header">
+                    <div class="section-title">
+                        Быстрый доступ
+                    </div>
+                </div>
+
+                <div class="quick-grid">
+
+                    <button class="quick-card">
+
+                        <div class="quick-icon">
+                            01
+                        </div>
+
+                        <div class="quick-title">
+                            Мои уроки
+                        </div>
+
+                        <div class="quick-description">
+                            Учебная программа
+                        </div>
+
+                    </button>
+
+
+                    <button class="quick-card">
+
+                        <div class="quick-icon">
+                            02
+                        </div>
+
+                        <div class="quick-title">
+                            Расписание
+                        </div>
+
+                        <div class="quick-description">
+                            Занятия и события
+                        </div>
+
+                    </button>
+
+
+                    <button class="quick-card">
+
+                        <div class="quick-icon">
+                            03
+                        </div>
+
+                        <div class="quick-title">
+                            Экзамены
+                        </div>
+
+                        <div class="quick-description">
+                            Тесты и результаты
+                        </div>
+
+                    </button>
+
+
+                    <button class="quick-card">
+
+                        <div class="quick-icon">
+                            04
+                        </div>
+
+                        <div class="quick-title">
+                            Научные
+                        </div>
+
+                        <div class="quick-description">
+                            Материалы и статьи
+                        </div>
+
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <section class="section">
+
+                <div class="section-header">
+
+                    <div class="section-title">
+                        Последний урок
+                    </div>
+
+                </div>
+
+                <div class="lesson">
+
+                    <div class="lesson-top">
+
+                        <div class="lesson-subject">
+                            Учебный материал
+                        </div>
+
+                        <div class="lesson-number">
+                            Урок 01
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="lesson-title"
+                        id="lessonTitle"
+                    >
+                        Введение в исламские науки
+                    </div>
+
+                    <div
+                        class="lesson-description"
+                        id="lessonDescription"
+                    >
+                        Продолжите обучение с того места,
+                        где остановились.
+                    </div>
+
+                    <button class="lesson-button">
+                        Перейти к уроку
+                    </button>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<div class="overlay" id="overlay"></div>
+
+
+<aside class="side-menu" id="sideMenu">
+
+    <div class="menu-header">
+
+        <div class="menu-title">
+            RАUDA ILM
+        </div>
+
+        <button class="close" id="closeButton">
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="profile-card">
+
+        <div class="profile-name" id="profileName">
+            Пользователь
+        </div>
+
+        <div class="profile-username" id="profileUsername">
+            Telegram
+        </div>
+
+    </div>
+
+
+    <div class="menu-list">
+
+        <button class="menu-item">
+            <span class="menu-item-icon">01</span>
+            Мои уроки
+        </button>
+
+        <button class="menu-item">
+            <span class="menu-item-icon">02</span>
+            Расписание
+        </button>
+
+        <button class="menu-item">
+            <span class="menu-item-icon">03</span>
+            Экзамены
+        </button>
+
+        <button class="menu-item">
+            <span class="menu-item-icon">04</span>
+            Научные материалы
+        </button>
+
+        <button class="menu-item">
+            <span class="menu-item-icon">05</span>
+            Сертификаты
+        </button>
+
+        <button class="menu-item">
+            <span class="menu-item-icon">06</span>
+            Профиль
+        </button>
+
+    </div>
+
+</aside>
+
+
+<script>
+
+    const tg = window.Telegram?.WebApp;
+
+    if (tg) {
+        tg.ready();
+        tg.expand();
+
+        if (tg.setHeaderColor) {
+            tg.setHeaderColor("#f7f5ef");
+        }
+
+        if (tg.setBackgroundColor) {
+            tg.setBackgroundColor("#f7f5ef");
+        }
+    }
+
+
+    const menuButton =
+        document.getElementById("menuButton");
+
+    const closeButton =
+        document.getElementById("closeButton");
+
+    const sideMenu =
+        document.getElementById("sideMenu");
+
+    const overlay =
+        document.getElementById("overlay");
+
+
+    function openMenu() {
+        sideMenu.classList.add("open");
+        overlay.classList.add("open");
+    }
+
+
+    function closeMenu() {
+        sideMenu.classList.remove("open");
+        overlay.classList.remove("open");
+    }
+
+
+    menuButton.addEventListener(
+        "click",
+        openMenu
+    );
+
+
+    closeButton.addEventListener(
+        "click",
+        closeMenu
+    );
+
+
+    overlay.addEventListener(
+        "click",
+        closeMenu
+    );
+
+
+    async function authenticateTelegram() {
+
+        const loading =
+            document.getElementById("loading");
+
+        const dashboard =
+            document.getElementById("dashboard");
+
+
+        /*
+         * Если страницу открыли обычным браузером,
+         * Telegram initData отсутствует.
+         *
+         * Для тестирования показываем демо.
+         */
+
+        if (!tg || !tg.initData) {
+
+            showDemo();
+
+            loading.style.display = "none";
+            dashboard.style.display = "block";
+
+            return;
+        }
+
+
+        try {
+
+            const response = await fetch(
+                "/api/auth/telegram",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        initData: tg.initData
+                    })
+                }
+            );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok || !data.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Ошибка авторизации"
+                );
+            }
+
+
+            displayUser(data.user);
+
+            loading.style.display = "none";
+            dashboard.style.display = "block";
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            loading.innerHTML = `
+                <div style="
+                    color:#8b332b;
+                    font-weight:700;
+                    margin-bottom:8px;
+                ">
+                    Не удалось войти
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    line-height:1.5;
+                ">
+                    ${escapeHtml(error.message)}
+                </div>
+            `;
+        }
+    }
+
+
+    function displayUser(user) {
+
+        const fullName = [
+            user.first_name,
+            user.last_name
+        ]
+        .filter(Boolean)
+        .join(" ");
+
+
+        const name =
+            fullName ||
+            user.username ||
+            "Пользователь";
+
+
+        document.getElementById(
+            "userName"
+        ).textContent = name;
+
+
+        document.getElementById(
+            "profileName"
+        ).textContent = name;
+
+
+        document.getElementById(
+            "profileUsername"
+        ).textContent =
+            user.username
+                ? "@" + user.username
+                : "Telegram";
+
+
+        /*
+         * Пока программа и урок тестовые.
+         *
+         * Следующим этапом подключим реальные
+         * данные из D1.
+         */
+    }
+
+
+    function showDemo() {
+
+        document.getElementById(
+            "userName"
+        ).textContent = "Пользователь";
+
+
+        document.getElementById(
+            "profileName"
+        ).textContent = "Пользователь";
+
+
+        document.getElementById(
+            "profileUsername"
+        ).textContent =
+            "Откройте через Telegram";
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
+    authenticateTelegram();
+
+</script>
+
 </body>
 </html>
