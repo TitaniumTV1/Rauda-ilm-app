@@ -1,36 +1,146 @@
+import { verifyTelegramInitData } from "./telegram.js";
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
-        if (url.pathname === "/api/debug-config") {
-            return new Response(
-                JSON.stringify({
-                    ok: true,
-                    version: "RAUDA-DEBUG-001",
-                    telegram_bot_token: !!env.TELEGRAM_BOT_TOKEN,
-                    telegram_bot_token_length:
-                        env.TELEGRAM_BOT_TOKEN?.length || 0,
-                    database: !!env.DB,
-                    assets: !!env.ASSETS,
-                    app: env.APP_NAME || null
-                }),
-                {
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                }
-            );
+        // CORS / Telegram Web App
+        if (request.method === "OPTIONS") {
+            return new Response(null, {
+                status: 204,
+                headers: corsHeaders()
+            });
         }
 
+        // Проверка конфигурации
+        if (url.pathname === "/api/debug-config") {
+            return json({
+                ok: true,
+                app: env.APP_NAME || "RAUDA ILM",
+                telegram_bot_token: !!env.TELEGRAM_BOT_TOKEN,
+                database: !!env.DB,
+                assets: !!env.ASSETS
+            });
+        }
+
+        // Telegram authentication
+        if (
+            url.pathname === "/api/auth/telegram" &&
+            request.method === "POST"
+        ) {
+            try {
+                const body = await request.json();
+
+                const initData = body?.initData;
+
+                if (!initData) {
+                    return json(
+                        {
+                            ok: false,
+                            error: "Telegram initData is missing"
+                        },
+                        400
+                    );
+                }
+
+                if (!env.TELEGRAM_BOT_TOKEN) {
+                    return json(
+                        {
+                            ok: false,
+                            error: "Telegram bot token is not configured"
+                        },
+                        500
+                    );
+                }
+
+                const verification =
+                    await verifyTelegramInitData(
+                        initData,
+                        env.TELEGRAM_BOT_TOKEN
+                    );
+
+                if (!verification.ok) {
+                    return json(
+                        {
+                            ok: false,
+                            error: verification.error ||
+                                "Invalid Telegram authentication"
+                        },
+                        401
+                    );
+                }
+
+                const user = verification.user;
+
+                return json({
+                    ok: true,
+                    user
+                });
+            } catch (error) {
+                console.error(
+                    "Telegram auth error:",
+                    error
+                );
+
+                return json(
+                    {
+                        ok: false,
+                        error: "Invalid JSON request"
+                    },
+                    400
+                );
+            }
+        }
+
+        // Health check
+        if (url.pathname === "/api/health") {
+            return json({
+                ok: true,
+                app: env.APP_NAME || "RAUDA ILM",
+                database: !!env.DB
+            });
+        }
+
+        // Frontend
         if (env.ASSETS) {
             return env.ASSETS.fetch(request);
         }
 
-        return new Response("RAUDA ILM", {
-            status: 200,
-            headers: {
-                "Content-Type": "text/plain; charset=utf-8"
+        return new Response(
+            "RAUDA ILM",
+            {
+                status: 200,
+                headers: {
+                    "Content-Type":
+                        "text/plain; charset=utf-8"
+                }
             }
-        });
+        );
     }
 };
+
+
+function json(data, status = 200) {
+    return new Response(
+        JSON.stringify(data),
+        {
+            status,
+            headers: {
+                ...corsHeaders(),
+                "Content-Type":
+                    "application/json; charset=utf-8"
+            }
+        }
+    );
+}
+
+
+function corsHeaders() {
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods":
+            "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers":
+            "Content-Type"
+    };
+}
