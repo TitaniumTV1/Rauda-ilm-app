@@ -2,10 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#f5f6f3">
 
     <title>RAUDA ILM</title>
 
@@ -64,14 +62,12 @@
             min-height: 100vh;
         }
 
-        /* HEADER */
-
         .header {
             position: sticky;
             top: 0;
             z-index: 20;
 
-            height: 64px;
+            min-height: 64px;
 
             display: flex;
             align-items: center;
@@ -154,20 +150,15 @@
             background: var(--green);
         }
 
-        /* CONTENT */
-
         .content {
             width: 100%;
             max-width: 720px;
-
             margin: 0 auto;
 
             padding:
                 12px 18px
                 calc(40px + env(safe-area-inset-bottom));
         }
-
-        /* PAGES */
 
         .page {
             display: none;
@@ -177,13 +168,9 @@
             display: block;
         }
 
-        /* LOADING */
-
         .loading {
             padding: 80px 20px;
-
             text-align: center;
-
             color: var(--muted);
         }
 
@@ -206,8 +193,6 @@
                 transform: rotate(360deg);
             }
         }
-
-        /* HOME */
 
         .welcome {
             margin: 15px 2px 20px;
@@ -274,13 +259,11 @@
 
         .semester {
             color: rgba(255,255,255,.72);
-
             font-size: 13px;
         }
 
         .semester strong {
             display: block;
-
             margin-top: 4px;
 
             color: white;
@@ -298,7 +281,6 @@
             margin-top: 17px;
 
             overflow: hidden;
-
             border-radius: 10px;
 
             background: rgba(255,255,255,.17);
@@ -315,8 +297,6 @@
             transition: width .3s ease;
         }
 
-        /* BUTTONS */
-
         .primary-button {
             width: 100%;
 
@@ -329,10 +309,6 @@
             color: white;
 
             font-weight: 700;
-        }
-
-        .primary-button:disabled {
-            opacity: .6;
         }
 
         .secondary-button {
@@ -404,8 +380,6 @@
             font-size: 18px;
         }
 
-        /* SECTIONS */
-
         .section {
             margin-top: 25px;
         }
@@ -467,11 +441,8 @@
             margin-top: 3px;
 
             color: var(--muted);
-
             font-size: 11px;
         }
-
-        /* PAGE HEADER */
 
         .page-header {
             margin: 17px 0 20px;
@@ -499,7 +470,6 @@
             gap: 7px;
 
             margin-bottom: 15px;
-
             padding: 5px 0;
 
             border: 0;
@@ -509,8 +479,6 @@
 
             font-weight: 700;
         }
-
-        /* LEARNING */
 
         .learning-summary {
             display: grid;
@@ -523,9 +491,7 @@
 
         .summary-card {
             padding: 15px;
-
             border-radius: 17px;
-
             background: white;
         }
 
@@ -540,7 +506,6 @@
             margin-top: 4px;
 
             color: var(--muted);
-
             font-size: 12px;
         }
 
@@ -548,7 +513,6 @@
             margin-bottom: 12px;
 
             overflow: hidden;
-
             border-radius: 19px;
 
             background: white;
@@ -585,7 +549,6 @@
             margin-top: 3px;
 
             color: var(--muted);
-
             font-size: 12px;
         }
 
@@ -614,7 +577,6 @@
 
         .semester-header {
             padding: 14px;
-
             background: #fafaf7;
         }
 
@@ -630,7 +592,6 @@
 
         .semester-content {
             display: none;
-
             padding: 8px;
         }
 
@@ -651,7 +612,6 @@
 
         .subject-header {
             padding: 13px;
-
             background: white;
         }
 
@@ -662,13 +622,11 @@
 
         .subject-progress {
             color: var(--muted);
-
             font-size: 11px;
         }
 
         .lessons {
             display: none;
-
             padding: 0 8px 8px;
         }
 
@@ -731,17 +689,13 @@
             margin-top: 3px;
 
             color: var(--muted);
-
             font-size: 10px;
         }
-
-        /* LESSON */
 
         .lesson-page-card {
             padding: 19px;
 
             border-radius: 20px;
-
             background: white;
 
             box-shadow:
@@ -800,7 +754,6 @@
             padding: 12px;
 
             border-radius: 14px;
-
             background: var(--green-light);
         }
 
@@ -809,7 +762,6 @@
             padding: 15px;
 
             border-radius: 15px;
-
             background: #fafaf7;
         }
 
@@ -829,14 +781,11 @@
             white-space: pre-wrap;
         }
 
-        /* GENERIC */
-
         .info-card {
             margin-bottom: 11px;
             padding: 18px;
 
             border-radius: 18px;
-
             background: white;
 
             box-shadow:
@@ -857,13 +806,10 @@
             line-height: 1.5;
         }
 
-        /* PROFILE */
-
         .profile-main {
             padding: 20px;
 
             border-radius: 20px;
-
             background: white;
         }
 
@@ -895,11 +841,27 @@
             margin-top: 4px;
 
             color: var(--muted);
-
             font-size: 13px;
         }
 
-        /* MENU */
+        .profile-row {
+            margin-top: 18px;
+            padding-top: 15px;
+
+            border-top: 1px solid var(--line);
+        }
+
+        .profile-row-label {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .profile-row-value {
+            margin-top: 4px;
+
+            font-size: 14px;
+            font-weight: 700;
+        }
 
         .overlay {
             position: fixed;
@@ -986,7 +948,6 @@
             border-radius: 17px;
 
             background: var(--green);
-
             color: white;
         }
 
@@ -999,7 +960,6 @@
             margin-top: 4px;
 
             color: rgba(255,255,255,.62);
-
             font-size: 12px;
         }
 
@@ -1025,7 +985,6 @@
             border-radius: 13px;
 
             background: transparent;
-
             color: var(--text);
 
             text-align: left;
@@ -1049,7 +1008,6 @@
             border-radius: 10px;
 
             background: #e8eee9;
-
             color: var(--green);
 
             font-size: 10px;
@@ -1060,56 +1018,76 @@
             margin-top: 10px;
 
             background: var(--green-light);
-
             color: var(--green);
         }
 
-        /* NOTICES */
-
         .notice {
-            margin-bottom: 15px;
-            padding: 14px;
+            margin-bottom: 11px;
+            padding: 15px 16px;
 
-            border-radius: 14px;
+            border-radius: 16px;
 
-            background: var(--green-light);
+            background: white;
+            border-left: 4px solid var(--gold);
 
-            color: var(--green);
+            box-shadow:
+                0 5px 18px rgba(0,0,0,.035);
+        }
 
-            font-size: 13px;
+        .notice-title {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .notice-text {
+            margin-top: 5px;
+
+            color: var(--muted);
+
+            font-size: 12px;
             line-height: 1.5;
         }
 
-        .error {
-            margin-bottom: 15px;
-            padding: 14px;
+        .empty {
+            padding: 35px 20px;
 
-            border-radius: 14px;
+            text-align: center;
+            color: var(--muted);
+        }
 
-            background: #f5e5e3;
+        .error-box {
+            margin: 20px 0;
+            padding: 16px;
 
+            border-radius: 16px;
+
+            background: #fff4f2;
             color: var(--danger);
 
             font-size: 13px;
             line-height: 1.5;
         }
 
-        .empty {
-            padding: 30px 15px;
-
-            color: var(--muted);
-
-            text-align: center;
-            font-size: 14px;
+        .hidden {
+            display: none !important;
         }
 
-        @media (max-width: 430px) {
+        @media (max-width: 390px) {
+            .content {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
             .welcome-name {
-                font-size: 28px;
+                font-size: 27px;
             }
 
             .hero {
                 padding: 20px;
+            }
+
+            .quick-card {
+                padding: 14px;
             }
         }
     </style>
@@ -1119,24 +1097,17 @@
 
 <div class="app">
 
-    <!-- HEADER -->
-
     <header class="header">
-
-        <button
-            class="logo"
-            id="homeLogo"
-            type="button"
-        >
+        <button class="logo" type="button" onclick="showPage('home')">
             <div class="logo-mark">RI</div>
             <div class="logo-name">RAUDA ILM</div>
         </button>
 
         <button
             class="menu-button"
-            id="menuButton"
             type="button"
-            aria-label="Меню"
+            aria-label="Открыть меню"
+            onclick="openMenu()"
         >
             <div class="hamburger">
                 <span></span>
@@ -1144,672 +1115,378 @@
                 <span></span>
             </div>
         </button>
-
     </header>
-
 
     <main class="content">
 
-        <!-- LOADING -->
+        <!-- HOME -->
 
-        <div id="loading" class="loading">
+        <section id="page-home" class="page active">
 
-            <div class="loader"></div>
+            <div id="home-loading" class="loading">
+                <div class="loader"></div>
+                <div>Загрузка...</div>
+            </div>
 
-            Загрузка...
+            <div id="home-content" class="hidden">
 
-        </div>
-
-
-        <!-- ================= HOME ================= -->
-
-        <section
-            id="page-home"
-            class="page active"
-        >
-
-            <div class="welcome">
-
-                <div class="welcome-small">
-                    Ассаляму алейкум,
+                <div class="welcome">
+                    <div class="welcome-small">С возвращением</div>
+                    <div id="welcome-name" class="welcome-name">Студент</div>
                 </div>
 
-                <div
-                    id="userName"
-                    class="welcome-name"
+                <div class="hero">
+
+                    <div class="hero-label">
+                        Образовательная программа
+                    </div>
+
+                    <div id="hero-program" class="hero-program">
+                        Biology — sanitary epidemiology
+                    </div>
+
+                    <div class="hero-bottom">
+
+                        <div class="semester">
+                            Программа
+                            <strong id="hero-code">6В05102</strong>
+                        </div>
+
+                        <div class="semester">
+                            Семестр
+                            <strong id="hero-semester">2</strong>
+                        </div>
+
+                        <div class="progress-number">
+                            <span id="hero-progress">0</span>%
+                        </div>
+
+                    </div>
+
+                    <div class="progress-line">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+
+                </div>
+
+                <button
+                    id="continue-button"
+                    class="continue"
+                    type="button"
+                    onclick="continueLearning()"
                 >
-                    Пользователь
+                    <div class="continue-left">
+                        <span class="continue-label">
+                            Продолжить обучение
+                        </span>
+
+                        <span id="continue-title" class="continue-title">
+                            Мои уроки
+                        </span>
+                    </div>
+
+                    <span class="arrow">→</span>
+                </button>
+
+                <div class="section">
+
+                    <div class="section-title">
+                        Быстрый доступ
+                    </div>
+
+                    <div class="quick-grid">
+
+                        <button
+                            class="quick-card"
+                            type="button"
+                            onclick="showPage('lessons')"
+                        >
+                            <div class="quick-icon">У</div>
+
+                            <div class="quick-title">
+                                Мои уроки
+                            </div>
+
+                            <div class="quick-description">
+                                Учебная программа
+                            </div>
+                        </button>
+
+                        <button
+                            class="quick-card"
+                            type="button"
+                            onclick="showPage('schedule')"
+                        >
+                            <div class="quick-icon">Р</div>
+
+                            <div class="quick-title">
+                                Расписание
+                            </div>
+
+                            <div class="quick-description">
+                                Занятия и пары
+                            </div>
+                        </button>
+
+                        <button
+                            class="quick-card"
+                            type="button"
+                            onclick="showPage('exams')"
+                        >
+                            <div class="quick-icon">Э</div>
+
+                            <div class="quick-title">
+                                Экзамены
+                            </div>
+
+                            <div class="quick-description">
+                                Контроль знаний
+                            </div>
+                        </button>
+
+                        <button
+                            class="quick-card"
+                            type="button"
+                            onclick="showPage('science')"
+                        >
+                            <div class="quick-icon">Н</div>
+
+                            <div class="quick-title">
+                                Научные материалы
+                            </div>
+
+                            <div class="quick-description">
+                                Материалы для изучения
+                            </div>
+                        </button>
+
+                    </div>
+
                 </div>
 
             </div>
-
-
-            <section class="hero">
-
-                <div class="hero-label">
-                    Моё обучение
-                </div>
-
-                <div
-                    id="programName"
-                    class="hero-program"
-                >
-                    Учебная программа
-                </div>
-
-                <div class="hero-bottom">
-
-                    <div class="semester">
-
-                        Текущий семестр
-
-                        <strong id="semesterName">
-                            Не выбран
-                        </strong>
-
-                    </div>
-
-                    <div class="progress-number">
-
-                        <span id="progressNumber">
-                            0
-                        </span>%
-
-                    </div>
-
-                </div>
-
-                <div class="progress-line">
-
-                    <div
-                        id="progressFill"
-                        class="progress-fill"
-                    ></div>
-
-                </div>
-
-            </section>
-
-
-            <button
-                class="continue"
-                id="continueLearning"
-                type="button"
-            >
-
-                <div class="continue-left">
-
-                    <div class="continue-label">
-                        Продолжить обучение
-                    </div>
-
-                    <div
-                        id="continueLesson"
-                        class="continue-title"
-                    >
-                        Открыть моё обучение
-                    </div>
-
-                </div>
-
-                <div class="arrow">
-                    →
-                </div>
-
-            </button>
-
-
-            <section class="section">
-
-                <div class="section-title">
-                    Быстрый доступ
-                </div>
-
-                <div class="quick-grid">
-
-                    <button
-                        class="quick-card"
-                        data-page="learning"
-                        type="button"
-                    >
-
-                        <div class="quick-icon">
-                            01
-                        </div>
-
-                        <div class="quick-title">
-                            Моё обучение
-                        </div>
-
-                        <div class="quick-description">
-                            Программа и уроки
-                        </div>
-
-                    </button>
-
-
-                    <button
-                        class="quick-card"
-                        data-page="schedule"
-                        type="button"
-                    >
-
-                        <div class="quick-icon">
-                            02
-                        </div>
-
-                        <div class="quick-title">
-                            Расписание
-                        </div>
-
-                        <div class="quick-description">
-                            Занятия и события
-                        </div>
-
-                    </button>
-
-
-                    <button
-                        class="quick-card"
-                        data-page="exams"
-                        type="button"
-                    >
-
-                        <div class="quick-icon">
-                            03
-                        </div>
-
-                        <div class="quick-title">
-                            Экзамены
-                        </div>
-
-                        <div class="quick-description">
-                            Проверка знаний
-                        </div>
-
-                    </button>
-
-
-                    <button
-                        class="quick-card"
-                        data-page="materials"
-                        type="button"
-                    >
-
-                        <div class="quick-icon">
-                            04
-                        </div>
-
-                        <div class="quick-title">
-                            Материалы
-                        </div>
-
-                        <div class="quick-description">
-                            Книги и материалы
-                        </div>
-
-                    </button>
-
-                </div>
-
-            </section>
-
-
-            <section class="section">
-
-                <div class="section-title">
-                    Последний урок
-                </div>
-
-                <div class="info-card">
-
-                    <div
-                        id="lastLessonTitle"
-                        class="info-card-title"
-                    >
-                        Уроков пока нет
-                    </div>
-
-                    <div
-                        id="lastLessonText"
-                        class="info-card-text"
-                    >
-                        Здесь появится ваш последний учебный материал.
-                    </div>
-
-                    <button
-                        id="openLastLesson"
-                        class="primary-button"
-                        type="button"
-                        style="margin-top:15px;"
-                    >
-                        Открыть урок
-                    </button>
-
-                </div>
-
-            </section>
 
         </section>
 
 
-        <!-- ================= LEARNING ================= -->
+        <!-- LESSONS -->
 
-        <section
-            id="page-learning"
-            class="page"
-        >
+        <section id="page-lessons" class="page">
+
+            <button
+                class="back-button"
+                type="button"
+                onclick="showPage('home')"
+            >
+                ← Главная
+            </button>
 
             <div class="page-header">
-
-                <button
-                    class="back-button"
-                    data-page="home"
-                    type="button"
-                >
-                    ← Главная
-                </button>
-
-                <h1>
-                    Моё обучение
-                </h1>
-
+                <h1>Мои уроки</h1>
                 <p>
-                    Вся учебная программа, предметы и уроки.
+                    Учебная программа и материалы курса
                 </p>
-
             </div>
-
-
-            <div
-                id="learningNotice"
-                style="display:none;"
-            ></div>
-
 
             <div class="learning-summary">
 
                 <div class="summary-card">
-
-                    <div
-                        id="totalLessons"
-                        class="summary-number"
-                    >
+                    <div id="summary-lessons" class="summary-number">
                         0
                     </div>
-
                     <div class="summary-label">
-                        Всего уроков
+                        уроков
                     </div>
-
                 </div>
 
-
                 <div class="summary-card">
-
-                    <div
-                        id="completedLessons"
-                        class="summary-number"
-                    >
+                    <div id="summary-completed" class="summary-number">
                         0
                     </div>
-
                     <div class="summary-label">
-                        Пройдено
+                        завершено
                     </div>
-
-                </div>
-
-
-                <div class="summary-card">
-
-                    <div
-                        id="remainingLessons"
-                        class="summary-number"
-                    >
-                        0
-                    </div>
-
-                    <div class="summary-label">
-                        Не пройдено
-                    </div>
-
-                </div>
-
-
-                <div class="summary-card">
-
-                    <div
-                        id="learningPercent"
-                        class="summary-number"
-                    >
-                        0%
-                    </div>
-
-                    <div class="summary-label">
-                        Прогресс
-                    </div>
-
                 </div>
 
             </div>
 
-
-            <div id="learningContainer">
-
-                <div class="empty">
-                    Загрузка учебной программы...
+            <div id="curriculum">
+                <div class="loading">
+                    <div class="loader"></div>
+                    Загрузка программы...
                 </div>
-
             </div>
 
         </section>
 
 
-        <!-- ================= LESSON ================= -->
+        <!-- LESSON -->
 
-        <section
-            id="page-lesson"
-            class="page"
-        >
+        <section id="page-lesson" class="page">
 
-            <div class="page-header">
-
-                <button
-                    id="backFromLesson"
-                    class="back-button"
-                    type="button"
-                >
-                    ← Моё обучение
-                </button>
-
-            </div>
-
-
-            <div class="lesson-page-card">
-
-                <div class="lesson-tag">
-                    Учебный материал
-                </div>
-
-                <div
-                    id="lessonTitle"
-                    class="lesson-page-title"
-                >
-                    Урок
-                </div>
-
-                <div
-                    id="lessonDescription"
-                    class="lesson-page-description"
-                ></div>
-
-
-                <div
-                    id="videoBlock"
-                    class="media-block"
-                    style="display:none;"
-                >
-
-                    <div class="media-title">
-                        Видео
-                    </div>
-
-                    <video
-                        id="lessonVideo"
-                        controls
-                        playsinline
-                    ></video>
-
-                </div>
-
-
-                <div
-                    id="audioBlock"
-                    class="media-block"
-                    style="display:none;"
-                >
-
-                    <div class="media-title">
-                        Аудио
-                    </div>
-
-                    <div class="audio-player">
-
-                        <audio
-                            id="lessonAudio"
-                            controls
-                        ></audio>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="fileBlock"
-                    class="media-block"
-                    style="display:none;"
-                >
-
-                    <div class="media-title">
-                        Материал
-                    </div>
-
-                    <a
-                        id="lessonFile"
-                        class="primary-button"
-                        target="_blank"
-                        rel="noopener"
-                        style="display:block;text-align:center;text-decoration:none;"
-                    >
-                        Открыть материал
-                    </a>
-
-                </div>
-
-
-                <div
-                    id="textBlock"
-                    class="material-block"
-                    style="display:none;"
-                >
-
-                    <div class="material-title">
-                        Текст урока
-                    </div>
-
-                    <div
-                        id="lessonText"
-                        class="material-text"
-                    ></div>
-
-                </div>
-
-
-                <button
-                    id="completeLessonButton"
-                    class="primary-button"
-                    type="button"
-                    style="margin-top:20px;"
-                >
-                    Завершить урок
-                </button>
-
-            </div>
-
-        </section>
-
-
-        <!-- ================= SCHEDULE ================= -->
-
-        <section
-            id="page-schedule"
-            class="page"
-        >
-
-            <div class="page-header">
-
-                <button
-                    class="back-button"
-                    data-page="home"
-                    type="button"
-                >
-                    ← Главная
-                </button>
-
-                <h1>
-                    Расписание
-                </h1>
-
-                <p>
-                    Занятия и учебные события.
-                </p>
-
-            </div>
-
-            <div class="info-card">
-
-                <div class="info-card-title">
-                    Расписание
-                </div>
-
-                <div class="info-card-text">
-                    Здесь будет отображаться ваше расписание после его добавления администратором.
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- ================= EXAMS ================= -->
-
-        <section
-            id="page-exams"
-            class="page"
-        >
-
-            <div class="page-header">
-
-                <button
-                    class="back-button"
-                    data-page="home"
-                    type="button"
-                >
-                    ← Главная
-                </button>
-
-                <h1>
-                    Экзамены
-                </h1>
-
-                <p>
-                    Проверка знаний.
-                </p>
-
-            </div>
-
-
-            <div
-                id="examsContainer"
+            <button
+                class="back-button"
+                type="button"
+                onclick="showPage('lessons')"
             >
+                ← Мои уроки
+            </button>
 
-                <div class="empty">
-                    Экзамены пока не добавлены.
+            <div id="lesson-container">
+                <div class="loading">
+                    <div class="loader"></div>
+                    Загрузка урока...
                 </div>
-
             </div>
 
         </section>
 
 
-        <!-- ================= MATERIALS ================= -->
+        <!-- SCHEDULE -->
 
-        <section
-            id="page-materials"
-            class="page"
-        >
+        <section id="page-schedule" class="page">
 
-            <div class="page-header">
-
-                <button
-                    class="back-button"
-                    data-page="home"
-                    type="button"
-                >
-                    ← Главная
-                </button>
-
-                <h1>
-                    Материалы
-                </h1>
-
-                <p>
-                    Дополнительные учебные материалы.
-                </p>
-
-            </div>
-
-
-            <div
-                id="materialsContainer"
+            <button
+                class="back-button"
+                type="button"
+                onclick="showPage('home')"
             >
+                ← Главная
+            </button>
 
+            <div class="page-header">
+                <h1>Расписание</h1>
+                <p>
+                    Ваши учебные занятия
+                </p>
+            </div>
+
+            <div id="schedule-container">
                 <div class="empty">
-                    Материалы пока не добавлены.
+                    Расписание пока не добавлено.
                 </div>
-
             </div>
 
         </section>
 
 
-        <!-- ================= PROFILE ================= -->
+        <!-- EXAMS -->
 
-        <section
-            id="page-profile"
-            class="page"
-        >
+        <section id="page-exams" class="page">
+
+            <button
+                class="back-button"
+                type="button"
+                onclick="showPage('home')"
+            >
+                ← Главная
+            </button>
 
             <div class="page-header">
-
-                <button
-                    class="back-button"
-                    data-page="home"
-                    type="button"
-                >
-                    ← Главная
-                </button>
-
-                <h1>
-                    Профиль
-                </h1>
-
+                <h1>Экзамены</h1>
+                <p>
+                    Экзамены и контрольные мероприятия
+                </p>
             </div>
 
+            <div id="exams-container">
+                <div class="empty">
+                    Информация об экзаменах пока не добавлена.
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- SCIENCE -->
+
+        <section id="page-science" class="page">
+
+            <button
+                class="back-button"
+                type="button"
+                onclick="showPage('home')"
+            >
+                ← Главная
+            </button>
+
+            <div class="page-header">
+                <h1>Научные материалы</h1>
+                <p>
+                    Дополнительные материалы для обучения
+                </p>
+            </div>
+
+            <div id="science-container">
+                <div class="empty">
+                    Научные материалы пока не добавлены.
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- PROFILE -->
+
+        <section id="page-profile" class="page">
+
+            <button
+                class="back-button"
+                type="button"
+                onclick="showPage('home')"
+            >
+                ← Главная
+            </button>
+
+            <div class="page-header">
+                <h1>Профиль</h1>
+                <p>
+                    Данные пользователя
+                </p>
+            </div>
 
             <div class="profile-main">
 
-                <div
-                    id="profileAvatar"
-                    class="profile-avatar"
-                >
-                    U
+                <div id="profile-avatar" class="profile-avatar">
+                    С
                 </div>
 
-                <div
-                    id="profileName"
-                    class="profile-name-big"
-                >
-                    Пользователь
+                <div id="profile-name-big" class="profile-name-big">
+                    Студент
                 </div>
 
-                <div
-                    id="profileUsername"
-                    class="profile-username-big"
-                >
+                <div id="profile-username-big" class="profile-username-big">
                     —
+                </div>
+
+                <div class="profile-row">
+                    <div class="profile-row-label">
+                        Образовательная программа
+                    </div>
+
+                    <div id="profile-program" class="profile-row-value">
+                        Biology — sanitary epidemiology
+                    </div>
+                </div>
+
+                <div class="profile-row">
+                    <div class="profile-row-label">
+                        Код программы
+                    </div>
+
+                    <div id="profile-code" class="profile-row-value">
+                        6В05102
+                    </div>
+                </div>
+
+                <div class="profile-row">
+                    <div class="profile-row-label">
+                        Семестр
+                    </div>
+
+                    <div id="profile-semester" class="profile-row-value">
+                        2
+                    </div>
                 </div>
 
             </div>
@@ -1817,1722 +1494,2260 @@
         </section>
 
 
-        <!-- ================= ADMIN ================= -->
+        <!-- INFO -->
 
-        <section
-            id="page-admin"
-            class="page"
-        >
+        <section id="page-info" class="page">
+
+            <button
+                class="back-button"
+                type="button"
+                onclick="showPage('home')"
+            >
+                ← Главная
+            </button>
 
             <div class="page-header">
-
-                <button
-                    class="back-button"
-                    data-page="home"
-                    type="button"
-                >
-                    ← Главная
-                </button>
-
-                <h1>
-                    Панель управления
-                </h1>
-
+                <h1>О приложении</h1>
                 <p>
-                    Управление учебными программами и материалами.
+                    RAUDA ILM
                 </p>
-
             </div>
-
-
-            <div
-                id="adminStatus"
-                class="notice"
-            >
-                Проверка доступа...
-            </div>
-
 
             <div class="info-card">
-
                 <div class="info-card-title">
-                    Администрирование
+                    RAUDA ILM
                 </div>
 
                 <div class="info-card-text">
-                    Владелец сможет назначать администраторов, выдавать и ограничивать доступ, создавать учебные программы, добавлять предметы и уроки, а также управлять видео, аудио и другими материалами.
+                    Учебное приложение для студентов.
+                    Здесь находятся уроки, учебные материалы,
+                    расписание и информация об экзаменах.
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-card-title">
+                    Версия
                 </div>
 
+                <div class="info-card-text">
+                    1.0
+                </div>
             </div>
 
         </section>
 
     </main>
-
-
-    <!-- ================= MENU ================= -->
-
-    <div
-        id="overlay"
-        class="overlay"
-    ></div>
-
-
-    <aside
-        id="sideMenu"
-        class="side-menu"
-    >
-
-        <div class="menu-header">
-
-            <div class="menu-title">
-                Меню
-            </div>
-
-            <button
-                id="closeMenu"
-                class="close"
-                type="button"
-            >
-                ×
-            </button>
-
-        </div>
-
-
-        <div class="profile-card">
-
-            <div
-                id="menuProfileName"
-                class="profile-name"
-            >
-                Пользователь
-            </div>
-
-            <div
-                id="menuProfileUsername"
-                class="profile-username"
-            >
-                —
-            </div>
-
-        </div>
-
-
-        <div class="menu-list">
-
-            <button
-                class="menu-item"
-                data-page="home"
-                type="button"
-            >
-
-                <div class="menu-item-icon">
-                    RI
-                </div>
-
-                Главная
-
-            </button>
-
-
-            <button
-                class="menu-item"
-                data-page="learning"
-                type="button"
-            >
-
-                <div class="menu-item-icon">
-                    01
-                </div>
-
-                Моё обучение
-
-            </button>
-
-
-            <button
-                class="menu-item"
-                data-page="schedule"
-                type="button"
-            >
-
-                <div class="menu-item-icon">
-                    02
-                </div>
-
-                Расписание
-
-            </button>
-
-
-            <button
-                class="menu-item"
-                data-page="exams"
-                type="button"
-            >
-
-                <div class="menu-item-icon">
-                    03
-                </div>
-
-                Экзамены
-
-            </button>
-
-
-            <button
-                class="menu-item"
-                data-page="materials"
-                type="button"
-            >
-
-                <div class="menu-item-icon">
-                    04
-                </div>
-
-                Материалы
-
-            </button>
-
-
-            <button
-                class="menu-item"
-                data-page="profile"
-                type="button"
-            >
-
-                <div class="menu-item-icon">
-                    05
-                </div>
-
-                Профиль
-
-            </button>
-
-
-            <button
-                id="adminMenuButton"
-                class="menu-item admin-menu-item"
-                data-page="admin"
-                type="button"
-                style="display:none;"
-            >
-
-                <div class="menu-item-icon">
-                    AD
-                </div>
-
-                Панель управления
-
-            </button>
-
-        </div>
-
-    </aside>
-
 </div>
 
 
+<!-- OVERLAY -->
+
+<div
+    id="overlay"
+    class="overlay"
+    onclick="closeMenu()"
+></div>
+
+
+<!-- SIDE MENU -->
+
+<aside id="side-menu" class="side-menu">
+
+    <div class="menu-header">
+
+        <div class="menu-title">
+            Меню
+        </div>
+
+        <button
+            class="close"
+            type="button"
+            onclick="closeMenu()"
+            aria-label="Закрыть"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="profile-card">
+
+        <div id="menu-profile-name" class="profile-name">
+            Студент
+        </div>
+
+        <div id="menu-profile-username" class="profile-username">
+            —
+        </div>
+
+    </div>
+
+
+    <div class="menu-list">
+
+        <button
+            class="menu-item"
+            type="button"
+            onclick="navigateMenu('profile')"
+        >
+            <span class="menu-item-icon">П</span>
+            <span>Перейти в профиль</span>
+        </button>
+
+        <button
+            class="menu-item"
+            type="button"
+            onclick="navigateMenu('lessons')"
+        >
+            <span class="menu-item-icon">У</span>
+            <span>Мои уроки</span>
+        </button>
+
+        <button
+            class="menu-item"
+            type="button"
+            onclick="navigateMenu('schedule')"
+        >
+            <span class="menu-item-icon">Р</span>
+            <span>Расписание</span>
+        </button>
+
+        <button
+            class="menu-item"
+            type="button"
+            onclick="navigateMenu('exams')"
+        >
+            <span class="menu-item-icon">Э</span>
+            <span>Экзамены</span>
+        </button>
+
+        <button
+            class="menu-item"
+            type="button"
+            onclick="navigateMenu('science')"
+        >
+            <span class="menu-item-icon">Н</span>
+            <span>Научные материалы</span>
+        </button>
+
+        <button
+            class="menu-item"
+            type="button"
+            onclick="navigateMenu('home')"
+        >
+            <span class="menu-item-icon">Г</span>
+            <span>Главная</span>
+        </button>
+
+        <button
+            class="menu-item"
+            type="button"
+            onclick="navigateMenu('info')"
+        >
+            <span class="menu-item-icon">i</span>
+            <span>О приложении</span>
+        </button>
+
+        <button
+            id="admin-menu-item"
+            class="menu-item admin-menu-item hidden"
+            type="button"
+            onclick="openAdmin()"
+        >
+            <span class="menu-item-icon">А</span>
+            <span>Администрирование</span>
+        </button>
+
+    </div>
+
+</aside>
+
+
 <script>
-(function () {
+"use strict";
 
-    "use strict";
+/*
+ * RAUDA ILM FRONTEND
+ *
+ * ВАЖНО:
+ * Этот frontend специально работает и без Telegram.
+ *
+ * В обычном Cloudflare Preview:
+ * - приложение не падает;
+ * - используется тестовый пользователь;
+ * - запрос авторизации в backend не обязателен.
+ *
+ * В Telegram Mini App:
+ * - Telegram.WebApp доступен;
+ * - берётся реальный Telegram user;
+ * - initData отправляется на /api/auth/telegram.
+ */
 
 
-    /* =========================================================
-       TELEGRAM
-    ========================================================= */
+const API_BASE = "";
 
-    const tg = window.Telegram && window.Telegram.WebApp
-        ? window.Telegram.WebApp
-        : null;
 
-    if (tg) {
-        try {
-            tg.ready();
-            tg.expand();
-        } catch (e) {
-            console.warn("Telegram WebApp initialization error", e);
+const state = {
+    user: null,
+    profile: null,
+    curriculum: null,
+    schedule: [],
+    exams: [],
+    science: [],
+    currentLesson: null,
+    authorized: false
+};
+
+
+/* -----------------------------
+   TELEGRAM
+----------------------------- */
+
+function getTelegramWebApp() {
+    if (
+        window.Telegram &&
+        window.Telegram.WebApp
+    ) {
+        return window.Telegram.WebApp;
+    }
+
+    return null;
+}
+
+
+function getTelegramUser() {
+    const tg = getTelegramWebApp();
+
+    if (
+        tg &&
+        tg.initDataUnsafe &&
+        tg.initDataUnsafe.user
+    ) {
+        return tg.initDataUnsafe.user;
+    }
+
+    return null;
+}
+
+
+function getInitData() {
+    const tg = getTelegramWebApp();
+
+    if (
+        tg &&
+        typeof tg.initData === "string" &&
+        tg.initData.trim()
+    ) {
+        return tg.initData;
+    }
+
+    return "";
+}
+
+
+/* -----------------------------
+   SAFE FETCH
+----------------------------- */
+
+async function apiRequest(
+    path,
+    options = {}
+) {
+    try {
+        const response = await fetch(
+            API_BASE + path,
+            {
+                ...options,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(options.headers || {})
+                }
+            }
+        );
+
+        const contentType =
+            response.headers.get("content-type") || "";
+
+        let data = null;
+
+        if (contentType.includes("application/json")) {
+            data = await response.json();
+        } else {
+            const text = await response.text();
+
+            data = text
+                ? { text }
+                : null;
         }
+
+        if (!response.ok) {
+            throw new Error(
+                data?.error ||
+                data?.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        return data;
+    } catch (error) {
+        console.warn(
+            "API request failed:",
+            path,
+            error
+        );
+
+        return null;
+    }
+}
+
+
+/* -----------------------------
+   AUTH
+----------------------------- */
+
+async function authenticate() {
+
+    const telegramUser = getTelegramUser();
+    const initData = getInitData();
+
+    /*
+     * Telegram mode
+     */
+    if (telegramUser && initData) {
+
+        const result = await apiRequest(
+            "/api/auth/telegram",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    initData: initData
+                })
+            }
+        );
+
+        if (result) {
+
+            state.authorized = true;
+
+            state.user =
+                result.user ||
+                telegramUser;
+
+            state.profile =
+                result.profile ||
+                null;
+
+            return true;
+        }
+
+        /*
+         * Backend временно недоступен.
+         * Не ломаем Mini App.
+         */
+
+        state.user = telegramUser;
+
+        state.profile = null;
+
+        return false;
     }
 
 
-    /* =========================================================
-       STATE
-    ========================================================= */
+    /*
+     * Обычный браузер / Cloudflare Preview
+     */
 
-    const state = {
-
-        user: null,
-
-        lessons: [],
-
-        completedLessonIds: [],
-
-        currentLesson: null,
-
-        admin: false,
-
-        loaded: false
-
+    state.user = {
+        id: 0,
+        first_name: "Студент",
+        last_name: "",
+        username: ""
     };
 
+    state.profile = {
+        program_code: "6В05102",
+        program_name: "Biology — sanitary epidemiology",
+        semester: 2,
+        progress: 0
+    };
 
-    /* =========================================================
-       HELPERS
-    ========================================================= */
+    return false;
+}
 
-    function $(id) {
-        return document.getElementById(id);
+
+/* -----------------------------
+   USER HELPERS
+----------------------------- */
+
+function getUserName() {
+
+    if (!state.user) {
+        return "Студент";
     }
 
+    const first =
+        state.user.first_name || "";
 
-    function escapeHtml(value) {
+    const last =
+        state.user.last_name || "";
 
-        if (value === null || value === undefined) {
-            return "";
-        }
+    const full =
+        `${first} ${last}`.trim();
 
-        return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+    return full || "Студент";
+}
+
+
+function getUsername() {
+
+    if (
+        state.user &&
+        state.user.username
+    ) {
+        return "@" + state.user.username;
     }
 
-
-    function showPage(pageName) {
-
-        document
-            .querySelectorAll(".page")
-            .forEach(function (page) {
-                page.classList.remove("active");
-            });
+    return "Telegram";
+}
 
 
-        const target = $("page-" + pageName);
+function getInitials(name) {
 
-        if (!target) {
-            console.warn("Page not found:", pageName);
-            return;
-        }
+    const parts =
+        String(name)
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
 
-
-        target.classList.add("active");
-
-        window.scrollTo({
-            top: 0,
-            behavior: "instant"
-        });
-
-
-        closeMenu();
-
-
-        if (pageName === "learning") {
-            renderLearning();
-        }
-
+    if (!parts.length) {
+        return "С";
     }
 
-
-    function openMenu() {
-
-        $("overlay").classList.add("open");
-        $("sideMenu").classList.add("open");
-
+    if (parts.length === 1) {
+        return parts[0]
+            .slice(0, 1)
+            .toUpperCase();
     }
 
+    return (
+        parts[0].slice(0, 1) +
+        parts[1].slice(0, 1)
+    ).toUpperCase();
+}
 
-    function closeMenu() {
 
-        $("overlay").classList.remove("open");
-        $("sideMenu").classList.remove("open");
+/* -----------------------------
+   PROFILE
+----------------------------- */
 
+function getProfileValue(
+    key,
+    fallback
+) {
+    if (
+        state.profile &&
+        state.profile[key] !== undefined &&
+        state.profile[key] !== null
+    ) {
+        return state.profile[key];
     }
 
+    return fallback;
+}
 
-    function getInitData() {
 
-        if (tg && tg.initData) {
-            return tg.initData;
-        }
+function renderUser() {
 
-        return "";
+    const name = getUserName();
+    const username = getUsername();
 
+    const programCode =
+        getProfileValue(
+            "program_code",
+            "6В05102"
+        );
+
+    const programName =
+        getProfileValue(
+            "program_name",
+            "Biology — sanitary epidemiology"
+        );
+
+    const semester =
+        getProfileValue(
+            "semester",
+            2
+        );
+
+    let progress =
+        Number(
+            getProfileValue(
+                "progress",
+                0
+            )
+        );
+
+    if (!Number.isFinite(progress)) {
+        progress = 0;
     }
 
-
-    function authHeaders() {
-
-        const initData = getInitData();
-
-        return {
-            "Authorization": "Bearer " + initData,
-            "Content-Type": "application/json"
-        };
-
-    }
-
-
-    async function api(path, options) {
-
-        const config = options || {};
-
-        config.headers = Object.assign(
-            {},
-            authHeaders(),
-            config.headers || {}
+    progress =
+        Math.max(
+            0,
+            Math.min(100, progress)
         );
 
 
-        const response = await fetch(path, config);
-
-        let data;
-
-        try {
-            data = await response.json();
-        } catch (error) {
-            throw new Error(
-                "Сервер вернул некорректный ответ"
-            );
-        }
+    document.getElementById(
+        "welcome-name"
+    ).textContent = name;
 
 
-        if (!response.ok || !data.ok) {
-
-            throw new Error(
-                data.error ||
-                "Ошибка сервера"
-            );
-
-        }
+    document.getElementById(
+        "hero-program"
+    ).textContent = programName;
 
 
-        return data;
+    document.getElementById(
+        "hero-code"
+    ).textContent = programCode;
 
+
+    document.getElementById(
+        "hero-semester"
+    ).textContent = semester;
+
+
+    document.getElementById(
+        "hero-progress"
+    ).textContent = Math.round(progress);
+
+
+    document.getElementById(
+        "progress-fill"
+    ).style.width = progress + "%";
+
+
+    document.getElementById(
+        "menu-profile-name"
+    ).textContent = name;
+
+
+    document.getElementById(
+        "menu-profile-username"
+    ).textContent = username;
+
+
+    document.getElementById(
+        "profile-avatar"
+    ).textContent =
+        getInitials(name);
+
+
+    document.getElementById(
+        "profile-name-big"
+    ).textContent = name;
+
+
+    document.getElementById(
+        "profile-username-big"
+    ).textContent = username;
+
+
+    document.getElementById(
+        "profile-program"
+    ).textContent = programName;
+
+
+    document.getElementById(
+        "profile-code"
+    ).textContent = programCode;
+
+
+    document.getElementById(
+        "profile-semester"
+    ).textContent = semester;
+}
+
+
+/* -----------------------------
+   DATA
+----------------------------- */
+
+async function loadData() {
+
+    /*
+     * Эти запросы будут работать
+     * после подключения согласованного backend.
+     */
+
+    const [
+        curriculum,
+        schedule,
+        exams,
+        science
+    ] = await Promise.all([
+        apiRequest("/api/curriculum"),
+        apiRequest("/api/schedule"),
+        apiRequest("/api/exams"),
+        apiRequest("/api/science")
+    ]);
+
+
+    if (curriculum) {
+        state.curriculum =
+            curriculum.curriculum ||
+            curriculum;
     }
 
 
-    /* =========================================================
-       USER
-    ========================================================= */
-
-    function getTelegramUser() {
-
-        if (
-            tg &&
-            tg.initDataUnsafe &&
-            tg.initDataUnsafe.user
-        ) {
-            return tg.initDataUnsafe.user;
-        }
-
-        return null;
-
+    if (schedule) {
+        state.schedule =
+            schedule.schedule ||
+            schedule.items ||
+            [];
     }
 
 
-    function renderUser() {
-
-        const user = state.user;
-
-        if (!user) {
-            return;
-        }
-
-
-        const firstName =
-            user.first_name ||
-            user.firstName ||
-            "Пользователь";
-
-
-        const lastName =
-            user.last_name ||
-            user.lastName ||
-            "";
-
-
-        const fullName =
-            (firstName + " " + lastName).trim();
-
-
-        const username =
-            user.username
-                ? "@" + user.username
-                : "Telegram";
-
-
-        $("userName").textContent = fullName;
-
-        $("profileName").textContent = fullName;
-
-        $("profileUsername").textContent = username;
-
-        $("menuProfileName").textContent = fullName;
-
-        $("menuProfileUsername").textContent = username;
-
-
-        const avatarLetter =
-            firstName.charAt(0).toUpperCase() || "U";
-
-
-        $("profileAvatar").textContent =
-            avatarLetter;
-
+    if (exams) {
+        state.exams =
+            exams.exams ||
+            exams.items ||
+            [];
     }
 
 
-    /* =========================================================
-       TELEGRAM AUTH
-    ========================================================= */
-
-    async function authenticate() {
-
-        const initData = getInitData();
-
-
-        /*
-         * В обычном браузере Telegram initData отсутствует.
-         * Поэтому приложение не ломается во время предпросмотра.
-         */
-
-        if (!initData) {
-
-            console.warn(
-                "Telegram initData отсутствует. Режим предпросмотра."
-            );
+    if (science) {
+        state.science =
+            science.science ||
+            science.items ||
+            [];
+    }
 
 
-            const previewUser =
-                getTelegramUser();
+    renderCurriculum();
+    renderSchedule();
+    renderExams();
+    renderScience();
+}
 
 
-            state.user =
-                previewUser || {
-                    id: 0,
-                    first_name: "Пользователь",
-                    username: ""
-                };
+/* -----------------------------
+   DEFAULT CURRICULUM
+----------------------------- */
 
+function getDefaultCurriculum() {
 
-            renderUser();
-
-            return;
-
-        }
-
-
-        try {
-
-            const data = await api(
-                "/api/auth/telegram",
+    return [
+        {
+            year: "1 курс",
+            semesters: [
                 {
-                    method: "POST",
-                    body: JSON.stringify({
-                        initData: initData
-                    })
-                }
-            );
-
-
-            state.user = data.user;
-
-            renderUser();
-
-
-        } catch (error) {
-
-            console.error(
-                "Telegram authentication error:",
-                error
-            );
-
-
-            /*
-             * Не блокируем интерфейс полностью.
-             * Если backend временно недоступен,
-             * пользователь всё равно может увидеть интерфейс.
-             */
-
-            state.user =
-                getTelegramUser() || {
-                    id: 0,
-                    first_name: "Пользователь",
-                    username: ""
-                };
-
-
-            renderUser();
-
-        }
-
-    }
-
-
-    /* =========================================================
-       LESSONS
-    ========================================================= */
-
-    async function loadLessons() {
-
-        try {
-
-            const data =
-                await api("/api/lessons");
-
-
-            state.lessons =
-                Array.isArray(data.lessons)
-                    ? data.lessons
-                    : [];
-
-
-            state.completedLessonIds =
-                Array.isArray(data.completedLessonIds)
-                    ? data.completedLessonIds
-                    : [];
-
-
-            renderLearning();
-
-            updateHomeProgress();
-
-
-        } catch (error) {
-
-            console.error(
-                "Lessons loading error:",
-                error
-            );
-
-
-            /*
-             * Если D1 ещё не подключена,
-             * приложение всё равно открывается.
-             */
-
-            state.lessons = [];
-
-            state.completedLessonIds = [];
-
-            renderLearning();
-
-            updateHomeProgress();
-
-        }
-
-    }
-
-
-    function normalizeLesson(lesson) {
-
-        return {
-
-            id: lesson.id,
-
-            title:
-                lesson.title ||
-                "Без названия",
-
-            description:
-                lesson.description ||
-                "",
-
-            content_text:
-                lesson.content_text ||
-                lesson.text ||
-                "",
-
-            video_url:
-                lesson.video_url ||
-                lesson.videoUrl ||
-                "",
-
-            audio_url:
-                lesson.audio_url ||
-                lesson.audioUrl ||
-                "",
-
-            file_url:
-                lesson.file_url ||
-                lesson.fileUrl ||
-                "",
-
-            program:
-                lesson.program ||
-                lesson.program_name ||
-                "Учебная программа",
-
-            year:
-                lesson.year ||
-                lesson.course_year ||
-                1,
-
-            semester:
-                lesson.semester ||
-                1,
-
-            subject:
-                lesson.subject ||
-                lesson.subject_name ||
-                "Общий предмет"
-
-        };
-
-    }
-
-
-    /* =========================================================
-       LEARNING
-    ========================================================= */
-
-    function renderLearning() {
-
-        const container =
-            $("learningContainer");
-
-
-        if (!container) {
-            return;
-        }
-
-
-        const lessons =
-            state.lessons.map(normalizeLesson);
-
-
-        $("totalLessons").textContent =
-            lessons.length;
-
-
-        $("completedLessons").textContent =
-            state.completedLessonIds.length;
-
-
-        const remaining =
-            Math.max(
-                0,
-                lessons.length -
-                state.completedLessonIds.length
-            );
-
-
-        $("remainingLessons").textContent =
-            remaining;
-
-
-        const percent =
-            lessons.length
-                ? Math.round(
-                    (
-                        state.completedLessonIds.length /
-                        lessons.length
-                    ) * 100
-                )
-                : 0;
-
-
-        $("learningPercent").textContent =
-            percent + "%";
-
-
-        if (lessons.length === 0) {
-
-            container.innerHTML = `
-                <div class="empty">
-                    Учебных материалов пока нет.
-                    <br><br>
-                    После добавления программ и уроков
-                    они появятся здесь.
-                </div>
-            `;
-
-            return;
-
-        }
-
-
-        const years = {};
-
-
-        lessons.forEach(function (lesson) {
-
-            const year =
-                String(lesson.year);
-
-
-            if (!years[year]) {
-                years[year] = [];
-            }
-
-
-            years[year].push(lesson);
-
-        });
-
-
-        container.innerHTML = "";
-
-
-        Object.keys(years)
-            .sort(function (a, b) {
-                return Number(a) - Number(b);
-            })
-            .forEach(function (year) {
-
-                const yearLessons =
-                    years[year];
-
-
-                const yearCard =
-                    document.createElement("div");
-
-
-                yearCard.className =
-                    "year-card";
-
-
-                const header =
-                    document.createElement("button");
-
-
-                header.className =
-                    "year-header";
-
-
-                header.type = "button";
-
-
-                header.innerHTML = `
-                    <div>
-                        <div class="year-title">
-                            ${escapeHtml(year)} курс
-                        </div>
-
-                        <div class="year-subtitle">
-                            ${yearLessons.length} уроков
-                        </div>
-                    </div>
-
-                    <div class="year-arrow">
-                        ↓
-                    </div>
-                `;
-
-
-                const content =
-                    document.createElement("div");
-
-
-                content.className =
-                    "year-content";
-
-
-                header.addEventListener(
-                    "click",
-                    function () {
-
-                        yearCard.classList.toggle(
-                            "open"
-                        );
-
-                    }
-                );
-
-
-                const semesters = {};
-
-
-                yearLessons.forEach(
-                    function (lesson) {
-
-                        const semester =
-                            String(
-                                lesson.semester
-                            );
-
-
-                        if (!semesters[semester]) {
-                            semesters[semester] = [];
+                    title: "1 семестр",
+                    subjects: [
+                        {
+                            name: "Общие дисциплины",
+                            lessons: [
+                                {
+                                    id: "demo-1",
+                                    title: "Введение в обучение",
+                                    description:
+                                        "Учебный материал пока не добавлен.",
+                                    completed: false
+                                }
+                            ]
                         }
+                    ]
+                }
+            ]
+        }
+    ];
+}
 
 
-                        semesters[semester].push(
-                            lesson
-                        );
+/* -----------------------------
+   CURRICULUM NORMALIZATION
+----------------------------- */
 
-                    }
-                );
+function normalizeCurriculum(data) {
 
+    if (!data) {
+        return getDefaultCurriculum();
+    }
 
-                Object.keys(semesters)
-                    .sort(function (a, b) {
-                        return Number(a) - Number(b);
-                    })
-                    .forEach(
-                        function (semester) {
+    if (Array.isArray(data)) {
+        return data;
+    }
 
-                            const semesterLessons =
-                                semesters[semester];
+    if (Array.isArray(data.years)) {
+        return data.years;
+    }
 
+    if (Array.isArray(data.courses)) {
+        return data.courses;
+    }
 
-                            const semesterCard =
-                                document.createElement(
-                                    "div"
-                                );
-
-
-                            semesterCard.className =
-                                "semester-card";
+    return getDefaultCurriculum();
+}
 
 
-                            const semesterHeader =
-                                document.createElement(
-                                    "button"
-                                );
+/* -----------------------------
+   RENDER CURRICULUM
+----------------------------- */
+
+function renderCurriculum() {
+
+    const container =
+        document.getElementById(
+            "curriculum"
+        );
+
+    const curriculum =
+        normalizeCurriculum(
+            state.curriculum
+        );
+
+    let totalLessons = 0;
+    let completedLessons = 0;
 
 
-                            semesterHeader.type =
-                                "button";
+    curriculum.forEach(year => {
+
+        (year.semesters || [])
+            .forEach(semester => {
+
+                (semester.subjects || [])
+                    .forEach(subject => {
+
+                        (subject.lessons || [])
+                            .forEach(lesson => {
+
+                                totalLessons++;
+
+                                if (
+                                    lesson.completed
+                                ) {
+                                    completedLessons++;
+                                }
+
+                            });
+
+                    });
+
+            });
+
+    });
 
 
-                            semesterHeader.className =
-                                "semester-header";
+    document.getElementById(
+        "summary-lessons"
+    ).textContent =
+        totalLessons;
 
 
-                            semesterHeader.innerHTML = `
+    document.getElementById(
+        "summary-completed"
+    ).textContent =
+        completedLessons;
+
+
+    if (!curriculum.length) {
+
+        container.innerHTML = `
+            <div class="empty">
+                Учебная программа пока не добавлена.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        curriculum
+            .map(
+                (year, yearIndex) => {
+
+                    const semesters =
+                        year.semesters || [];
+
+                    return `
+                        <div
+                            class="year-card ${yearIndex === 0 ? "open" : ""}"
+                        >
+
+                            <button
+                                class="year-header"
+                                type="button"
+                                onclick="toggleYear(this)"
+                            >
+
                                 <div>
-                                    <div class="semester-title">
-                                        ${escapeHtml(semester)} семестр
+                                    <div class="year-title">
+                                        ${escapeHtml(
+                                            year.title ||
+                                            year.name ||
+                                            `Курс ${yearIndex + 1}`
+                                        )}
+                                    </div>
+
+                                    <div class="year-subtitle">
+                                        ${semesters.length}
+                                        ${plural(
+                                            semesters.length,
+                                            "семестр",
+                                            "семестра",
+                                            "семестров"
+                                        )}
                                     </div>
                                 </div>
 
-                                <div class="semester-count">
-                                    ${semesterLessons.length} уроков
+                                <div class="year-arrow">
+                                    ${yearIndex === 0 ? "⌃" : "⌄"}
                                 </div>
-                            `;
 
-
-                            const semesterContent =
-                                document.createElement(
-                                    "div"
-                                );
-
-
-                            semesterContent.className =
-                                "semester-content";
-
-
-                            semesterHeader.addEventListener(
-                                "click",
-                                function () {
-
-                                    semesterCard.classList.toggle(
-                                        "open"
-                                    );
-
-                                }
-                            );
-
-
-                            const subjects = {};
-
-
-                            semesterLessons.forEach(
-                                function (lesson) {
-
-                                    const subject =
-                                        lesson.subject ||
-                                        "Общий предмет";
-
-
-                                    if (!subjects[subject]) {
-                                        subjects[subject] = [];
-                                    }
-
-
-                                    subjects[subject].push(
-                                        lesson
-                                    );
-
-                                }
-                            );
-
-
-                            Object.keys(subjects)
-                                .forEach(
-                                    function (subjectName) {
-
-                                        const subjectLessons =
-                                            subjects[
-                                                subjectName
-                                            ];
-
-
-                                        const subject =
-                                            document.createElement(
-                                                "div"
-                                            );
-
-
-                                        subject.className =
-                                            "subject";
-
-
-                                        const subjectHeader =
-                                            document.createElement(
-                                                "button"
-                                            );
-
-
-                                        subjectHeader.type =
-                                            "button";
-
-
-                                        subjectHeader.className =
-                                            "subject-header";
-
-
-                                        const completedCount =
-                                            subjectLessons.filter(
-                                                function (lesson) {
-                                                    return state
-                                                        .completedLessonIds
-                                                        .includes(
-                                                            lesson.id
-                                                        );
-                                                }
-                                            ).length;
-
-
-                                        subjectHeader.innerHTML = `
-                                            <div class="subject-name">
-                                                ${escapeHtml(subjectName)}
-                                            </div>
-
-                                            <div class="subject-progress">
-                                                ${completedCount}/${subjectLessons.length}
-                                            </div>
-                                        `;
-
-
-                                        const lessonsBox =
-                                            document.createElement(
-                                                "div"
-                                            );
-
-
-                                        lessonsBox.className =
-                                            "lessons";
-
-
-                                        subjectHeader.addEventListener(
-                                            "click",
-                                            function () {
-
-                                                subject.classList.toggle(
-                                                    "open"
-                                                );
-
-                                            }
-                                        );
-
-
-                                        subjectLessons.forEach(
-                                            function (lesson) {
-
-                                                const completed =
-                                                    state
-                                                        .completedLessonIds
-                                                        .includes(
-                                                            lesson.id
-                                                        );
-
-
-                                                const row =
-                                                    document.createElement(
-                                                        "button"
-                                                    );
-
-
-                                                row.type =
-                                                    "button";
-
-
-                                                row.className =
-                                                    "lesson-row" +
-                                                    (
-                                                        completed
-                                                            ? " completed"
-                                                            : ""
-                                                    );
-
-
-                                                row.innerHTML = `
-                                                    <div class="lesson-status">
-                                                        ${completed ? "✓" : "○"}
-                                                    </div>
-
-                                                    <div class="lesson-info">
-
-                                                        <div class="lesson-row-title">
-                                                            ${escapeHtml(
-                                                                lesson.title
-                                                            )}
-                                                        </div>
-
-                                                        <div class="lesson-meta">
-                                                            ${
-                                                                completed
-                                                                    ? "Пройдено"
-                                                                    : "Не пройдено"
-                                                            }
-                                                        </div>
-
-                                                    </div>
-
-                                                    <div>
-                                                        →
-                                                    </div>
-                                                `;
-
-
-                                                row.addEventListener(
-                                                    "click",
-                                                    function () {
-
-                                                        openLesson(
-                                                            lesson
-                                                        );
-
-                                                    }
-                                                );
-
-
-                                                lessonsBox.appendChild(
-                                                    row
-                                                );
-
-                                            }
-                                        );
-
-
-                                        subject.appendChild(
-                                            subjectHeader
-                                        );
-
-                                        subject.appendChild(
-                                            lessonsBox
-                                        );
-
-
-                                        semesterContent.appendChild(
-                                            subject
-                                        );
-
-                                    }
-                                );
-
-
-                            semesterCard.appendChild(
-                                semesterHeader
-                            );
-
-                            semesterCard.appendChild(
-                                semesterContent
-                            );
-
-
-                            content.appendChild(
-                                semesterCard
-                            );
-
-                        }
-                    );
-
-
-                yearCard.appendChild(header);
-
-                yearCard.appendChild(content);
-
-                container.appendChild(yearCard);
-
-            });
-
-    }
-
-
-    /* =========================================================
-       HOME PROGRESS
-    ========================================================= */
-
-    function updateHomeProgress() {
-
-        const total =
-            state.lessons.length;
-
-
-        const completed =
-            state.completedLessonIds.length;
-
-
-        const percent =
-            total
-                ? Math.round(
-                    completed / total * 100
-                )
-                : 0;
-
-
-        $("progressNumber").textContent =
-            percent;
-
-
-        $("progressFill").style.width =
-            percent + "%";
-
-
-        $("completedLessons").textContent =
-            completed;
-
-
-        $("totalLessons").textContent =
-            total;
-
-
-        $("remainingLessons").textContent =
-            Math.max(
-                0,
-                total - completed
-            );
-
-
-        $("learningPercent").textContent =
-            percent + "%";
-
-
-        if (state.lessons.length > 0) {
-
-            const firstLesson =
-                normalizeLesson(
-                    state.lessons[0]
-                );
-
-
-            $("programName").textContent =
-                firstLesson.program;
-
-
-            $("semesterName").textContent =
-                firstLesson.semester +
-                " семестр";
-
-
-            $("continueLesson").textContent =
-                firstLesson.title;
-
-
-            $("lastLessonTitle").textContent =
-                firstLesson.title;
-
-
-            $("lastLessonText").textContent =
-                firstLesson.description ||
-                "Учебный материал";
-
-
-            $("openLastLesson").style.display =
-                "block";
-
-
-        } else {
-
-            $("programName").textContent =
-                "Учебная программа";
-
-
-            $("semesterName").textContent =
-                "Не выбран";
-
-
-            $("continueLesson").textContent =
-                "Открыть моё обучение";
-
-
-            $("lastLessonTitle").textContent =
-                "Уроков пока нет";
-
-
-            $("lastLessonText").textContent =
-                "Здесь появится ваш последний учебный материал.";
-
-
-            $("openLastLesson").style.display =
-                "none";
-
-        }
-
-    }
-
-
-    /* =========================================================
-       OPEN LESSON
-    ========================================================= */
-
-    function openLesson(rawLesson) {
-
-        const lesson =
-            normalizeLesson(rawLesson);
-
-
-        state.currentLesson =
-            lesson;
-
-
-        $("lessonTitle").textContent =
-            lesson.title;
-
-
-        $("lessonDescription").textContent =
-            lesson.description;
-
-
-        $("videoBlock").style.display =
-            "none";
-
-
-        $("audioBlock").style.display =
-            "none";
-
-
-        $("fileBlock").style.display =
-            "none";
-
-
-        $("textBlock").style.display =
-            "none";
-
-
-        const video =
-            $("lessonVideo");
-
-
-        const audio =
-            $("lessonAudio");
-
-
-        video.pause();
-
-        audio.pause();
-
-
-        video.removeAttribute("src");
-
-        audio.removeAttribute("src");
-
-
-        if (lesson.video_url) {
-
-            video.src =
-                lesson.video_url;
-
-            $("videoBlock").style.display =
-                "block";
-
-        }
-
-
-        if (lesson.audio_url) {
-
-            audio.src =
-                lesson.audio_url;
-
-            $("audioBlock").style.display =
-                "block";
-
-        }
-
-
-        if (lesson.file_url) {
-
-            $("lessonFile").href =
-                lesson.file_url;
-
-            $("fileBlock").style.display =
-                "block";
-
-        }
-
-
-        if (lesson.content_text) {
-
-            $("lessonText").textContent =
-                lesson.content_text;
-
-            $("textBlock").style.display =
-                "block";
-
-        }
-
-
-        const completed =
-            state.completedLessonIds
-                .includes(lesson.id);
-
-
-        const completeButton =
-            $("completeLessonButton");
-
-
-        if (completed) {
-
-            completeButton.textContent =
-                "✓ Урок пройден";
-
-
-            completeButton.disabled =
-                true;
-
-
-        } else {
-
-            completeButton.textContent =
-                "Завершить урок";
-
-
-            completeButton.disabled =
-                false;
-
-        }
-
-
-        showPage("lesson");
-
-    }
-
-
-    /* =========================================================
-       COMPLETE LESSON
-    ========================================================= */
-
-    async function completeCurrentLesson() {
-
-        if (!state.currentLesson) {
-            return;
-        }
-
-
-        const lessonId =
-            state.currentLesson.id;
-
-
-        const button =
-            $("completeLessonButton");
-
-
-        button.disabled =
-            true;
-
-
-        button.textContent =
-            "Сохранение...";
-
-
-        try {
-
-            await api(
-                "/api/progress",
-                {
-                    method: "POST",
-
-                    body: JSON.stringify({
-                        lessonId: lessonId
-                    })
+                            </button>
+
+                            <div class="year-content">
+
+                                ${semesters
+                                    .map(
+                                        (
+                                            semester,
+                                            semesterIndex
+                                        ) =>
+                                            renderSemester(
+                                                semester,
+                                                semesterIndex
+                                            )
+                                    )
+                                    .join("")}
+
+                            </div>
+
+                        </div>
+                    `;
                 }
+            )
+            .join("");
+}
+
+
+/* -----------------------------
+   RENDER SEMESTER
+----------------------------- */
+
+function renderSemester(
+    semester,
+    semesterIndex
+) {
+
+    const subjects =
+        semester.subjects || [];
+
+
+    const lessonCount =
+        subjects.reduce(
+            (sum, subject) =>
+                sum +
+                (subject.lessons || []).length,
+            0
+        );
+
+
+    return `
+        <div class="semester-card">
+
+            <button
+                class="semester-header"
+                type="button"
+                onclick="toggleSemester(this)"
+            >
+
+                <div>
+                    <div class="semester-title">
+                        ${escapeHtml(
+                            semester.title ||
+                            semester.name ||
+                            `Семестр ${semesterIndex + 1}`
+                        )}
+                    </div>
+
+                    <div class="semester-count">
+                        ${lessonCount}
+                        ${plural(
+                            lessonCount,
+                            "урок",
+                            "урока",
+                            "уроков"
+                        )}
+                    </div>
+                </div>
+
+                <div class="semester-arrow">
+                    ⌄
+                </div>
+
+            </button>
+
+            <div class="semester-content">
+
+                ${
+                    subjects.length
+                        ? subjects
+                            .map(
+                                (
+                                    subject,
+                                    subjectIndex
+                                ) =>
+                                    renderSubject(
+                                        subject,
+                                        subjectIndex
+                                    )
+                            )
+                            .join("")
+                        : `
+                            <div class="empty">
+                                Предметы пока не добавлены.
+                            </div>
+                        `
+                }
+
+            </div>
+
+        </div>
+    `;
+}
+
+
+/* -----------------------------
+   RENDER SUBJECT
+----------------------------- */
+
+function renderSubject(
+    subject,
+    subjectIndex
+) {
+
+    const lessons =
+        subject.lessons || [];
+
+
+    const completed =
+        lessons.filter(
+            lesson =>
+                lesson.completed
+        ).length;
+
+
+    return `
+        <div class="subject">
+
+            <button
+                class="subject-header"
+                type="button"
+                onclick="toggleSubject(this)"
+            >
+
+                <div>
+                    <div class="subject-name">
+                        ${escapeHtml(
+                            subject.name ||
+                            subject.title ||
+                            `Предмет ${subjectIndex + 1}`
+                        )}
+                    </div>
+                </div>
+
+                <div class="subject-progress">
+                    ${completed}/${lessons.length}
+                </div>
+
+            </button>
+
+            <div class="lessons">
+
+                ${
+                    lessons.length
+                        ? lessons
+                            .map(
+                                lesson =>
+                                    renderLessonRow(
+                                        lesson
+                                    )
+                            )
+                            .join("")
+                        : `
+                            <div class="empty">
+                                Уроки пока не добавлены.
+                            </div>
+                        `
+                }
+
+            </div>
+
+        </div>
+    `;
+}
+
+
+/* -----------------------------
+   LESSON ROW
+----------------------------- */
+
+function renderLessonRow(lesson) {
+
+    const id =
+        lesson.id ??
+        lesson.lesson_id ??
+        "";
+
+
+    return `
+        <button
+            class="lesson-row ${
+                lesson.completed
+                    ? "completed"
+                    : ""
+            }"
+            type="button"
+            onclick="openLesson('${escapeJs(String(id))}')"
+        >
+
+            <div class="lesson-status">
+                ${
+                    lesson.completed
+                        ? "✓"
+                        : "•"
+                }
+            </div>
+
+            <div class="lesson-info">
+
+                <div class="lesson-row-title">
+                    ${escapeHtml(
+                        lesson.title ||
+                        lesson.name ||
+                        "Урок"
+                    )}
+                </div>
+
+                <div class="lesson-meta">
+                    ${
+                        lesson.duration
+                            ? escapeHtml(
+                                String(
+                                    lesson.duration
+                                )
+                            )
+                            : "Учебный материал"
+                    }
+                </div>
+
+            </div>
+
+            <div class="arrow">
+                →
+            </div>
+
+        </button>
+    `;
+}
+
+
+/* -----------------------------
+   OPEN LESSON
+----------------------------- */
+
+async function openLesson(id) {
+
+    showPage("lesson");
+
+    const container =
+        document.getElementById(
+            "lesson-container"
+        );
+
+    container.innerHTML = `
+        <div class="loading">
+            <div class="loader"></div>
+            Загрузка урока...
+        </div>
+    `;
+
+
+    let lesson = null;
+
+
+    const result =
+        await apiRequest(
+            "/api/lessons/" +
+            encodeURIComponent(id)
+        );
+
+
+    if (result) {
+
+        lesson =
+            result.lesson ||
+            result;
+    }
+
+
+    /*
+     * Если backend ещё не подключён,
+     * ищем урок в локальной программе.
+     */
+
+    if (!lesson) {
+
+        const curriculum =
+            normalizeCurriculum(
+                state.curriculum
             );
 
+        for (
+            const year of curriculum
+        ) {
 
-            if (
-                !state.completedLessonIds.includes(
-                    lessonId
-                )
+            for (
+                const semester
+                of (year.semesters || [])
             ) {
 
-                state.completedLessonIds.push(
-                    lessonId
-                );
-
-            }
-
-
-            button.textContent =
-                "✓ Урок пройден";
-
-
-            updateHomeProgress();
-
-
-        } catch (error) {
-
-            console.error(error);
-
-
-            button.disabled =
-                false;
-
-
-            button.textContent =
-                "Завершить урок";
-
-
-            if (tg && tg.showAlert) {
-
-                tg.showAlert(
-                    error.message ||
-                    "Не удалось сохранить прогресс"
-                );
-
-            } else {
-
-                alert(
-                    error.message ||
-                    "Не удалось сохранить прогресс"
-                );
-
-            }
-
-        }
-
-    }
-
-
-    /* =========================================================
-       LAST LESSON
-    ========================================================= */
-
-    function openLastLesson() {
-
-        if (!state.lessons.length) {
-            showPage("learning");
-            return;
-        }
-
-
-        openLesson(
-            state.lessons[0]
-        );
-
-    }
-
-
-    /* =========================================================
-       ADMIN
-    ========================================================= */
-
-    async function checkAdmin() {
-
-        try {
-
-            const data =
-                await api(
-                    "/api/admin/me"
-                );
-
-
-            state.admin =
-                Boolean(
-                    data.admin ||
-                    data.isAdmin ||
-                    data.isOwner
-                );
-
-
-            if (state.admin) {
-
-                $("adminMenuButton")
-                    .style.display =
-                    "flex";
-
-
-                $("adminStatus").textContent =
-                    "У вас есть доступ к панели управления.";
-
-            } else {
-
-                $("adminStatus").textContent =
-                    "Панель управления доступна только владельцу и назначенным администраторам.";
-
-            }
-
-
-        } catch (error) {
-
-            state.admin =
-                false;
-
-
-            $("adminMenuButton")
-                .style.display =
-                "none";
-
-
-            $("adminStatus").textContent =
-                "Проверить права администратора пока не удалось.";
-
-        }
-
-    }
-
-
-    /* =========================================================
-       EVENTS
-    ========================================================= */
-
-    $("menuButton")
-        .addEventListener(
-            "click",
-            openMenu
-        );
-
-
-    $("closeMenu")
-        .addEventListener(
-            "click",
-            closeMenu
-        );
-
-
-    $("overlay")
-        .addEventListener(
-            "click",
-            closeMenu
-        );
-
-
-    $("homeLogo")
-        .addEventListener(
-            "click",
-            function () {
-                showPage("home");
-            }
-        );
-
-
-    $("continueLearning")
-        .addEventListener(
-            "click",
-            function () {
-
-                if (state.lessons.length) {
-
-                    openLastLesson();
-
-                } else {
-
-                    showPage("learning");
+                for (
+                    const subject
+                    of (semester.subjects || [])
+                ) {
+
+                    for (
+                        const item
+                        of (subject.lessons || [])
+                    ) {
+
+                        if (
+                            String(
+                                item.id
+                            ) === String(id)
+                        ) {
+
+                            lesson = {
+                                ...item,
+
+                                subject:
+                                    subject.name,
+
+                                semester:
+                                    semester.title
+                            };
+
+                        }
+
+                    }
 
                 }
 
             }
+
+        }
+
+    }
+
+
+    if (!lesson) {
+
+        container.innerHTML = `
+            <div class="error-box">
+                Урок не найден.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    state.currentLesson = lesson;
+
+    renderLesson(lesson);
+}
+
+
+/* -----------------------------
+   RENDER LESSON
+----------------------------- */
+
+function renderLesson(lesson) {
+
+    const container =
+        document.getElementById(
+            "lesson-container"
         );
 
 
-    $("openLastLesson")
-        .addEventListener(
-            "click",
-            openLastLesson
-        );
+    const video =
+        lesson.video_url ||
+        lesson.video ||
+        "";
 
 
-    $("backFromLesson")
-        .addEventListener(
-            "click",
-            function () {
+    const audio =
+        lesson.audio_url ||
+        lesson.audio ||
+        "";
 
-                $("lessonVideo").pause();
 
-                $("lessonAudio").pause();
+    const material =
+        lesson.material ||
+        lesson.text ||
+        lesson.content ||
+        "";
 
-                showPage("learning");
 
+    container.innerHTML = `
+
+        <div class="lesson-page-card">
+
+            <div class="lesson-tag">
+                ${escapeHtml(
+                    lesson.subject ||
+                    "Урок"
+                )}
+            </div>
+
+            <div class="lesson-page-title">
+                ${escapeHtml(
+                    lesson.title ||
+                    lesson.name ||
+                    "Учебный урок"
+                )}
+            </div>
+
+            ${
+                lesson.description
+                    ? `
+                        <div class="lesson-page-description">
+                            ${escapeHtml(
+                                lesson.description
+                            )}
+                        </div>
+                    `
+                    : ""
+            }
+
+
+            ${
+                video
+                    ? `
+                        <div class="media-block">
+
+                            <div class="media-title">
+                                Видео
+                            </div>
+
+                            <video
+                                controls
+                                playsinline
+                                src="${escapeAttr(
+                                    video
+                                )}"
+                            ></video>
+
+                        </div>
+                    `
+                    : ""
+            }
+
+
+            ${
+                audio
+                    ? `
+                        <div class="media-block">
+
+                            <div class="media-title">
+                                Аудио
+                            </div>
+
+                            <div class="audio-player">
+
+                                <audio
+                                    controls
+                                    src="${escapeAttr(
+                                        audio
+                                    )}"
+                                ></audio>
+
+                            </div>
+
+                        </div>
+                    `
+                    : ""
+            }
+
+
+            ${
+                material
+                    ? `
+                        <div class="material-block">
+
+                            <div class="material-title">
+                                Материал урока
+                            </div>
+
+                            <div class="material-text">
+                                ${escapeHtml(
+                                    material
+                                )}
+                            </div>
+
+                        </div>
+                    `
+                    : `
+                        <div class="material-block">
+
+                            <div class="material-title">
+                                Материал
+                            </div>
+
+                            <div class="material-text">
+                                Материал этого урока
+                                пока не добавлен.
+                            </div>
+
+                        </div>
+                    `
+            }
+
+
+            <button
+                class="primary-button"
+                style="margin-top:18px"
+                type="button"
+                onclick="completeLesson('${escapeJs(
+                    String(
+                        lesson.id ??
+                        ""
+                    )
+                )}')"
+            >
+                ${
+                    lesson.completed
+                        ? "Урок завершён"
+                        : "Отметить как завершённый"
+                }
+            </button>
+
+        </div>
+    `;
+}
+
+
+/* -----------------------------
+   COMPLETE LESSON
+----------------------------- */
+
+async function completeLesson(id) {
+
+    const result =
+        await apiRequest(
+            "/api/lessons/" +
+            encodeURIComponent(id) +
+            "/complete",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    lesson_id: id
+                })
             }
         );
 
 
-    $("completeLessonButton")
-        .addEventListener(
-            "click",
-            completeCurrentLesson
+    if (
+        result &&
+        result.lesson
+    ) {
+        state.currentLesson =
+            result.lesson;
+    } else if (
+        state.currentLesson
+    ) {
+        state.currentLesson.completed =
+            true;
+    }
+
+
+    if (state.currentLesson) {
+        renderLesson(
+            state.currentLesson
+        );
+    }
+
+
+    updateProgressFromLocalData();
+}
+
+
+/* -----------------------------
+   PROGRESS
+----------------------------- */
+
+function updateProgressFromLocalData() {
+
+    const curriculum =
+        normalizeCurriculum(
+            state.curriculum
         );
 
 
-    document.addEventListener(
-        "click",
-        function (event) {
+    let total = 0;
+    let completed = 0;
 
-            const button =
-                event.target.closest(
-                    "[data-page]"
+
+    curriculum.forEach(
+        year => {
+
+            (year.semesters || [])
+                .forEach(
+                    semester => {
+
+                        (semester.subjects || [])
+                            .forEach(
+                                subject => {
+
+                                    (subject.lessons || [])
+                                        .forEach(
+                                            lesson => {
+
+                                                total++;
+
+                                                if (
+                                                    lesson.completed
+                                                ) {
+                                                    completed++;
+                                                }
+
+                                            }
+                                        );
+
+                                }
+                            );
+
+                    }
                 );
-
-
-            if (!button) {
-                return;
-            }
-
-
-            const page =
-                button.dataset.page;
-
-
-            if (page) {
-                showPage(page);
-            }
 
         }
     );
 
 
-    /* =========================================================
-       INIT
-    ========================================================= */
-
-    async function init() {
-
-        $("loading").style.display =
-            "block";
-
-
-        await authenticate();
-
-
-        await loadLessons();
-
-
-        await checkAdmin();
-
-
-        updateHomeProgress();
-
-
-        $("loading").style.display =
-            "none";
-
-
-        state.loaded =
-            true;
-
+    if (!total) {
+        return;
     }
 
 
-    init();
+    const progress =
+        Math.round(
+            completed /
+            total *
+            100
+        );
 
-})();
+
+    document.getElementById(
+        "hero-progress"
+    ).textContent =
+        progress;
+
+
+    document.getElementById(
+        "progress-fill"
+    ).style.width =
+        progress + "%";
+
+
+    document.getElementById(
+        "summary-lessons"
+    ).textContent =
+        total;
+
+
+    document.getElementById(
+        "summary-completed"
+    ).textContent =
+        completed;
+}
+
+
+/* -----------------------------
+   SCHEDULE
+----------------------------- */
+
+function renderSchedule() {
+
+    const container =
+        document.getElementById(
+            "schedule-container"
+        );
+
+
+    if (
+        !Array.isArray(
+            state.schedule
+        ) ||
+        !state.schedule.length
+    ) {
+
+        container.innerHTML = `
+            <div class="empty">
+                Расписание пока не добавлено.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        state.schedule
+            .map(
+                item => `
+
+                    <div class="info-card">
+
+                        <div class="info-card-title">
+                            ${escapeHtml(
+                                item.title ||
+                                item.subject ||
+                                "Занятие"
+                            )}
+                        </div>
+
+                        <div class="info-card-text">
+
+                            ${
+                                item.date
+                                    ? escapeHtml(
+                                        String(
+                                            item.date
+                                        )
+                                    )
+                                    : ""
+                            }
+
+                            ${
+                                item.time
+                                    ? " · " +
+                                      escapeHtml(
+                                          String(
+                                              item.time
+                                          )
+                                      )
+                                    : ""
+                            }
+
+                            ${
+                                item.teacher
+                                    ? `<br>${escapeHtml(
+                                        String(
+                                            item.teacher
+                                        )
+                                    )}`
+                                    : ""
+                            }
+
+                        </div>
+
+                    </div>
+
+                `
+            )
+            .join("");
+}
+
+
+/* -----------------------------
+   EXAMS
+----------------------------- */
+
+function renderExams() {
+
+    const container =
+        document.getElementById(
+            "exams-container"
+        );
+
+
+    if (
+        !Array.isArray(
+            state.exams
+        ) ||
+        !state.exams.length
+    ) {
+
+        container.innerHTML = `
+            <div class="empty">
+                Информация об экзаменах пока не добавлена.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        state.exams
+            .map(
+                exam => `
+
+                    <div class="info-card">
+
+                        <div class="info-card-title">
+                            ${escapeHtml(
+                                exam.title ||
+                                exam.subject ||
+                                "Экзамен"
+                            )}
+                        </div>
+
+                        <div class="info-card-text">
+
+                            ${
+                                exam.date
+                                    ? "Дата: " +
+                                      escapeHtml(
+                                          String(
+                                              exam.date
+                                          )
+                                      )
+                                    : ""
+                            }
+
+                            ${
+                                exam.time
+                                    ? "<br>Время: " +
+                                      escapeHtml(
+                                          String(
+                                              exam.time
+                                          )
+                                      )
+                                    : ""
+                            }
+
+                        </div>
+
+                    </div>
+
+                `
+            )
+            .join("");
+}
+
+
+/* -----------------------------
+   SCIENCE
+----------------------------- */
+
+function renderScience() {
+
+    const container =
+        document.getElementById(
+            "science-container"
+        );
+
+
+    if (
+        !Array.isArray(
+            state.science
+        ) ||
+        !state.science.length
+    ) {
+
+        container.innerHTML = `
+            <div class="empty">
+                Научные материалы пока не добавлены.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        state.science
+            .map(
+                item => `
+
+                    <div class="info-card">
+
+                        <div class="info-card-title">
+                            ${escapeHtml(
+                                item.title ||
+                                "Материал"
+                            )}
+                        </div>
+
+                        <div class="info-card-text">
+                            ${escapeHtml(
+                                item.description ||
+                                item.text ||
+                                ""
+                            )}
+                        </div>
+
+                        ${
+                            item.url
+                                ? `
+                                    <button
+                                        class="secondary-button"
+                                        style="margin-top:12px"
+                                        type="button"
+                                        onclick="openExternal('${escapeJs(
+                                            String(
+                                                item.url
+                                            )
+                                        )}')"
+                                    >
+                                        Открыть материал
+                                    </button>
+                                `
+                                : ""
+                        }
+
+                    </div>
+
+                `
+            )
+            .join("");
+}
+
+
+/* -----------------------------
+   NAVIGATION
+----------------------------- */
+
+function showPage(name) {
+
+    document
+        .querySelectorAll(".page")
+        .forEach(
+            page => {
+                page.classList.remove(
+                    "active"
+                );
+            }
+        );
+
+
+    const page =
+        document.getElementById(
+            "page-" + name
+        );
+
+
+    if (!page) {
+        return;
+    }
+
+
+    page.classList.add(
+        "active"
+    );
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+
+    closeMenu();
+}
+
+
+function navigateMenu(page) {
+    showPage(page);
+}
+
+
+function continueLearning() {
+    showPage("lessons");
+}
+
+
+/* -----------------------------
+   MENU
+----------------------------- */
+
+function openMenu() {
+
+    document
+        .getElementById(
+            "overlay"
+        )
+        .classList.add("open");
+
+
+    document
+        .getElementById(
+            "side-menu"
+        )
+        .classList.add("open");
+
+
+    document.body.style.overflow =
+        "hidden";
+}
+
+
+function closeMenu() {
+
+    document
+        .getElementById(
+            "overlay"
+        )
+        .classList.remove("open");
+
+
+    document
+        .getElementById(
+            "side-menu"
+        )
+        .classList.remove("open");
+
+
+    document.body.style.overflow =
+        "";
+}
+
+
+/* -----------------------------
+   ACCORDIONS
+----------------------------- */
+
+function toggleYear(button) {
+
+    const card =
+        button.closest(
+            ".year-card"
+        );
+
+
+    if (!card) {
+        return;
+    }
+
+
+    card.classList.toggle(
+        "open"
+    );
+
+
+    const arrow =
+        button.querySelector(
+            ".year-arrow"
+        );
+
+
+    if (arrow) {
+        arrow.textContent =
+            card.classList.contains(
+                "open"
+            )
+                ? "⌃"
+                : "⌄";
+    }
+}
+
+
+function toggleSemester(button) {
+
+    const card =
+        button.closest(
+            ".semester-card"
+        );
+
+
+    if (!card) {
+        return;
+    }
+
+
+    card.classList.toggle(
+        "open"
+    );
+
+
+    const arrow =
+        button.querySelector(
+            ".semester-arrow"
+        );
+
+
+    if (arrow) {
+        arrow.textContent =
+            card.classList.contains(
+                "open"
+            )
+                ? "⌃"
+                : "⌄";
+    }
+}
+
+
+function toggleSubject(button) {
+
+    const card =
+        button.closest(
+            ".subject"
+        );
+
+
+    if (!card) {
+        return;
+    }
+
+
+    card.classList.toggle(
+        "open"
+    );
+}
+
+
+/* -----------------------------
+   ADMIN
+----------------------------- */
+
+function openAdmin() {
+
+    closeMenu();
+
+    /*
+     * Пока backend/admin ещё не меняем.
+     * После подключения backend здесь
+     * будет открываться админ-панель.
+     */
+
+    const url =
+        "/admin/";
+
+    if (
+        window.Telegram &&
+        window.Telegram.WebApp
+    ) {
+        window.Telegram.WebApp.openLink(
+            url
+        );
+    } else {
+        window.open(
+            url,
+            "_blank"
+        );
+    }
+}
+
+
+/* -----------------------------
+   EXTERNAL LINKS
+----------------------------- */
+
+function openExternal(url) {
+
+    if (!url) {
+        return;
+    }
+
+
+    const tg =
+        getTelegramWebApp();
+
+
+    if (tg) {
+
+        try {
+            tg.openLink(url);
+            return;
+        } catch (error) {
+            console.warn(error);
+        }
+    }
+
+
+    window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+    );
+}
+
+
+/* -----------------------------
+   HTML ESCAPING
+----------------------------- */
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
+
+
+function escapeAttr(value) {
+    return escapeHtml(value);
+}
+
+
+function escapeJs(value) {
+
+    return String(value ?? "")
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+        .replace(
+            /'/g,
+            "\\'"
+        )
+        .replace(
+            /"/g,
+            '\\"'
+        )
+        .replace(
+            /\n/g,
+            "\\n"
+        )
+        .replace(
+            /\r/g,
+            "\\r"
+        );
+}
+
+
+/* -----------------------------
+   PLURAL
+----------------------------- */
+
+function plural(
+    number,
+    one,
+    few,
+    many
+) {
+
+    const n =
+        Math.abs(
+            Number(number)
+        ) % 100;
+
+    const n1 =
+        n % 10;
+
+
+    if (
+        n > 10 &&
+        n < 20
+    ) {
+        return many;
+    }
+
+
+    if (n1 === 1) {
+        return one;
+    }
+
+
+    if (
+        n1 >= 2 &&
+        n1 <= 4
+    ) {
+        return few;
+    }
+
+
+    return many;
+}
+
+
+/* -----------------------------
+   TELEGRAM INIT
+----------------------------- */
+
+function initTelegram() {
+
+    const tg =
+        getTelegramWebApp();
+
+
+    if (!tg) {
+        return;
+    }
+
+
+    try {
+
+        tg.ready();
+
+        tg.expand();
+
+        if (
+            typeof tg.setHeaderColor ===
+            "function"
+        ) {
+            tg.setHeaderColor(
+                "#f5f6f3"
+            );
+        }
+
+        if (
+            typeof tg.setBackgroundColor ===
+            "function"
+        ) {
+            tg.setBackgroundColor(
+                "#f5f6f3"
+            );
+        }
+
+    } catch (error) {
+        console.warn(
+            "Telegram initialization error:",
+            error
+        );
+    }
+}
+
+
+/* -----------------------------
+   APP START
+----------------------------- */
+
+async function startApp() {
+
+    initTelegram();
+
+
+    await authenticate();
+
+
+    renderUser();
+
+
+    document
+        .getElementById(
+            "home-loading"
+        )
+        .classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "home-content"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+
+    /*
+     * Показываем приложение сразу.
+     * Backend может быть подключён позже.
+     */
+
+    renderCurriculum();
+
+    renderSchedule();
+
+    renderExams();
+
+    renderScience();
+
+
+    /*
+     * После запуска пробуем получить
+     * актуальные данные backend.
+     */
+
+    await loadData();
+
+
+    updateProgressFromLocalData();
+}
+
+
+/* -----------------------------
+   GLOBAL ERROR PROTECTION
+----------------------------- */
+
+window.addEventListener(
+    "error",
+    event => {
+
+        console.warn(
+            "Frontend error:",
+            event.error ||
+            event.message
+        );
+
+        /*
+         * Не показываем пользователю
+         * белый экран из-за JS-ошибки.
+         */
+    }
+);
+
+
+window.addEventListener(
+    "unhandledrejection",
+    event => {
+
+        console.warn(
+            "Unhandled promise rejection:",
+            event.reason
+        );
+
+    }
+);
+
+
+/* -----------------------------
+   START
+----------------------------- */
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        startApp
+    );
+
+} else {
+
+    startApp();
+}
 </script>
 
 </body>
