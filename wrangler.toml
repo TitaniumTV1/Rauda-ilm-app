@@ -1,0 +1,12 @@
+name = "rauda-ilm-app"
+main = "backend/src/index.js"
+compatibility_date = "2026-08-30"
+
+[vars]
+APP_NAME = "RAUDA ILM"
+
+# После создания D1 сюда подставим настоящий ID базы.
+# database_id = "..."
+
+# После создания R2 сюда подставим настоящее имя bucket.
+# bucket_name = "..."
