@@ -22,7 +22,6 @@ export default {
                 assets: !!env.ASSETS
             });
         }
-
         // Telegram authentication
         if (
             url.pathname === "/api/auth/telegram" &&
