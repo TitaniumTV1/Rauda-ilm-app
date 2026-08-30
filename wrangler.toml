@@ -9,3 +9,7 @@ APP_NAME = "RAUDA ILM"
 binding = "DB"
 database_name = "rauda-ilm-db"
 database_id = "d82a5615-e88a-49cf-90ab-1ec6c3bbdb3e"
+
+[assets]
+directory = "./frontend"
+binding = "ASSETS"
