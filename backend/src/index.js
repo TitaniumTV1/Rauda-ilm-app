@@ -53,6 +53,13 @@ export default {
                     );
                 }
 
+console.log("TELEGRAM AUTH CHECK", {
+    initDataLength: initData.length,
+    hasHash: new URLSearchParams(initData).has("hash"),
+    hasUser: new URLSearchParams(initData).has("user"),
+    hasAuthDate: new URLSearchParams(initData).has("auth_date"),
+    tokenLength: env.TELEGRAM_BOT_TOKEN?.length || 0
+});
                 const verification =
                     await verifyTelegramInitData(
                         initData,
