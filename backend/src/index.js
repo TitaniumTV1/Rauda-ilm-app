@@ -23,10 +23,18 @@ export default {
             });
         }
 // Telegram auth diagnostic
-if (
-    url.pathname === "/api/auth-debug" &&
-    request.method === "POST"
-) {
+if (url.pathname === "/api/auth-debug") {
+    return json({
+        ok: true,
+        endpoint: "auth-debug",
+        method: request.method,
+        telegram_bot_token: !!env.TELEGRAM_BOT_TOKEN,
+        telegram_bot_token_length:
+            env.TELEGRAM_BOT_TOKEN?.length || 0,
+        database: !!env.DB,
+        assets: !!env.ASSETS
+    });
+}
     try {
         const body = await request.json();
         const initData = body?.initData || "";
