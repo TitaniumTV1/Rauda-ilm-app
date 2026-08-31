@@ -39,7 +39,8 @@ export default {
                 ok: true,
                 app: env.APP_NAME || "RAUDA ILM",
                 database: !!env.DB,
-                assets: !!env.ASSETS
+                assets: !!env.ASSETS,
+                files: !!env.FILES
             });
         }
 
@@ -57,10 +58,16 @@ export default {
             return json({
                 ok: true,
                 app: env.APP_NAME || "RAUDA ILM",
-                telegram_bot_token: !!env.TELEGRAM_BOT_TOKEN,
-                database: !!env.DB,
-                assets: !!env.ASSETS,
-                tribute_api_key: !!env.TRIBUTE_API_KEY
+                telegram_bot_token:
+                    !!env.TELEGRAM_BOT_TOKEN,
+                database:
+                    !!env.DB,
+                assets:
+                    !!env.ASSETS,
+                files:
+                    !!env.FILES,
+                tribute_api_key:
+                    !!env.TRIBUTE_API_KEY
             });
         }
 
@@ -75,35 +82,50 @@ export default {
             url.pathname === "/api/auth/register" &&
             request.method === "POST"
         ) {
-            return handleRegister(request, env);
+            return handleRegister(
+                request,
+                env
+            );
         }
 
         if (
             url.pathname === "/api/auth/login" &&
             request.method === "POST"
         ) {
-            return handleLogin(request, env);
+            return handleLogin(
+                request,
+                env
+            );
         }
 
         if (
             url.pathname === "/api/auth/telegram" &&
             request.method === "POST"
         ) {
-            return handleTelegramAuth(request, env);
+            return handleTelegramAuth(
+                request,
+                env
+            );
         }
 
         if (
             url.pathname === "/api/auth/me" &&
             request.method === "GET"
         ) {
-            return handleMe(request, env);
+            return handleMe(
+                request,
+                env
+            );
         }
 
         if (
             url.pathname === "/api/auth/logout" &&
             request.method === "POST"
         ) {
-            return handleLogout(request, env);
+            return handleLogout(
+                request,
+                env
+            );
         }
 
 
@@ -117,7 +139,10 @@ export default {
             url.pathname === "/api/programs" &&
             request.method === "GET"
         ) {
-            return handlePrograms(request, env);
+            return handlePrograms(
+                request,
+                env
+            );
         }
 
 
@@ -131,13 +156,16 @@ export default {
             url.pathname === "/api/courses" &&
             request.method === "GET"
         ) {
-            return handleCourses(request, env);
+            return handleCourses(
+                request,
+                env
+            );
         }
 
 
         /*
          * =====================================================
-         * LESSONS
+         * LESSONS LIST
          * =====================================================
          */
 
@@ -145,7 +173,118 @@ export default {
             url.pathname === "/api/lessons" &&
             request.method === "GET"
         ) {
-            return handleLessons(request, env);
+            return handleLessons(
+                request,
+                env
+            );
+        }
+
+
+        /*
+         * =====================================================
+         * SINGLE LESSON
+         *
+         * GET /api/lessons/123
+         * =====================================================
+         */
+
+        const singleLessonMatch =
+            url.pathname.match(
+                /^\/api\/lessons\/(\d+)$/
+            );
+
+        if (
+            singleLessonMatch &&
+            request.method === "GET"
+        ) {
+            return handleSingleLesson(
+                request,
+                env,
+                Number(
+                    singleLessonMatch[1]
+                )
+            );
+        }
+
+
+        /*
+         * =====================================================
+         * ADMIN LESSON FILE UPLOAD
+         *
+         * POST /api/admin/lessons/123/files
+         * =====================================================
+         */
+
+        const lessonUploadMatch =
+            url.pathname.match(
+                /^\/api\/admin\/lessons\/(\d+)\/files$/
+            );
+
+        if (
+            lessonUploadMatch &&
+            request.method === "POST"
+        ) {
+            return handleLessonFileUpload(
+                request,
+                env,
+                Number(
+                    lessonUploadMatch[1]
+                )
+            );
+        }
+
+
+        /*
+         * =====================================================
+         * GET LESSON FILE
+         *
+         * GET /api/lesson-files/123
+         * =====================================================
+         */
+
+        const lessonFileMatch =
+            url.pathname.match(
+                /^\/api\/lesson-files\/(\d+)$/
+            );
+
+        if (
+            lessonFileMatch &&
+            request.method === "GET"
+        ) {
+            return handleLessonFileGet(
+                request,
+                env,
+                Number(
+                    lessonFileMatch[1]
+                )
+            );
+        }
+
+
+        /*
+         * =====================================================
+         * DELETE LESSON FILE
+         *
+         * DELETE /api/admin/lesson-files/123
+         * =====================================================
+         */
+
+        const deleteLessonFileMatch =
+            url.pathname.match(
+                /^\/api\/admin\/lesson-files\/(\d+)$/
+            );
+
+        if (
+            deleteLessonFileMatch &&
+            request.method === "DELETE"
+        ) {
+            return handleLessonFileDelete(
+                request,
+                env,
+                Number(
+                    deleteLessonFileMatch[1]
+                )
+            );
         }
 
 
@@ -159,13 +298,16 @@ export default {
             url.pathname === "/api/progress" &&
             request.method === "POST"
         ) {
-            return handleProgress(request, env);
+            return handleProgress(
+                request,
+                env
+            );
         }
 
 
         /*
          * =====================================================
-         * TRIBUTE WEBHOOK
+         * TRIBUTE
          * =====================================================
          */
 
@@ -173,7 +315,10 @@ export default {
             url.pathname === "/api/webhooks/tribute" &&
             request.method === "POST"
         ) {
-            return handleTributeWebhook(request, env);
+            return handleTributeWebhook(
+                request,
+                env
+            );
         }
 
 
@@ -184,16 +329,22 @@ export default {
          */
 
         if (env.ASSETS) {
-            return env.ASSETS.fetch(request);
+            return env.ASSETS.fetch(
+                request
+            );
         }
 
-        return new Response("RAUDA ILM", {
-            status: 200,
-            headers: {
-                "Content-Type":
-                    "text/plain; charset=utf-8"
+
+        return new Response(
+            "RAUDA ILM",
+            {
+                status: 200,
+                headers: {
+                    "Content-Type":
+                        "text/plain; charset=utf-8"
+                }
             }
-        });
+        );
     }
 };
 
@@ -204,41 +355,58 @@ export default {
  * =========================================================
  */
 
-async function handleRegister(request, env) {
+async function handleRegister(
+    request,
+    env
+) {
     if (!env.DB) {
         return json(
             {
                 ok: false,
-                error: "Database is not configured"
+                error:
+                    "Database is not configured"
             },
             500
         );
     }
 
+
     try {
-        const body = await request.json();
+        const body =
+            await request.json();
 
         const login =
-            normalizeLogin(body?.login);
+            normalizeLogin(
+                body?.login
+            );
 
         const password =
-            String(body?.password || "");
+            String(
+                body?.password || ""
+            );
 
         const firstName =
-            cleanText(body?.first_name);
+            cleanText(
+                body?.first_name
+            );
 
         const lastName =
-            cleanText(body?.last_name);
+            cleanText(
+                body?.last_name
+            );
 
         const phone =
-            cleanText(body?.phone);
+            cleanText(
+                body?.phone
+            );
 
 
         if (!login) {
             return json(
                 {
                     ok: false,
-                    error: "Введите логин"
+                    error:
+                        "Введите логин"
                 },
                 400
             );
@@ -257,7 +425,9 @@ async function handleRegister(request, env) {
         }
 
 
-        if (password.length < 8) {
+        if (
+            password.length < 8
+        ) {
             return json(
                 {
                     ok: false,
@@ -268,10 +438,6 @@ async function handleRegister(request, env) {
             );
         }
 
-
-        /*
-         * Проверяем логин.
-         */
 
         const existing =
             await env.DB.prepare(`
@@ -288,35 +454,24 @@ async function handleRegister(request, env) {
             return json(
                 {
                     ok: false,
-                    error: "Этот логин уже занят"
+                    error:
+                        "Этот логин уже занят"
                 },
                 409
             );
         }
 
 
-        /*
-         * Хешируем пароль.
-         */
-
         const passwordHash =
-            await hashPassword(password);
+            await hashPassword(
+                password
+            );
 
-
-        /*
-         * ВАЖНО:
-         *
-         * telegram_id в существующей таблице users
-         * имеет NOT NULL.
-         *
-         * Поэтому для обычного аккаунта создаём
-         * технический отрицательный ID.
-         *
-         * Настоящий Telegram ID никогда не меняем.
-         */
 
         const technicalTelegramId =
-            await generateTechnicalTelegramId(env.DB);
+            await generateTechnicalTelegramId(
+                env.DB
+            );
 
 
         const result =
@@ -356,7 +511,9 @@ async function handleRegister(request, env) {
 
 
         const userId =
-            Number(result.meta.last_row_id);
+            Number(
+                result.meta.last_row_id
+            );
 
 
         const user =
@@ -376,15 +533,19 @@ async function handleRegister(request, env) {
         return json({
             ok: true,
             user,
-            token: session.token,
-            expires_at: session.expiresAt
+            token:
+                session.token,
+            expires_at:
+                session.expiresAt
         });
 
     } catch (error) {
+
         console.error(
             "Register error:",
             error
         );
+
 
         return json(
             {
@@ -404,32 +565,46 @@ async function handleRegister(request, env) {
  * =========================================================
  */
 
-async function handleLogin(request, env) {
+async function handleLogin(
+    request,
+    env
+) {
     if (!env.DB) {
         return json(
             {
                 ok: false,
-                error: "Database is not configured"
+                error:
+                    "Database is not configured"
             },
             500
         );
     }
 
+
     try {
-        const body = await request.json();
+        const body =
+            await request.json();
 
         const login =
-            normalizeLogin(body?.login);
+            normalizeLogin(
+                body?.login
+            );
 
         const password =
-            String(body?.password || "");
+            String(
+                body?.password || ""
+            );
 
 
-        if (!login || !password) {
+        if (
+            !login ||
+            !password
+        ) {
             return json(
                 {
                     ok: false,
-                    error: "Введите логин и пароль"
+                    error:
+                        "Введите логин и пароль"
                 },
                 400
             );
@@ -473,7 +648,10 @@ async function handleLogin(request, env) {
         }
 
 
-        if (user.status !== "active") {
+        if (
+            user.status !==
+            "active"
+        ) {
             return json(
                 {
                     ok: false,
@@ -486,7 +664,9 @@ async function handleLogin(request, env) {
         }
 
 
-        if (!user.password_hash) {
+        if (
+            !user.password_hash
+        ) {
             return json(
                 {
                     ok: false,
@@ -530,15 +710,19 @@ async function handleLogin(request, env) {
         return json({
             ok: true,
             user,
-            token: session.token,
-            expires_at: session.expiresAt
+            token:
+                session.token,
+            expires_at:
+                session.expiresAt
         });
 
     } catch (error) {
+
         console.error(
             "Login error:",
             error
         );
+
 
         return json(
             {
@@ -558,7 +742,10 @@ async function handleLogin(request, env) {
  * =========================================================
  */
 
-async function handleTelegramAuth(request, env) {
+async function handleTelegramAuth(
+    request,
+    env
+) {
     if (!env.DB) {
         return json(
             {
@@ -571,7 +758,9 @@ async function handleTelegramAuth(request, env) {
     }
 
 
-    if (!env.TELEGRAM_BOT_TOKEN) {
+    if (
+        !env.TELEGRAM_BOT_TOKEN
+    ) {
         return json(
             {
                 ok: false,
@@ -584,6 +773,7 @@ async function handleTelegramAuth(request, env) {
 
 
     try {
+
         const body =
             await request.json();
 
@@ -610,7 +800,9 @@ async function handleTelegramAuth(request, env) {
             );
 
 
-        if (!verification.ok) {
+        if (
+            !verification.ok
+        ) {
             return json(
                 {
                     ok: false,
@@ -627,7 +819,9 @@ async function handleTelegramAuth(request, env) {
 
 
         const telegramId =
-            Number(telegramUser.id);
+            Number(
+                telegramUser.id
+            );
 
 
         if (!telegramId) {
@@ -642,10 +836,6 @@ async function handleTelegramAuth(request, env) {
         }
 
 
-        /*
-         * Ищем пользователя.
-         */
-
         let user =
             await env.DB.prepare(`
                 SELECT *
@@ -653,16 +843,14 @@ async function handleTelegramAuth(request, env) {
                 WHERE telegram_id = ?
                 LIMIT 1
             `)
-                .bind(telegramId)
+                .bind(
+                    telegramId
+                )
                 .first();
 
 
-        /*
-         * Если пользователя нет —
-         * создаём.
-         */
-
         if (!user) {
+
             const result =
                 await env.DB.prepare(`
                     INSERT INTO users (
@@ -684,9 +872,12 @@ async function handleTelegramAuth(request, env) {
                 `)
                     .bind(
                         telegramId,
-                        telegramUser.username || null,
-                        telegramUser.first_name || null,
-                        telegramUser.last_name || null
+                        telegramUser.username ||
+                        null,
+                        telegramUser.first_name ||
+                        null,
+                        telegramUser.last_name ||
+                        null
                     )
                     .run();
 
@@ -701,23 +892,23 @@ async function handleTelegramAuth(request, env) {
 
         } else {
 
-            /*
-             * Обновляем данные Telegram.
-             */
-
             await env.DB.prepare(`
                 UPDATE users
                 SET
                     username = ?,
                     first_name = ?,
                     last_name = ?,
-                    updated_at = CURRENT_TIMESTAMP
+                    updated_at =
+                        CURRENT_TIMESTAMP
                 WHERE id = ?
             `)
                 .bind(
-                    telegramUser.username || null,
-                    telegramUser.first_name || null,
-                    telegramUser.last_name || null,
+                    telegramUser.username ||
+                    null,
+                    telegramUser.first_name ||
+                    null,
+                    telegramUser.last_name ||
+                    null,
                     user.id
                 )
                 .run();
@@ -731,7 +922,10 @@ async function handleTelegramAuth(request, env) {
         }
 
 
-        if (user.status !== "active") {
+        if (
+            user.status !==
+            "active"
+        ) {
             return json(
                 {
                     ok: false,
@@ -744,10 +938,6 @@ async function handleTelegramAuth(request, env) {
         }
 
 
-        /*
-         * Создаём серверную сессию.
-         */
-
         const session =
             await createSession(
                 env.DB,
@@ -758,15 +948,19 @@ async function handleTelegramAuth(request, env) {
         return json({
             ok: true,
             user,
-            token: session.token,
-            expires_at: session.expiresAt
+            token:
+                session.token,
+            expires_at:
+                session.expiresAt
         });
 
     } catch (error) {
+
         console.error(
             "Telegram auth error:",
             error
         );
+
 
         return json(
             {
@@ -786,7 +980,10 @@ async function handleTelegramAuth(request, env) {
  * =========================================================
  */
 
-async function handleMe(request, env) {
+async function handleMe(
+    request,
+    env
+) {
     const auth =
         await requireUser(
             request,
@@ -798,7 +995,8 @@ async function handleMe(request, env) {
         return json(
             {
                 ok: false,
-                error: auth.error
+                error:
+                    auth.error
             },
             auth.status
         );
@@ -807,7 +1005,8 @@ async function handleMe(request, env) {
 
     return json({
         ok: true,
-        user: auth.user
+        user:
+            auth.user
     });
 }
 
@@ -818,7 +1017,10 @@ async function handleMe(request, env) {
  * =========================================================
  */
 
-async function handleLogout(request, env) {
+async function handleLogout(
+    request,
+    env
+) {
     if (!env.DB) {
         return json(
             {
@@ -832,7 +1034,9 @@ async function handleLogout(request, env) {
 
 
     const token =
-        getBearerToken(request);
+        getBearerToken(
+            request
+        );
 
 
     if (token) {
@@ -857,7 +1061,10 @@ async function handleLogout(request, env) {
  * =========================================================
  */
 
-async function requireUser(request, env) {
+async function requireUser(
+    request,
+    env
+) {
     if (!env.DB) {
         return {
             ok: false,
@@ -869,7 +1076,9 @@ async function requireUser(request, env) {
 
 
     const token =
-        getBearerToken(request);
+        getBearerToken(
+            request
+        );
 
 
     if (!token) {
@@ -920,14 +1129,17 @@ async function requireUser(request, env) {
 
 
     const expires =
-        new Date(row.expires_at);
+        new Date(
+            row.expires_at
+        );
 
 
     if (
         Number.isNaN(
             expires.getTime()
         ) ||
-        expires.getTime() <= Date.now()
+        expires.getTime() <=
+        Date.now()
     ) {
 
         await env.DB.prepare(`
@@ -947,7 +1159,10 @@ async function requireUser(request, env) {
     }
 
 
-    if (row.status !== "active") {
+    if (
+        row.status !==
+        "active"
+    ) {
         return {
             ok: false,
             status: 403,
@@ -970,11 +1185,66 @@ async function requireUser(request, env) {
 
 /*
  * =========================================================
+ * REQUIRE ADMIN
+ * =========================================================
+ */
+
+async function requireAdmin(
+    request,
+    env
+) {
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+
+    if (!auth.ok) {
+        return auth;
+    }
+
+
+    const role =
+        String(
+            auth.user.role || ""
+        ).toLowerCase();
+
+
+    const allowed =
+        [
+            "owner",
+            "superadmin",
+            "admin"
+        ];
+
+
+    if (
+        !allowed.includes(role)
+    ) {
+        return {
+            ok: false,
+            status: 403,
+            error:
+                "Administrator access required"
+        };
+    }
+
+
+    return auth;
+}
+
+
+/*
+ * =========================================================
  * SESSION
  * =========================================================
  */
 
-async function createSession(db, userId) {
+async function createSession(
+    db,
+    userId
+) {
     const token =
         randomToken();
 
@@ -1023,7 +1293,10 @@ async function createSession(db, userId) {
  * =========================================================
  */
 
-async function getUserById(db, userId) {
+async function getUserById(
+    db,
+    userId
+) {
     return await db.prepare(`
         SELECT
             id,
@@ -1054,7 +1327,10 @@ async function getUserById(db, userId) {
  * =========================================================
  */
 
-async function handlePrograms(request, env) {
+async function handlePrograms(
+    request,
+    env
+) {
     const auth =
         await requireUser(
             request,
@@ -1066,24 +1342,16 @@ async function handlePrograms(request, env) {
         return json(
             {
                 ok: false,
-                error: auth.error
+                error:
+                    auth.error
             },
             auth.status
         );
     }
 
 
-    if (!env.DB) {
-        return json(
-            {
-                ok: true,
-                programs: []
-            }
-        );
-    }
-
-
     try {
+
         const result =
             await env.DB.prepare(`
                 SELECT
@@ -1111,10 +1379,12 @@ async function handlePrograms(request, env) {
         });
 
     } catch (error) {
+
         console.error(
             "Programs error:",
             error
         );
+
 
         return json(
             {
@@ -1134,7 +1404,10 @@ async function handlePrograms(request, env) {
  * =========================================================
  */
 
-async function handleCourses(request, env) {
+async function handleCourses(
+    request,
+    env
+) {
     const auth =
         await requireUser(
             request,
@@ -1146,29 +1419,15 @@ async function handleCourses(request, env) {
         return json(
             {
                 ok: false,
-                error: auth.error
+                error:
+                    auth.error
             },
             auth.status
         );
     }
 
 
-    if (!env.DB) {
-        return json({
-            ok: true,
-            courses: []
-        });
-    }
-
-
     try {
-
-        /*
-         * SELECT *
-         *
-         * Используем реальную таблицу courses,
-         * не придумывая её структуру.
-         */
 
         const result =
             await env.DB.prepare(`
@@ -1186,10 +1445,12 @@ async function handleCourses(request, env) {
         });
 
     } catch (error) {
+
         console.error(
             "Courses error:",
             error
         );
+
 
         return json(
             {
@@ -1209,7 +1470,10 @@ async function handleCourses(request, env) {
  * =========================================================
  */
 
-async function handleLessons(request, env) {
+async function handleLessons(
+    request,
+    env
+) {
     const auth =
         await requireUser(
             request,
@@ -1221,37 +1485,30 @@ async function handleLessons(request, env) {
         return json(
             {
                 ok: false,
-                error: auth.error
+                error:
+                    auth.error
             },
             auth.status
         );
     }
 
 
-    if (!env.DB) {
-        return json({
-            ok: true,
-            lessons: [],
-            completedLessonIds: []
-        });
-    }
-
-
     try {
+
         const userId =
-            Number(auth.user.id);
+            Number(
+                auth.user.id
+            );
 
-
-        /*
-         * Можно передать course_id:
-         *
-         * /api/lessons?course_id=1
-         */
 
         const courseId =
-            new URL(request.url)
+            new URL(
+                request.url
+            )
                 .searchParams
-                .get("course_id");
+                .get(
+                    "course_id"
+                );
 
 
         let lessonsResult;
@@ -1315,10 +1572,6 @@ async function handleLessons(request, env) {
         }
 
 
-        /*
-         * Прогресс пользователя.
-         */
-
         let progressResult;
 
 
@@ -1355,29 +1608,39 @@ async function handleLessons(request, env) {
 
 
         const completedLessonIds =
-            (progressResult.results || [])
+            (
+                progressResult.results ||
+                []
+            )
                 .filter(
                     row =>
-                        Number(row.completed) === 1
+                        Number(
+                            row.completed
+                        ) === 1
                 )
                 .map(
                     row =>
-                        Number(row.lesson_id)
+                        Number(
+                            row.lesson_id
+                        )
                 );
 
 
         return json({
             ok: true,
             lessons:
-                lessonsResult.results || [],
+                lessonsResult.results ||
+                [],
             completedLessonIds
         });
 
     } catch (error) {
+
         console.error(
             "Lessons error:",
             error
         );
+
 
         return json(
             {
@@ -1393,11 +1656,15 @@ async function handleLessons(request, env) {
 
 /*
  * =========================================================
- * PROGRESS
+ * SINGLE LESSON + FILES
  * =========================================================
  */
 
-async function handleProgress(request, env) {
+async function handleSingleLesson(
+    request,
+    env,
+    lessonId
+) {
     const auth =
         await requireUser(
             request,
@@ -1409,9 +1676,208 @@ async function handleProgress(request, env) {
         return json(
             {
                 ok: false,
-                error: auth.error
+                error:
+                    auth.error
             },
             auth.status
+        );
+    }
+
+
+    if (!lessonId) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Invalid lesson ID"
+            },
+            400
+        );
+    }
+
+
+    try {
+
+        const lesson =
+            await env.DB.prepare(`
+                SELECT *
+                FROM lessons
+                WHERE id = ?
+                LIMIT 1
+            `)
+                .bind(lessonId)
+                .first();
+
+
+        if (!lesson) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Lesson not found"
+                },
+                404
+            );
+        }
+
+
+        const isAdmin =
+            isAdminRole(
+                auth.user.role
+            );
+
+
+        if (
+            !isAdmin &&
+            Number(
+                lesson.is_visible
+            ) !== 1
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Lesson not found"
+                },
+                404
+            );
+        }
+
+
+        await ensureLessonFilesTable(
+            env.DB
+        );
+
+
+        const filesResult =
+            await env.DB.prepare(`
+                SELECT
+                    id,
+                    lesson_id,
+                    file_name,
+                    mime_type,
+                    file_size,
+                    file_type,
+                    sort_order,
+                    created_at
+                FROM lesson_files
+                WHERE lesson_id = ?
+                ORDER BY
+                    sort_order ASC,
+                    id ASC
+            `)
+                .bind(lessonId)
+                .all();
+
+
+        const files =
+            (
+                filesResult.results ||
+                []
+            ).map(
+                file => ({
+                    ...file,
+                    url:
+                        `/api/lesson-files/${file.id}`
+                })
+            );
+
+
+        /*
+         * Совместимость со старым frontend:
+         * первый video/audio дополнительно
+         * отдаём как video_url/audio_url.
+         */
+
+        const firstVideo =
+            files.find(
+                file =>
+                    file.file_type ===
+                    "video"
+            );
+
+        const firstAudio =
+            files.find(
+                file =>
+                    file.file_type ===
+                    "audio"
+            );
+
+
+        return json({
+            ok: true,
+            lesson: {
+                ...lesson,
+                files,
+                video_url:
+                    firstVideo
+                        ? firstVideo.url
+                        : null,
+                audio_url:
+                    firstAudio
+                        ? firstAudio.url
+                        : null
+            }
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Single lesson error:",
+            error
+        );
+
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Failed to load lesson"
+            },
+            500
+        );
+    }
+}
+
+
+/*
+ * =========================================================
+ * UPLOAD LESSON FILE TO R2
+ * =========================================================
+ */
+
+async function handleLessonFileUpload(
+    request,
+    env,
+    lessonId
+) {
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+
+    if (!auth.ok) {
+        return json(
+            {
+                ok: false,
+                error:
+                    auth.error
+            },
+            auth.status
+        );
+    }
+
+
+    if (!env.FILES) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "R2 binding FILES is not configured"
+            },
+            500
         );
     }
 
@@ -1428,17 +1894,896 @@ async function handleProgress(request, env) {
     }
 
 
+    if (!lessonId) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Invalid lesson ID"
+            },
+            400
+        );
+    }
+
+
+    /*
+     * Проверяем урок.
+     */
+
+    const lesson =
+        await env.DB.prepare(`
+            SELECT id
+            FROM lessons
+            WHERE id = ?
+            LIMIT 1
+        `)
+            .bind(lessonId)
+            .first();
+
+
+    if (!lesson) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Lesson not found"
+            },
+            404
+        );
+    }
+
+
+    if (!request.body) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "File body is empty"
+            },
+            400
+        );
+    }
+
+
+    /*
+     * admin/index.html будет передавать:
+     *
+     * X-File-Name: encodeURIComponent(file.name)
+     */
+
+    let fileName =
+        request.headers.get(
+            "X-File-Name"
+        ) ||
+        "file";
+
+
     try {
+        fileName =
+            decodeURIComponent(
+                fileName
+            );
+    } catch {
+        // Оставляем как есть.
+    }
+
+
+    fileName =
+        cleanFileName(
+            fileName
+        );
+
+
+    const mimeType =
+        cleanMimeType(
+            request.headers.get(
+                "Content-Type"
+            )
+        );
+
+
+    const fileType =
+        detectFileType(
+            mimeType,
+            fileName
+        );
+
+
+    const sortOrder =
+        Math.max(
+            0,
+            Number(
+                request.headers.get(
+                    "X-Sort-Order"
+                ) || 0
+            ) || 0
+        );
+
+
+    /*
+     * Уникальный R2 key.
+     */
+
+    const key =
+        [
+            "lessons",
+            String(lessonId),
+            `${crypto.randomUUID()}-${safeKeyFileName(fileName)}`
+        ].join("/");
+
+
+    try {
+
+        /*
+         * ВАЖНО:
+         *
+         * request.body передаём напрямую.
+         * Не преобразуем весь файл в ArrayBuffer.
+         */
+
+        const object =
+            await env.FILES.put(
+                key,
+                request.body,
+                {
+                    httpMetadata: {
+                        contentType:
+                            mimeType
+                    },
+
+                    customMetadata: {
+                        lessonId:
+                            String(
+                                lessonId
+                            ),
+                        originalName:
+                            fileName,
+                        uploadedBy:
+                            String(
+                                auth.user.id
+                            ),
+                        type:
+                            fileType
+                    }
+                }
+            );
+
+
+        await ensureLessonFilesTable(
+            env.DB
+        );
+
+
+        const fileSize =
+            Number(
+                object?.size ||
+                request.headers.get(
+                    "Content-Length"
+                ) ||
+                0
+            );
+
+
+        const result =
+            await env.DB.prepare(`
+                INSERT INTO lesson_files (
+                    lesson_id,
+                    file_name,
+                    file_key,
+                    mime_type,
+                    file_size,
+                    file_type,
+                    sort_order,
+                    created_at
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    CURRENT_TIMESTAMP
+                )
+            `)
+                .bind(
+                    lessonId,
+                    fileName,
+                    key,
+                    mimeType,
+                    fileSize,
+                    fileType,
+                    sortOrder
+                )
+                .run();
+
+
+        const fileId =
+            Number(
+                result.meta.last_row_id
+            );
+
+
+        return json({
+            ok: true,
+
+            file: {
+                id:
+                    fileId,
+                lesson_id:
+                    lessonId,
+                file_name:
+                    fileName,
+                mime_type:
+                    mimeType,
+                file_size:
+                    fileSize,
+                file_type:
+                    fileType,
+                sort_order:
+                    sortOrder,
+                url:
+                    `/api/lesson-files/${fileId}`
+            }
+        });
+
+    } catch (error) {
+
+        console.error(
+            "R2 upload error:",
+            error
+        );
+
+
+        /*
+         * Если R2 успел получить файл,
+         * а D1 упал — пытаемся убрать
+         * оставшийся объект.
+         */
+
+        try {
+            await env.FILES.delete(
+                key
+            );
+        } catch {
+            // ignore
+        }
+
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось загрузить файл"
+            },
+            500
+        );
+    }
+}
+
+
+/*
+ * =========================================================
+ * GET LESSON FILE
+ * =========================================================
+ */
+
+async function handleLessonFileGet(
+    request,
+    env,
+    fileId
+) {
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+
+    if (!auth.ok) {
+        return json(
+            {
+                ok: false,
+                error:
+                    auth.error
+            },
+            auth.status
+        );
+    }
+
+
+    if (!env.FILES) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "R2 is not configured"
+            },
+            500
+        );
+    }
+
+
+    await ensureLessonFilesTable(
+        env.DB
+    );
+
+
+    const file =
+        await env.DB.prepare(`
+            SELECT
+                lf.*,
+                l.is_visible
+            FROM lesson_files lf
+            LEFT JOIN lessons l
+                ON l.id = lf.lesson_id
+            WHERE lf.id = ?
+            LIMIT 1
+        `)
+            .bind(fileId)
+            .first();
+
+
+    if (!file) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "File not found"
+            },
+            404
+        );
+    }
+
+
+    if (
+        !isAdminRole(
+            auth.user.role
+        ) &&
+        Number(
+            file.is_visible
+        ) !== 1
+    ) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "File not found"
+            },
+            404
+        );
+    }
+
+
+    try {
+
+        /*
+         * HEAD нужен для размера и Range.
+         */
+
+        const head =
+            await env.FILES.head(
+                file.file_key
+            );
+
+
+        if (!head) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "R2 object not found"
+                },
+                404
+            );
+        }
+
+
+        const totalSize =
+            Number(
+                head.size || 0
+            );
+
+
+        const rangeHeader =
+            request.headers.get(
+                "Range"
+            );
+
+
+        /*
+         * VIDEO/AUDIO RANGE
+         */
+
+        if (
+            rangeHeader &&
+            totalSize > 0
+        ) {
+            const range =
+                parseByteRange(
+                    rangeHeader,
+                    totalSize
+                );
+
+
+            if (!range) {
+                return new Response(
+                    null,
+                    {
+                        status: 416,
+                        headers: {
+                            ...corsHeaders(),
+                            "Content-Range":
+                                `bytes */${totalSize}`
+                        }
+                    }
+                );
+            }
+
+
+            const object =
+                await env.FILES.get(
+                    file.file_key,
+                    {
+                        range: {
+                            offset:
+                                range.start,
+                            length:
+                                range.length
+                        }
+                    }
+                );
+
+
+            if (!object) {
+                return json(
+                    {
+                        ok: false,
+                        error:
+                            "File not found"
+                    },
+                    404
+                );
+            }
+
+
+            const headers =
+                new Headers(
+                    corsHeaders()
+                );
+
+
+            headers.set(
+                "Content-Type",
+                file.mime_type ||
+                "application/octet-stream"
+            );
+
+            headers.set(
+                "Accept-Ranges",
+                "bytes"
+            );
+
+            headers.set(
+                "Content-Length",
+                String(
+                    range.length
+                )
+            );
+
+            headers.set(
+                "Content-Range",
+                `bytes ${range.start}-${range.end}/${totalSize}`
+            );
+
+            headers.set(
+                "Cache-Control",
+                "private, max-age=3600"
+            );
+
+            headers.set(
+                "Content-Disposition",
+                buildContentDisposition(
+                    file.file_name,
+                    file.file_type
+                )
+            );
+
+
+            return new Response(
+                object.body,
+                {
+                    status: 206,
+                    headers
+                }
+            );
+        }
+
+
+        /*
+         * FULL FILE
+         */
+
+        const object =
+            await env.FILES.get(
+                file.file_key
+            );
+
+
+        if (!object) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "File not found"
+                },
+                404
+            );
+        }
+
+
+        const headers =
+            new Headers(
+                corsHeaders()
+            );
+
+
+        headers.set(
+            "Content-Type",
+            file.mime_type ||
+            "application/octet-stream"
+        );
+
+        headers.set(
+            "Content-Length",
+            String(
+                object.size || 0
+            )
+        );
+
+        headers.set(
+            "Accept-Ranges",
+            "bytes"
+        );
+
+        headers.set(
+            "Cache-Control",
+            "private, max-age=3600"
+        );
+
+        headers.set(
+            "Content-Disposition",
+            buildContentDisposition(
+                file.file_name,
+                file.file_type
+            )
+        );
+
+
+        return new Response(
+            object.body,
+            {
+                status: 200,
+                headers
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "R2 read error:",
+            error
+        );
+
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Failed to read file"
+            },
+            500
+        );
+    }
+}
+
+
+/*
+ * =========================================================
+ * DELETE LESSON FILE
+ * =========================================================
+ */
+
+async function handleLessonFileDelete(
+    request,
+    env,
+    fileId
+) {
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+
+    if (!auth.ok) {
+        return json(
+            {
+                ok: false,
+                error:
+                    auth.error
+            },
+            auth.status
+        );
+    }
+
+
+    if (!env.FILES) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "R2 is not configured"
+            },
+            500
+        );
+    }
+
+
+    await ensureLessonFilesTable(
+        env.DB
+    );
+
+
+    const file =
+        await env.DB.prepare(`
+            SELECT *
+            FROM lesson_files
+            WHERE id = ?
+            LIMIT 1
+        `)
+            .bind(fileId)
+            .first();
+
+
+    if (!file) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "File not found"
+            },
+            404
+        );
+    }
+
+
+    try {
+
+        await env.FILES.delete(
+            file.file_key
+        );
+
+
+        await env.DB.prepare(`
+            DELETE FROM lesson_files
+            WHERE id = ?
+        `)
+            .bind(fileId)
+            .run();
+
+
+        return json({
+            ok: true,
+            deleted: true,
+            id:
+                fileId
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Delete lesson file error:",
+            error
+        );
+
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Failed to delete file"
+            },
+            500
+        );
+    }
+}
+
+
+/*
+ * =========================================================
+ * ENSURE LESSON FILES TABLE
+ * =========================================================
+ */
+
+async function ensureLessonFilesTable(
+    db
+) {
+    /*
+     * Если таблицы нет — создаём.
+     */
+
+    await db.prepare(`
+        CREATE TABLE IF NOT EXISTS
+        lesson_files (
+            id INTEGER
+                PRIMARY KEY AUTOINCREMENT,
+
+            lesson_id INTEGER
+                NOT NULL,
+
+            file_name TEXT,
+
+            file_key TEXT,
+
+            mime_type TEXT,
+
+            file_size INTEGER
+                DEFAULT 0,
+
+            file_type TEXT
+                DEFAULT 'file',
+
+            sort_order INTEGER
+                DEFAULT 0,
+
+            created_at TEXT
+                DEFAULT CURRENT_TIMESTAMP
+        )
+    `)
+        .run();
+
+
+    /*
+     * Если lesson_files существовала раньше
+     * с другой структурой, недостающие
+     * колонки добавляем автоматически.
+     */
+
+    let columns =
+        await getTableColumns(
+            db,
+            "lesson_files"
+        );
+
+
+    const additions = [
+        [
+            "file_name",
+            "TEXT"
+        ],
+        [
+            "file_key",
+            "TEXT"
+        ],
+        [
+            "mime_type",
+            "TEXT"
+        ],
+        [
+            "file_size",
+            "INTEGER DEFAULT 0"
+        ],
+        [
+            "file_type",
+            "TEXT DEFAULT 'file'"
+        ],
+        [
+            "sort_order",
+            "INTEGER DEFAULT 0"
+        ],
+        [
+            "created_at",
+            "TEXT"
+        ]
+    ];
+
+
+    for (
+        const [
+            name,
+            definition
+        ]
+        of additions
+    ) {
+
+        if (
+            columns.includes(
+                name
+            )
+        ) {
+            continue;
+        }
+
+
+        await db.prepare(
+            `
+            ALTER TABLE lesson_files
+            ADD COLUMN ${name} ${definition}
+            `
+        )
+            .run();
+    }
+
+
+    columns =
+        await getTableColumns(
+            db,
+            "lesson_files"
+        );
+
+
+    if (
+        columns.includes(
+            "lesson_id"
+        )
+    ) {
+        await db.prepare(`
+            CREATE INDEX IF NOT EXISTS
+            idx_lesson_files_lesson
+            ON lesson_files(lesson_id)
+        `)
+            .run();
+    }
+}
+
+
+/*
+ * =========================================================
+ * PROGRESS
+ * =========================================================
+ */
+
+async function handleProgress(
+    request,
+    env
+) {
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+
+    if (!auth.ok) {
+        return json(
+            {
+                ok: false,
+                error:
+                    auth.error
+            },
+            auth.status
+        );
+    }
+
+
+    try {
+
         const body =
             await request.json();
 
 
         const lessonId =
-            Number(body?.lessonId);
+            Number(
+                body?.lessonId
+            );
 
 
         const courseId =
-            Number(body?.courseId);
+            Number(
+                body?.courseId
+            );
 
 
         if (!lessonId) {
@@ -1466,12 +2811,10 @@ async function handleProgress(request, env) {
 
 
         const userId =
-            Number(auth.user.id);
+            Number(
+                auth.user.id
+            );
 
-
-        /*
-         * Проверяем, существует ли запись.
-         */
 
         const existing =
             await env.DB.prepare(`
@@ -1496,11 +2839,15 @@ async function handleProgress(request, env) {
                 UPDATE lesson_progress
                 SET
                     completed = 1,
-                    completed_at = CURRENT_TIMESTAMP,
-                    updated_at = CURRENT_TIMESTAMP
+                    completed_at =
+                        CURRENT_TIMESTAMP,
+                    updated_at =
+                        CURRENT_TIMESTAMP
                 WHERE id = ?
             `)
-                .bind(existing.id)
+                .bind(
+                    existing.id
+                )
                 .run();
 
         } else {
@@ -1536,10 +2883,12 @@ async function handleProgress(request, env) {
         });
 
     } catch (error) {
+
         console.error(
             "Progress error:",
             error
         );
+
 
         return json(
             {
@@ -1555,13 +2904,19 @@ async function handleProgress(request, env) {
 
 /*
  * =========================================================
- * TRIBUTE WEBHOOK
+ * TRIBUTE
  * =========================================================
  */
 
-async function handleTributeWebhook(request, env) {
+async function handleTributeWebhook(
+    request,
+    env
+) {
     try {
-        if (!env.TRIBUTE_API_KEY) {
+
+        if (
+            !env.TRIBUTE_API_KEY
+        ) {
             return json(
                 {
                     ok: false,
@@ -1620,8 +2975,11 @@ async function handleTributeWebhook(request, env) {
 
         try {
             event =
-                JSON.parse(rawBody);
+                JSON.parse(
+                    rawBody
+                );
         } catch {
+
             return json(
                 {
                     ok: false,
@@ -1633,19 +2991,17 @@ async function handleTributeWebhook(request, env) {
         }
 
 
-        /*
-         * Пока обрабатываем покупку
-         * цифрового продукта.
-         */
-
         if (
             event?.name !==
             "new_digital_product"
         ) {
             return json({
                 ok: true,
-                status: "ignored",
-                event: event?.name || null
+                status:
+                    "ignored",
+                event:
+                    event?.name ||
+                    null
             });
         }
 
@@ -1669,17 +3025,16 @@ async function handleTributeWebhook(request, env) {
         const productId =
             payload?.product_id;
 
-
         const telegramUserId =
             payload?.telegram_user_id;
 
-
         const purchaseId =
-            payload?.purchase_id || null;
-
+            payload?.purchase_id ||
+            null;
 
         const transactionId =
-            payload?.transaction_id || null;
+            payload?.transaction_id ||
+            null;
 
 
         if (!productId) {
@@ -1706,18 +3061,6 @@ async function handleTributeWebhook(request, env) {
         }
 
 
-        if (!env.DB) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Database is not configured"
-                },
-                500
-            );
-        }
-
-
         await ensureTributeTables(
             env.DB
         );
@@ -1728,7 +3071,8 @@ async function handleTributeWebhook(request, env) {
                 ? `purchase:${purchaseId}`
                 : transactionId
                     ? `transaction:${transactionId}`
-                    : `event:${event.created_at || ""}:${productId}:${telegramUserId}`;
+                    :
+                    `event:${event.created_at || ""}:${productId}:${telegramUserId}`;
 
 
         const existing =
@@ -1738,7 +3082,9 @@ async function handleTributeWebhook(request, env) {
                 WHERE event_id = ?
                 LIMIT 1
             `)
-                .bind(eventId)
+                .bind(
+                    eventId
+                )
                 .first();
 
 
@@ -1763,27 +3109,33 @@ async function handleTributeWebhook(request, env) {
                 transaction_id,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            VALUES (
+                ?, ?, ?, ?, ?, ?,
+                CURRENT_TIMESTAMP
+            )
         `)
             .bind(
                 eventId,
                 event.name,
-                String(productId),
-                String(telegramUserId),
+                String(
+                    productId
+                ),
+                String(
+                    telegramUserId
+                ),
                 purchaseId
-                    ? String(purchaseId)
+                    ? String(
+                        purchaseId
+                    )
                     : null,
                 transactionId
-                    ? String(transactionId)
+                    ? String(
+                        transactionId
+                    )
                     : null
             )
             .run();
 
-
-        /*
-         * Находим программу,
-         * связанную с Tribute Product.
-         */
 
         const mapping =
             await env.DB.prepare(`
@@ -1795,7 +3147,9 @@ async function handleTributeWebhook(request, env) {
                 LIMIT 1
             `)
                 .bind(
-                    String(productId)
+                    String(
+                        productId
+                    )
                 )
                 .first();
 
@@ -1816,11 +3170,6 @@ async function handleTributeWebhook(request, env) {
             });
         }
 
-
-        /*
-         * Находим Telegram пользователя
-         * в нашей users.
-         */
 
         const user =
             await env.DB.prepare(`
@@ -1852,12 +3201,6 @@ async function handleTributeWebhook(request, env) {
         }
 
 
-        /*
-         * Пытаемся выдать доступ к курсам
-         * программы через существующую
-         * таблицу user_courses.
-         */
-
         const granted =
             await grantProgramCourses(
                 env.DB,
@@ -1887,10 +3230,12 @@ async function handleTributeWebhook(request, env) {
         });
 
     } catch (error) {
+
         console.error(
             "Tribute webhook error:",
             error
         );
+
 
         return json(
             {
@@ -1924,23 +3269,22 @@ async function grantProgramCourses(
                 WHERE program_id = ?
             `)
                 .bind(
-                    Number(programId)
+                    Number(
+                        programId
+                    )
                 )
                 .all();
 
 
         const rows =
-            courses.results || [];
+            courses.results ||
+            [];
 
 
         if (!rows.length) {
             return false;
         }
 
-
-        /*
-         * Получаем реальные колонки user_courses.
-         */
 
         const columns =
             await getTableColumns(
@@ -1950,22 +3294,21 @@ async function grantProgramCourses(
 
 
         if (
-            !columns.includes("user_id") ||
-            !columns.includes("course_id")
+            !columns.includes(
+                "user_id"
+            ) ||
+            !columns.includes(
+                "course_id"
+            )
         ) {
-            console.error(
-                "user_courses does not contain user_id/course_id"
-            );
-
             return false;
         }
 
 
-        for (const course of rows) {
-
-            /*
-             * Проверяем существующий доступ.
-             */
+        for (
+            const course
+            of rows
+        ) {
 
             const existing =
                 await db.prepare(`
@@ -1987,10 +3330,6 @@ async function grantProgramCourses(
             }
 
 
-            /*
-             * Минимальная запись.
-             */
-
             await db.prepare(`
                 INSERT INTO user_courses (
                     user_id,
@@ -2009,10 +3348,12 @@ async function grantProgramCourses(
         return true;
 
     } catch (error) {
+
         console.error(
-            "Grant program courses error:",
+            "Grant courses error:",
             error
         );
+
 
         return false;
     }
@@ -2025,13 +3366,17 @@ async function grantProgramCourses(
  * =========================================================
  */
 
-async function ensureTributeTables(db) {
-
+async function ensureTributeTables(
+    db
+) {
     await db.prepare(`
         CREATE TABLE IF NOT EXISTS
         tribute_product_programs (
-            tribute_product_id TEXT PRIMARY KEY,
-            program_id TEXT NOT NULL
+            tribute_product_id
+                TEXT PRIMARY KEY,
+
+            program_id
+                TEXT NOT NULL
         )
     `)
         .run();
@@ -2040,14 +3385,25 @@ async function ensureTributeTables(db) {
     await db.prepare(`
         CREATE TABLE IF NOT EXISTS
         tribute_webhook_events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            event_id TEXT NOT NULL UNIQUE,
-            event_name TEXT NOT NULL,
+            id INTEGER
+                PRIMARY KEY AUTOINCREMENT,
+
+            event_id TEXT
+                NOT NULL UNIQUE,
+
+            event_name TEXT
+                NOT NULL,
+
             product_id TEXT,
+
             telegram_user_id TEXT,
+
             purchase_id TEXT,
+
             transaction_id TEXT,
-            created_at TEXT NOT NULL
+
+            created_at TEXT
+                NOT NULL
         )
     `)
         .run();
@@ -2056,9 +3412,302 @@ async function ensureTributeTables(db) {
     await db.prepare(`
         CREATE INDEX IF NOT EXISTS
         idx_tribute_events_event_id
-        ON tribute_webhook_events(event_id)
+        ON tribute_webhook_events(
+            event_id
+        )
     `)
         .run();
+}
+
+
+/*
+ * =========================================================
+ * FILE HELPERS
+ * =========================================================
+ */
+
+function cleanFileName(
+    value
+) {
+    let name =
+        String(
+            value ||
+            "file"
+        )
+            .trim()
+            .replace(
+                /[\r\n]/g,
+                ""
+            );
+
+
+    if (!name) {
+        name =
+            "file";
+    }
+
+
+    return name.slice(
+        0,
+        240
+    );
+}
+
+
+function safeKeyFileName(
+    value
+) {
+    const name =
+        cleanFileName(
+            value
+        );
+
+
+    const safe =
+        name
+            .replace(
+                /[^a-zA-Z0-9._-]+/g,
+                "-"
+            )
+            .replace(
+                /-+/g,
+                "-"
+            )
+            .replace(
+                /^[-.]+|[-.]+$/g,
+                ""
+            );
+
+
+    return (
+        safe ||
+        "file"
+    ).slice(
+        0,
+        120
+    );
+}
+
+
+function cleanMimeType(
+    value
+) {
+    const type =
+        String(
+            value ||
+            "application/octet-stream"
+        )
+            .split(";")[0]
+            .trim()
+            .toLowerCase();
+
+
+    return (
+        type ||
+        "application/octet-stream"
+    ).slice(
+        0,
+        150
+    );
+}
+
+
+function detectFileType(
+    mimeType,
+    fileName
+) {
+    const mime =
+        String(
+            mimeType || ""
+        ).toLowerCase();
+
+
+    const name =
+        String(
+            fileName || ""
+        ).toLowerCase();
+
+
+    if (
+        mime.startsWith(
+            "image/"
+        )
+    ) {
+        return "image";
+    }
+
+
+    if (
+        mime.startsWith(
+            "video/"
+        )
+    ) {
+        return "video";
+    }
+
+
+    if (
+        mime.startsWith(
+            "audio/"
+        )
+    ) {
+        return "audio";
+    }
+
+
+    if (
+        mime ===
+        "application/pdf" ||
+        name.endsWith(
+            ".pdf"
+        )
+    ) {
+        return "pdf";
+    }
+
+
+    return "file";
+}
+
+
+function buildContentDisposition(
+    fileName,
+    fileType
+) {
+    const inlineTypes =
+        [
+            "image",
+            "video",
+            "audio",
+            "pdf"
+        ];
+
+
+    const mode =
+        inlineTypes.includes(
+            fileType
+        )
+            ? "inline"
+            : "attachment";
+
+
+    const encoded =
+        encodeURIComponent(
+            fileName ||
+            "file"
+        );
+
+
+    return (
+        `${mode}; filename*=UTF-8''${encoded}`
+    );
+}
+
+
+function parseByteRange(
+    header,
+    total
+) {
+    const match =
+        String(
+            header || ""
+        ).match(
+            /^bytes=(\d*)-(\d*)$/
+        );
+
+
+    if (!match) {
+        return null;
+    }
+
+
+    let start;
+    let end;
+
+
+    if (
+        match[1] === "" &&
+        match[2] !== ""
+    ) {
+        const suffix =
+            Number(
+                match[2]
+            );
+
+
+        if (
+            !suffix ||
+            suffix < 1
+        ) {
+            return null;
+        }
+
+
+        start =
+            Math.max(
+                total - suffix,
+                0
+            );
+
+        end =
+            total - 1;
+
+    } else {
+
+        start =
+            Number(
+                match[1]
+            );
+
+
+        end =
+            match[2] !== ""
+                ? Number(
+                    match[2]
+                )
+                : total - 1;
+    }
+
+
+    if (
+        !Number.isFinite(start) ||
+        !Number.isFinite(end) ||
+        start < 0 ||
+        end < start ||
+        start >= total
+    ) {
+        return null;
+    }
+
+
+    end =
+        Math.min(
+            end,
+            total - 1
+        );
+
+
+    return {
+        start,
+        end,
+        length:
+            end - start + 1
+    };
+}
+
+
+function isAdminRole(
+    role
+) {
+    return [
+        "owner",
+        "superadmin",
+        "admin"
+    ].includes(
+        String(
+            role || ""
+        ).toLowerCase()
+    );
 }
 
 
@@ -2068,9 +3717,13 @@ async function ensureTributeTables(db) {
  * =========================================================
  */
 
-async function hashPassword(password) {
+async function hashPassword(
+    password
+) {
     const salt =
-        new Uint8Array(16);
+        new Uint8Array(
+            16
+        );
 
 
     crypto.getRandomValues(
@@ -2081,11 +3734,13 @@ async function hashPassword(password) {
     const key =
         await crypto.subtle.importKey(
             "raw",
-            new TextEncoder().encode(
-                password
-            ),
+            new TextEncoder()
+                .encode(
+                    password
+                ),
             {
-                name: "PBKDF2"
+                name:
+                    "PBKDF2"
             },
             false,
             [
@@ -2097,10 +3752,14 @@ async function hashPassword(password) {
     const bits =
         await crypto.subtle.deriveBits(
             {
-                name: "PBKDF2",
+                name:
+                    "PBKDF2",
+
                 salt,
+
                 iterations:
                     PASSWORD_ITERATIONS,
+
                 hash:
                     "SHA-256"
             },
@@ -2113,9 +3772,13 @@ async function hashPassword(password) {
         "pbkdf2",
         "sha256",
         PASSWORD_ITERATIONS,
-        bytesToBase64(salt),
         bytesToBase64(
-            new Uint8Array(bits)
+            salt
+        ),
+        bytesToBase64(
+            new Uint8Array(
+                bits
+            )
         )
     ].join("$");
 }
@@ -2132,39 +3795,52 @@ async function verifyPassword(
     stored
 ) {
     try {
+
         const parts =
-            String(stored).split("$");
+            String(
+                stored
+            ).split("$");
 
 
         if (
             parts.length !== 5 ||
-            parts[0] !== "pbkdf2" ||
-            parts[1] !== "sha256"
+            parts[0] !==
+            "pbkdf2" ||
+            parts[1] !==
+            "sha256"
         ) {
             return false;
         }
 
 
         const iterations =
-            Number(parts[2]);
+            Number(
+                parts[2]
+            );
 
 
         const salt =
-            base64ToBytes(parts[3]);
+            base64ToBytes(
+                parts[3]
+            );
 
 
         const expected =
-            base64ToBytes(parts[4]);
+            base64ToBytes(
+                parts[4]
+            );
 
 
         const key =
             await crypto.subtle.importKey(
                 "raw",
-                new TextEncoder().encode(
-                    password
-                ),
+                new TextEncoder()
+                    .encode(
+                        password
+                    ),
                 {
-                    name: "PBKDF2"
+                    name:
+                        "PBKDF2"
                 },
                 false,
                 [
@@ -2176,31 +3852,36 @@ async function verifyPassword(
         const bits =
             await crypto.subtle.deriveBits(
                 {
-                    name: "PBKDF2",
+                    name:
+                        "PBKDF2",
+
                     salt,
+
                     iterations,
+
                     hash:
                         "SHA-256"
                 },
                 key,
-                expected.length * 8
+                expected.length *
+                8
             );
 
 
-        const actual =
-            new Uint8Array(bits);
-
-
         return timingSafeBytesEqual(
-            actual,
+            new Uint8Array(
+                bits
+            ),
             expected
         );
 
     } catch (error) {
+
         console.error(
             "Password verification error:",
             error
         );
+
 
         return false;
     }
@@ -2213,16 +3894,20 @@ async function verifyPassword(
  * =========================================================
  */
 
-async function generateTechnicalTelegramId(db) {
-    /*
-     * Отрицательные значения отделяют
-     * обычные аккаунты от реальных Telegram ID.
-     */
-
-    for (let attempt = 0; attempt < 10; attempt++) {
+async function generateTechnicalTelegramId(
+    db
+) {
+    for (
+        let attempt = 0;
+        attempt < 10;
+        attempt++
+    ) {
 
         const random =
-            new Uint32Array(1);
+            new Uint32Array(
+                1
+            );
+
 
         crypto.getRandomValues(
             random
@@ -2256,10 +3941,6 @@ async function generateTechnicalTelegramId(db) {
     }
 
 
-    /*
-     * Резервный вариант.
-     */
-
     return -Date.now();
 }
 
@@ -2281,21 +3962,27 @@ async function getTableColumns(
             .all();
 
 
-    return (result.results || [])
-        .map(
-            row =>
-                String(row.name)
-        );
+    return (
+        result.results ||
+        []
+    ).map(
+        row =>
+            String(
+                row.name
+            )
+    );
 }
 
 
 /*
  * =========================================================
- * AUTHORIZATION HEADER
+ * AUTH HEADER
  * =========================================================
  */
 
-function getBearerToken(request) {
+function getBearerToken(
+    request
+) {
     const header =
         request.headers.get(
             "Authorization"
@@ -2316,11 +4003,12 @@ function getBearerToken(request) {
     }
 
 
-    const token =
-        header.slice(7).trim();
-
-
-    return token || null;
+    return (
+        header
+            .slice(7)
+            .trim() ||
+        null
+    );
 }
 
 
@@ -2332,7 +4020,9 @@ function getBearerToken(request) {
 
 function randomToken() {
     const bytes =
-        new Uint8Array(32);
+        new Uint8Array(
+            32
+        );
 
 
     crypto.getRandomValues(
@@ -2352,8 +4042,11 @@ function randomToken() {
  * =========================================================
  */
 
-function bytesToBase64(bytes) {
-    let binary = "";
+function bytesToBase64(
+    bytes
+) {
+    let binary =
+        "";
 
 
     for (
@@ -2361,19 +4054,26 @@ function bytesToBase64(bytes) {
         i < bytes.length;
         i++
     ) {
-        binary += String.fromCharCode(
-            bytes[i]
-        );
+        binary +=
+            String.fromCharCode(
+                bytes[i]
+            );
     }
 
 
-    return btoa(binary);
+    return btoa(
+        binary
+    );
 }
 
 
-function base64ToBytes(value) {
+function base64ToBytes(
+    value
+) {
     const binary =
-        atob(value);
+        atob(
+            value
+        );
 
 
     const bytes =
@@ -2388,7 +4088,9 @@ function base64ToBytes(value) {
         i++
     ) {
         bytes[i] =
-            binary.charCodeAt(i);
+            binary.charCodeAt(
+                i
+            );
     }
 
 
@@ -2396,11 +4098,24 @@ function base64ToBytes(value) {
 }
 
 
-function bytesToBase64Url(bytes) {
-    return bytesToBase64(bytes)
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/g, "");
+function bytesToBase64Url(
+    bytes
+) {
+    return bytesToBase64(
+        bytes
+    )
+        .replace(
+            /\+/g,
+            "-"
+        )
+        .replace(
+            /\//g,
+            "_"
+        )
+        .replace(
+            /=+$/g,
+            ""
+        );
 }
 
 
@@ -2422,7 +4137,8 @@ function timingSafeBytesEqual(
     }
 
 
-    let result = 0;
+    let result =
+        0;
 
 
     for (
@@ -2436,7 +4152,9 @@ function timingSafeBytesEqual(
     }
 
 
-    return result === 0;
+    return (
+        result === 0
+    );
 }
 
 
@@ -2452,6 +4170,7 @@ async function verifyTributeSignature(
     apiKey
 ) {
     try {
+
         const encoder =
             new TextEncoder();
 
@@ -2463,8 +4182,10 @@ async function verifyTributeSignature(
                     apiKey
                 ),
                 {
-                    name: "HMAC",
-                    hash: "SHA-256"
+                    name:
+                        "HMAC",
+                    hash:
+                        "SHA-256"
                 },
                 false,
                 [
@@ -2492,7 +4213,9 @@ async function verifyTributeSignature(
 
 
         return timingSafeStringEqual(
-            expected.toLowerCase(),
+            expected
+                .toLowerCase(),
+
             String(
                 receivedSignature
             )
@@ -2501,10 +4224,12 @@ async function verifyTributeSignature(
         );
 
     } catch (error) {
+
         console.error(
             "Tribute signature error:",
             error
         );
+
 
         return false;
     }
@@ -2517,8 +4242,12 @@ async function verifyTributeSignature(
  * =========================================================
  */
 
-function bytesToHex(bytes) {
-    return Array.from(bytes)
+function bytesToHex(
+    bytes
+) {
+    return Array.from(
+        bytes
+    )
         .map(
             byte =>
                 byte
@@ -2550,7 +4279,8 @@ function timingSafeStringEqual(
     }
 
 
-    let result = 0;
+    let result =
+        0;
 
 
     for (
@@ -2564,17 +4294,21 @@ function timingSafeStringEqual(
     }
 
 
-    return result === 0;
+    return (
+        result === 0
+    );
 }
 
 
 /*
  * =========================================================
- * LOGIN NORMALIZATION
+ * LOGIN
  * =========================================================
  */
 
-function normalizeLogin(value) {
+function normalizeLogin(
+    value
+) {
     return String(
         value || ""
     )
@@ -2583,32 +4317,37 @@ function normalizeLogin(value) {
 }
 
 
-/*
- * =========================================================
- * LOGIN VALIDATION
- * =========================================================
- */
-
-function isValidLogin(login) {
+function isValidLogin(
+    login
+) {
     return /^[a-zA-Z0-9_-]{3,30}$/
-        .test(login);
+        .test(
+            login
+        );
 }
 
 
 /*
  * =========================================================
- * TEXT CLEAN
+ * TEXT
  * =========================================================
  */
 
-function cleanText(value) {
+function cleanText(
+    value
+) {
     const text =
-        String(value || "")
+        String(
+            value || ""
+        )
             .trim();
 
 
     return text
-        ? text.slice(0, 200)
+        ? text.slice(
+            0,
+            200
+        )
         : null;
 }
 
@@ -2624,11 +4363,15 @@ function json(
     status = 200
 ) {
     return new Response(
-        JSON.stringify(data),
+        JSON.stringify(
+            data
+        ),
         {
             status,
+
             headers: {
                 ...corsHeaders(),
+
                 "Content-Type":
                     "application/json; charset=utf-8"
             }
@@ -2645,10 +4388,16 @@ function json(
 
 function corsHeaders() {
     return {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin":
+            "*",
+
         "Access-Control-Allow-Methods":
-            "GET, POST, OPTIONS",
+            "GET, POST, PUT, DELETE, OPTIONS",
+
         "Access-Control-Allow-Headers":
-            "Content-Type, Authorization"
+            "Content-Type, Authorization, X-File-Name, X-Sort-Order, Range",
+
+        "Access-Control-Expose-Headers":
+            "Content-Length, Content-Range, Accept-Ranges, Content-Disposition"
     };
 }
