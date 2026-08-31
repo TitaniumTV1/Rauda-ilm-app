@@ -3,10 +3,20 @@ import { verifyTelegramInitData } from "./telegram.js";
 const SESSION_DAYS = 30;
 const PASSWORD_ITERATIONS = 100000;
 
+
+/*
+ * =========================================================
+ * MAIN
+ * =========================================================
+ */
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
+        /*
+         * CORS
+         */
         if (request.method === "OPTIONS") {
             return new Response(null, {
                 status: 204,
@@ -14,10 +24,11 @@ export default {
             });
         }
 
+
         /*
-         * ============================
+         * =====================================================
          * HEALTH
-         * ============================
+         * =====================================================
          */
 
         if (
@@ -32,10 +43,11 @@ export default {
             });
         }
 
+
         /*
-         * ============================
-         * DEBUG CONFIG
-         * ============================
+         * =====================================================
+         * DEBUG
+         * =====================================================
          */
 
         if (
@@ -52,10 +64,11 @@ export default {
             });
         }
 
+
         /*
-         * ============================
+         * =====================================================
          * AUTH
-         * ============================
+         * =====================================================
          */
 
         if (
@@ -93,10 +106,11 @@ export default {
             return handleLogout(request, env);
         }
 
+
         /*
-         * ============================
+         * =====================================================
          * PROGRAMS
-         * ============================
+         * =====================================================
          */
 
         if (
@@ -106,10 +120,11 @@ export default {
             return handlePrograms(request, env);
         }
 
+
         /*
-         * ============================
+         * =====================================================
          * COURSES
-         * ============================
+         * =====================================================
          */
 
         if (
@@ -119,10 +134,11 @@ export default {
             return handleCourses(request, env);
         }
 
+
         /*
-         * ============================
+         * =====================================================
          * LESSONS
-         * ============================
+         * =====================================================
          */
 
         if (
@@ -132,10 +148,11 @@ export default {
             return handleLessons(request, env);
         }
 
+
         /*
-         * ============================
+         * =====================================================
          * PROGRESS
-         * ============================
+         * =====================================================
          */
 
         if (
@@ -145,10 +162,11 @@ export default {
             return handleProgress(request, env);
         }
 
+
         /*
-         * ============================
-         * TRIBUTE
-         * ============================
+         * =====================================================
+         * TRIBUTE WEBHOOK
+         * =====================================================
          */
 
         if (
@@ -158,10 +176,11 @@ export default {
             return handleTributeWebhook(request, env);
         }
 
+
         /*
-         * ============================
+         * =====================================================
          * FRONTEND
-         * ============================
+         * =====================================================
          */
 
         if (env.ASSETS) {
@@ -171,7 +190,8 @@ export default {
         return new Response("RAUDA ILM", {
             status: 200,
             headers: {
-                "Content-Type": "text/plain; charset=utf-8"
+                "Content-Type":
+                    "text/plain; charset=utf-8"
             }
         });
     }
@@ -198,11 +218,21 @@ async function handleRegister(request, env) {
     try {
         const body = await request.json();
 
-        const login = normalizeLogin(body?.login);
-        const password = String(body?.password || "");
-        const firstName = cleanText(body?.first_name);
-        const lastName = cleanText(body?.last_name);
-        const phone = cleanText(body?.phone);
+        const login =
+            normalizeLogin(body?.login);
+
+        const password =
+            String(body?.password || "");
+
+        const firstName =
+            cleanText(body?.first_name);
+
+        const lastName =
+            cleanText(body?.last_name);
+
+        const phone =
+            cleanText(body?.phone);
+
 
         if (!login) {
             return json(
@@ -213,6 +243,7 @@ async function handleRegister(request, env) {
                 400
             );
         }
+
 
         if (!isValidLogin(login)) {
             return json(
@@ -225,18 +256,21 @@ async function handleRegister(request, env) {
             );
         }
 
+
         if (password.length < 8) {
             return json(
                 {
                     ok: false,
-                    error: "Пароль должен содержать минимум 8 символов"
+                    error:
+                        "Пароль должен содержать минимум 8 символов"
                 },
                 400
             );
         }
 
+
         /*
-         * Проверяем существующий login.
+         * Проверяем логин.
          */
 
         const existing =
@@ -249,6 +283,7 @@ async function handleRegister(request, env) {
                 .bind(login)
                 .first();
 
+
         if (existing) {
             return json(
                 {
@@ -259,13 +294,30 @@ async function handleRegister(request, env) {
             );
         }
 
+
+        /*
+         * Хешируем пароль.
+         */
+
         const passwordHash =
             await hashPassword(password);
 
+
         /*
-         * telegram_id оставляем NULL,
-         * поскольку регистрация обычная.
+         * ВАЖНО:
+         *
+         * telegram_id в существующей таблице users
+         * имеет NOT NULL.
+         *
+         * Поэтому для обычного аккаунта создаём
+         * технический отрицательный ID.
+         *
+         * Настоящий Telegram ID никогда не меняем.
          */
+
+        const technicalTelegramId =
+            await generateTechnicalTelegramId(env.DB);
+
 
         const result =
             await env.DB.prepare(`
@@ -281,7 +333,7 @@ async function handleRegister(request, env) {
                     password_hash
                 )
                 VALUES (
-                    NULL,
+                    ?,
                     NULL,
                     ?,
                     ?,
@@ -293,6 +345,7 @@ async function handleRegister(request, env) {
                 )
             `)
                 .bind(
+                    technicalTelegramId,
                     firstName || null,
                     lastName || null,
                     phone || null,
@@ -301,8 +354,10 @@ async function handleRegister(request, env) {
                 )
                 .run();
 
+
         const userId =
             Number(result.meta.last_row_id);
+
 
         const user =
             await getUserById(
@@ -310,11 +365,13 @@ async function handleRegister(request, env) {
                 userId
             );
 
+
         const session =
             await createSession(
                 env.DB,
                 userId
             );
+
 
         return json({
             ok: true,
@@ -332,7 +389,8 @@ async function handleRegister(request, env) {
         return json(
             {
                 ok: false,
-                error: "Не удалось зарегистрировать пользователя"
+                error:
+                    "Не удалось зарегистрировать пользователя"
             },
             500
         );
@@ -360,8 +418,12 @@ async function handleLogin(request, env) {
     try {
         const body = await request.json();
 
-        const login = normalizeLogin(body?.login);
-        const password = String(body?.password || "");
+        const login =
+            normalizeLogin(body?.login);
+
+        const password =
+            String(body?.password || "");
+
 
         if (!login || !password) {
             return json(
@@ -372,6 +434,7 @@ async function handleLogin(request, env) {
                 400
             );
         }
+
 
         const user =
             await env.DB.prepare(`
@@ -397,15 +460,18 @@ async function handleLogin(request, env) {
                 .bind(login)
                 .first();
 
+
         if (!user) {
             return json(
                 {
                     ok: false,
-                    error: "Неверный логин или пароль"
+                    error:
+                        "Неверный логин или пароль"
                 },
                 401
             );
         }
+
 
         if (user.status !== "active") {
             return json(
@@ -419,6 +485,7 @@ async function handleLogin(request, env) {
             );
         }
 
+
         if (!user.password_hash) {
             return json(
                 {
@@ -430,21 +497,25 @@ async function handleLogin(request, env) {
             );
         }
 
+
         const valid =
             await verifyPassword(
                 password,
                 user.password_hash
             );
 
+
         if (!valid) {
             return json(
                 {
                     ok: false,
-                    error: "Неверный логин или пароль"
+                    error:
+                        "Неверный логин или пароль"
                 },
                 401
             );
         }
+
 
         const session =
             await createSession(
@@ -452,7 +523,9 @@ async function handleLogin(request, env) {
                 user.id
             );
 
+
         delete user.password_hash;
+
 
         return json({
             ok: true,
@@ -470,7 +543,8 @@ async function handleLogin(request, env) {
         return json(
             {
                 ok: false,
-                error: "Не удалось выполнить вход"
+                error:
+                    "Не удалось выполнить вход"
             },
             500
         );
@@ -489,37 +563,45 @@ async function handleTelegramAuth(request, env) {
         return json(
             {
                 ok: false,
-                error: "Database is not configured"
+                error:
+                    "Database is not configured"
             },
             500
         );
     }
+
 
     if (!env.TELEGRAM_BOT_TOKEN) {
         return json(
             {
                 ok: false,
-                error: "Telegram bot token is not configured"
+                error:
+                    "Telegram bot token is not configured"
             },
             500
         );
     }
 
+
     try {
-        const body = await request.json();
+        const body =
+            await request.json();
 
         const initData =
             body?.initData;
+
 
         if (!initData) {
             return json(
                 {
                     ok: false,
-                    error: "Telegram initData is missing"
+                    error:
+                        "Telegram initData is missing"
                 },
                 400
             );
         }
+
 
         const verification =
             await verifyTelegramInitData(
@@ -527,31 +609,38 @@ async function handleTelegramAuth(request, env) {
                 env.TELEGRAM_BOT_TOKEN
             );
 
+
         if (!verification.ok) {
             return json(
                 {
                     ok: false,
-                    error: verification.error
+                    error:
+                        verification.error
                 },
                 401
             );
         }
 
+
         const telegramUser =
             verification.user;
 
+
         const telegramId =
             Number(telegramUser.id);
+
 
         if (!telegramId) {
             return json(
                 {
                     ok: false,
-                    error: "Invalid Telegram user ID"
+                    error:
+                        "Invalid Telegram user ID"
                 },
                 401
             );
         }
+
 
         /*
          * Ищем пользователя.
@@ -567,8 +656,9 @@ async function handleTelegramAuth(request, env) {
                 .bind(telegramId)
                 .first();
 
+
         /*
-         * Если пользователя ещё нет —
+         * Если пользователя нет —
          * создаём.
          */
 
@@ -600,12 +690,17 @@ async function handleTelegramAuth(request, env) {
                     )
                     .run();
 
+
             user =
                 await getUserById(
                     env.DB,
-                    Number(result.meta.last_row_id)
+                    Number(
+                        result.meta.last_row_id
+                    )
                 );
+
         } else {
+
             /*
              * Обновляем данные Telegram.
              */
@@ -627,12 +722,14 @@ async function handleTelegramAuth(request, env) {
                 )
                 .run();
 
+
             user =
                 await getUserById(
                     env.DB,
                     user.id
                 );
         }
+
 
         if (user.status !== "active") {
             return json(
@@ -646,8 +743,9 @@ async function handleTelegramAuth(request, env) {
             );
         }
 
+
         /*
-         * Создаём обычную серверную сессию.
+         * Создаём серверную сессию.
          */
 
         const session =
@@ -655,6 +753,7 @@ async function handleTelegramAuth(request, env) {
                 env.DB,
                 user.id
             );
+
 
         return json({
             ok: true,
@@ -672,7 +771,8 @@ async function handleTelegramAuth(request, env) {
         return json(
             {
                 ok: false,
-                error: "Telegram authentication failed"
+                error:
+                    "Telegram authentication failed"
             },
             500
         );
@@ -693,6 +793,7 @@ async function handleMe(request, env) {
             env
         );
 
+
     if (!auth.ok) {
         return json(
             {
@@ -702,6 +803,7 @@ async function handleMe(request, env) {
             auth.status
         );
     }
+
 
     return json({
         ok: true,
@@ -721,14 +823,17 @@ async function handleLogout(request, env) {
         return json(
             {
                 ok: false,
-                error: "Database is not configured"
+                error:
+                    "Database is not configured"
             },
             500
         );
     }
 
+
     const token =
         getBearerToken(request);
+
 
     if (token) {
         await env.DB.prepare(`
@@ -739,6 +844,7 @@ async function handleLogout(request, env) {
             .run();
     }
 
+
     return json({
         ok: true
     });
@@ -747,7 +853,7 @@ async function handleLogout(request, env) {
 
 /*
  * =========================================================
- * AUTHENTICATION
+ * REQUIRE USER
  * =========================================================
  */
 
@@ -756,20 +862,25 @@ async function requireUser(request, env) {
         return {
             ok: false,
             status: 500,
-            error: "Database is not configured"
+            error:
+                "Database is not configured"
         };
     }
 
+
     const token =
         getBearerToken(request);
+
 
     if (!token) {
         return {
             ok: false,
             status: 401,
-            error: "Authorization required"
+            error:
+                "Authorization required"
         };
     }
+
 
     const row =
         await env.DB.prepare(`
@@ -787,7 +898,6 @@ async function requireUser(request, env) {
                 u.created_at,
                 u.updated_at,
                 u.login,
-                s.token,
                 s.expires_at
             FROM auth_sessions s
             JOIN users u
@@ -798,21 +908,28 @@ async function requireUser(request, env) {
             .bind(token)
             .first();
 
+
     if (!row) {
         return {
             ok: false,
             status: 401,
-            error: "Invalid or expired session"
+            error:
+                "Invalid or expired session"
         };
     }
+
 
     const expires =
         new Date(row.expires_at);
 
+
     if (
-        Number.isNaN(expires.getTime()) ||
+        Number.isNaN(
+            expires.getTime()
+        ) ||
         expires.getTime() <= Date.now()
     ) {
+
         await env.DB.prepare(`
             DELETE FROM auth_sessions
             WHERE token = ?
@@ -820,12 +937,15 @@ async function requireUser(request, env) {
             .bind(token)
             .run();
 
+
         return {
             ok: false,
             status: 401,
-            error: "Session expired"
+            error:
+                "Session expired"
         };
     }
+
 
     if (row.status !== "active") {
         return {
@@ -837,8 +957,9 @@ async function requireUser(request, env) {
         };
     }
 
-    delete row.token;
+
     delete row.expires_at;
+
 
     return {
         ok: true,
@@ -857,7 +978,8 @@ async function createSession(db, userId) {
     const token =
         randomToken();
 
-    const expiresAt =
+
+    const expires =
         new Date(
             Date.now() +
             SESSION_DAYS *
@@ -865,7 +987,12 @@ async function createSession(db, userId) {
             60 *
             60 *
             1000
-        ).toISOString();
+        );
+
+
+    const expiresAt =
+        expires.toISOString();
+
 
     await db.prepare(`
         INSERT INTO auth_sessions (
@@ -882,10 +1009,42 @@ async function createSession(db, userId) {
         )
         .run();
 
+
     return {
         token,
         expiresAt
     };
+}
+
+
+/*
+ * =========================================================
+ * GET USER
+ * =========================================================
+ */
+
+async function getUserById(db, userId) {
+    return await db.prepare(`
+        SELECT
+            id,
+            telegram_id,
+            username,
+            first_name,
+            last_name,
+            phone,
+            role,
+            status,
+            blocked_reason,
+            blocked_at,
+            created_at,
+            updated_at,
+            login
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+    `)
+        .bind(userId)
+        .first();
 }
 
 
@@ -902,6 +1061,7 @@ async function handlePrograms(request, env) {
             env
         );
 
+
     if (!auth.ok) {
         return json(
             {
@@ -912,14 +1072,37 @@ async function handlePrograms(request, env) {
         );
     }
 
+
+    if (!env.DB) {
+        return json(
+            {
+                ok: true,
+                programs: []
+            }
+        );
+    }
+
+
     try {
         const result =
             await env.DB.prepare(`
-                SELECT *
+                SELECT
+                    id,
+                    name,
+                    description,
+                    purpose,
+                    cover_image,
+                    certificate_enabled,
+                    certificate_passing_score,
+                    is_active,
+                    created_at,
+                    updated_at
                 FROM programs
+                WHERE is_active = 1
                 ORDER BY id ASC
             `)
                 .all();
+
 
         return json({
             ok: true,
@@ -936,7 +1119,8 @@ async function handlePrograms(request, env) {
         return json(
             {
                 ok: false,
-                error: "Failed to load programs"
+                error:
+                    "Failed to load programs"
             },
             500
         );
@@ -957,6 +1141,7 @@ async function handleCourses(request, env) {
             env
         );
 
+
     if (!auth.ok) {
         return json(
             {
@@ -967,44 +1152,32 @@ async function handleCourses(request, env) {
         );
     }
 
+
+    if (!env.DB) {
+        return json({
+            ok: true,
+            courses: []
+        });
+    }
+
+
     try {
-        const url =
-            new URL(request.url);
 
-        const programId =
-            url.searchParams.get(
-                "program_id"
-            );
+        /*
+         * SELECT *
+         *
+         * Используем реальную таблицу courses,
+         * не придумывая её структуру.
+         */
 
-        let result;
+        const result =
+            await env.DB.prepare(`
+                SELECT *
+                FROM courses
+                ORDER BY id ASC
+            `)
+                .all();
 
-        if (programId) {
-            result =
-                await env.DB.prepare(`
-                    SELECT *
-                    FROM courses
-                    WHERE is_active = 1
-                      AND id IN (
-                          SELECT DISTINCT course_id
-                          FROM lessons
-                          WHERE program_id = ?
-                      )
-                    ORDER BY id ASC
-                `)
-                    .bind(
-                        Number(programId)
-                    )
-                    .all();
-        } else {
-            result =
-                await env.DB.prepare(`
-                    SELECT *
-                    FROM courses
-                    WHERE is_active = 1
-                    ORDER BY id ASC
-                `)
-                    .all();
-        }
 
         return json({
             ok: true,
@@ -1021,7 +1194,8 @@ async function handleCourses(request, env) {
         return json(
             {
                 ok: false,
-                error: "Failed to load courses"
+                error:
+                    "Failed to load courses"
             },
             500
         );
@@ -1042,6 +1216,7 @@ async function handleLessons(request, env) {
             env
         );
 
+
     if (!auth.ok) {
         return json(
             {
@@ -1052,24 +1227,39 @@ async function handleLessons(request, env) {
         );
     }
 
+
+    if (!env.DB) {
+        return json({
+            ok: true,
+            lessons: [],
+            completedLessonIds: []
+        });
+    }
+
+
     try {
-        const url =
-            new URL(request.url);
+        const userId =
+            Number(auth.user.id);
+
+
+        /*
+         * Можно передать course_id:
+         *
+         * /api/lessons?course_id=1
+         */
 
         const courseId =
-            url.searchParams.get(
-                "course_id"
-            );
+            new URL(request.url)
+                .searchParams
+                .get("course_id");
 
-        const programId =
-            url.searchParams.get(
-                "program_id"
-            );
 
-        let result;
+        let lessonsResult;
+
 
         if (courseId) {
-            result =
+
+            lessonsResult =
                 await env.DB.prepare(`
                     SELECT
                         id,
@@ -1082,19 +1272,24 @@ async function handleLessons(request, env) {
                         lesson_number,
                         content,
                         sort_order,
-                        is_visible
+                        is_visible,
+                        created_at,
+                        updated_at
                     FROM lessons
                     WHERE is_visible = 1
-                      AND course_id = ?
-                    ORDER BY sort_order ASC, id ASC
+                    AND course_id = ?
+                    ORDER BY
+                        sort_order ASC,
+                        id ASC
                 `)
                     .bind(
                         Number(courseId)
                     )
                     .all();
 
-        } else if (programId) {
-            result =
+        } else {
+
+            lessonsResult =
                 await env.DB.prepare(`
                     SELECT
                         id,
@@ -1107,100 +1302,74 @@ async function handleLessons(request, env) {
                         lesson_number,
                         content,
                         sort_order,
-                        is_visible
+                        is_visible,
+                        created_at,
+                        updated_at
                     FROM lessons
                     WHERE is_visible = 1
-                      AND program_id = ?
-                    ORDER BY sort_order ASC, id ASC
+                    ORDER BY
+                        sort_order ASC,
+                        id ASC
+                `)
+                    .all();
+        }
+
+
+        /*
+         * Прогресс пользователя.
+         */
+
+        let progressResult;
+
+
+        if (courseId) {
+
+            progressResult =
+                await env.DB.prepare(`
+                    SELECT
+                        lesson_id,
+                        completed
+                    FROM lesson_progress
+                    WHERE user_id = ?
+                    AND course_id = ?
                 `)
                     .bind(
-                        Number(programId)
+                        userId,
+                        Number(courseId)
                     )
                     .all();
 
         } else {
-            result =
+
+            progressResult =
                 await env.DB.prepare(`
                     SELECT
-                        id,
-                        course_id,
-                        program_id,
-                        semester_id,
-                        subject_id,
-                        title,
-                        description,
-                        lesson_number,
-                        content,
-                        sort_order,
-                        is_visible
-                    FROM lessons
-                    WHERE is_visible = 1
-                    ORDER BY sort_order ASC, id ASC
+                        lesson_id,
+                        completed
+                    FROM lesson_progress
+                    WHERE user_id = ?
                 `)
+                    .bind(userId)
                     .all();
         }
 
-        const lessons =
-            result.results || [];
 
-        const progress =
-            await env.DB.prepare(`
-                SELECT
-                    lesson_id,
-                    course_id,
-                    completed,
-                    completed_at
-                FROM lesson_progress
-                WHERE user_id = ?
-            `)
-                .bind(
-                    auth.user.id
+        const completedLessonIds =
+            (progressResult.results || [])
+                .filter(
+                    row =>
+                        Number(row.completed) === 1
                 )
-                .all();
-
-        const progressMap =
-            new Map();
-
-        for (
-            const row
-            of progress.results || []
-        ) {
-            progressMap.set(
-                Number(row.lesson_id),
-                row
-            );
-        }
-
-        const completedLessonIds = [];
-
-        for (
-            const lesson
-            of lessons
-        ) {
-            const item =
-                progressMap.get(
-                    Number(lesson.id)
+                .map(
+                    row =>
+                        Number(row.lesson_id)
                 );
 
-            lesson.completed =
-                item
-                    ? Number(item.completed) === 1
-                    : false;
-
-            lesson.completed_at =
-                item?.completed_at ||
-                null;
-
-            if (lesson.completed) {
-                completedLessonIds.push(
-                    Number(lesson.id)
-                );
-            }
-        }
 
         return json({
             ok: true,
-            lessons,
+            lessons:
+                lessonsResult.results || [],
             completedLessonIds
         });
 
@@ -1213,7 +1382,8 @@ async function handleLessons(request, env) {
         return json(
             {
                 ok: false,
-                error: "Failed to load lessons"
+                error:
+                    "Failed to load lessons"
             },
             500
         );
@@ -1234,6 +1404,7 @@ async function handleProgress(request, env) {
             env
         );
 
+
     if (!auth.ok) {
         return json(
             {
@@ -1244,87 +1415,124 @@ async function handleProgress(request, env) {
         );
     }
 
+
+    if (!env.DB) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Database is not configured"
+            },
+            500
+        );
+    }
+
+
     try {
         const body =
             await request.json();
 
+
         const lessonId =
             Number(body?.lessonId);
 
-        if (!Number.isInteger(lessonId) || lessonId <= 0) {
+
+        const courseId =
+            Number(body?.courseId);
+
+
+        if (!lessonId) {
             return json(
                 {
                     ok: false,
-                    error: "Invalid lessonId"
+                    error:
+                        "lessonId is required"
                 },
                 400
             );
         }
 
-        const lesson =
-            await env.DB.prepare(`
-                SELECT
-                    id,
-                    course_id
-                FROM lessons
-                WHERE id = ?
-                LIMIT 1
-            `)
-                .bind(lessonId)
-                .first();
 
-        if (!lesson) {
+        if (!courseId) {
             return json(
                 {
                     ok: false,
-                    error: "Lesson not found"
+                    error:
+                        "courseId is required"
                 },
-                404
+                400
             );
         }
 
-        await env.DB.prepare(`
-            INSERT INTO lesson_progress (
-                user_id,
-                course_id,
-                lesson_id,
-                completed,
-                completed_at
-            )
-            VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
-            ON CONFLICT DO NOTHING
-        `)
-            .bind(
-                auth.user.id,
-                lesson.course_id,
-                lesson.id
-            )
-            .run();
+
+        const userId =
+            Number(auth.user.id);
+
 
         /*
-         * Если запись уже существовала,
-         * обновляем её.
+         * Проверяем, существует ли запись.
          */
 
-        await env.DB.prepare(`
-            UPDATE lesson_progress
-            SET
-                completed = 1,
-                completed_at = CURRENT_TIMESTAMP,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = ?
-              AND lesson_id = ?
-        `)
-            .bind(
-                auth.user.id,
-                lesson.id
-            )
-            .run();
+        const existing =
+            await env.DB.prepare(`
+                SELECT id
+                FROM lesson_progress
+                WHERE user_id = ?
+                AND course_id = ?
+                AND lesson_id = ?
+                LIMIT 1
+            `)
+                .bind(
+                    userId,
+                    courseId,
+                    lessonId
+                )
+                .first();
+
+
+        if (existing) {
+
+            await env.DB.prepare(`
+                UPDATE lesson_progress
+                SET
+                    completed = 1,
+                    completed_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `)
+                .bind(existing.id)
+                .run();
+
+        } else {
+
+            await env.DB.prepare(`
+                INSERT INTO lesson_progress (
+                    user_id,
+                    course_id,
+                    lesson_id,
+                    completed,
+                    completed_at
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    1,
+                    CURRENT_TIMESTAMP
+                )
+            `)
+                .bind(
+                    userId,
+                    courseId,
+                    lessonId
+                )
+                .run();
+        }
+
 
         return json({
             ok: true,
-            completed: true,
-            lesson_id: lesson.id
+            completed: true
         });
 
     } catch (error) {
@@ -1336,7 +1544,8 @@ async function handleProgress(request, env) {
         return json(
             {
                 ok: false,
-                error: "Failed to save progress"
+                error:
+                    "Failed to save progress"
             },
             500
         );
@@ -1356,58 +1565,58 @@ async function handleTributeWebhook(request, env) {
             return json(
                 {
                     ok: false,
-                    error: "Tribute API key is not configured"
+                    error:
+                        "Tribute API key is not configured"
                 },
                 500
             );
         }
 
-        if (!env.DB) {
-            return json(
-                {
-                    ok: false,
-                    error: "Database is not configured"
-                },
-                500
-            );
-        }
 
         const rawBody =
             await request.text();
+
 
         const signature =
             request.headers.get(
                 "trbt-signature"
             );
 
+
         if (!signature) {
             return json(
                 {
                     ok: false,
-                    error: "Tribute signature is missing"
+                    error:
+                        "Tribute signature is missing"
                 },
                 401
             );
         }
 
-        const validSignature =
+
+        const valid =
             await verifyTributeSignature(
                 rawBody,
                 signature,
                 env.TRIBUTE_API_KEY
             );
 
-        if (!validSignature) {
+
+        if (!valid) {
             return json(
                 {
                     ok: false,
-                    error: "Invalid webhook signature"
+                    error:
+                        "Invalid webhook signature"
                 },
                 401
             );
         }
 
+
         let event;
+
 
         try {
             event =
@@ -1416,11 +1625,18 @@ async function handleTributeWebhook(request, env) {
             return json(
                 {
                     ok: false,
-                    error: "Invalid webhook JSON"
+                    error:
+                        "Invalid webhook JSON"
                 },
                 400
             );
         }
+
+
+        /*
+         * Пока обрабатываем покупку
+         * цифрового продукта.
+         */
 
         if (
             event?.name !==
@@ -1433,45 +1649,79 @@ async function handleTributeWebhook(request, env) {
             });
         }
 
+
         const payload =
             event?.payload;
+
 
         if (!payload) {
             return json(
                 {
                     ok: false,
-                    error: "Tribute payload is missing"
+                    error:
+                        "Tribute payload is missing"
                 },
                 400
             );
         }
+
 
         const productId =
             payload?.product_id;
 
+
         const telegramUserId =
             payload?.telegram_user_id;
 
+
         const purchaseId =
-            payload?.purchase_id;
+            payload?.purchase_id || null;
+
 
         const transactionId =
-            payload?.transaction_id;
+            payload?.transaction_id || null;
 
-        if (!productId || !telegramUserId) {
+
+        if (!productId) {
             return json(
                 {
                     ok: false,
                     error:
-                        "Tribute product_id or telegram_user_id is missing"
+                        "Tribute product_id is missing"
                 },
                 400
             );
         }
 
+
+        if (!telegramUserId) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Tribute telegram_user_id is missing"
+                },
+                400
+            );
+        }
+
+
+        if (!env.DB) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Database is not configured"
+                },
+                500
+            );
+        }
+
+
         await ensureTributeTables(
             env.DB
         );
+
 
         const eventId =
             purchaseId
@@ -1479,6 +1729,7 @@ async function handleTributeWebhook(request, env) {
                 : transactionId
                     ? `transaction:${transactionId}`
                     : `event:${event.created_at || ""}:${productId}:${telegramUserId}`;
+
 
         const existing =
             await env.DB.prepare(`
@@ -1490,13 +1741,17 @@ async function handleTributeWebhook(request, env) {
                 .bind(eventId)
                 .first();
 
+
         if (existing) {
             return json({
                 ok: true,
-                status: "already_processed",
-                event_id: eventId
+                status:
+                    "already_processed",
+                event_id:
+                    eventId
             });
         }
+
 
         await env.DB.prepare(`
             INSERT INTO tribute_webhook_events (
@@ -1524,6 +1779,12 @@ async function handleTributeWebhook(request, env) {
             )
             .run();
 
+
+        /*
+         * Находим программу,
+         * связанную с Tribute Product.
+         */
+
         const mapping =
             await env.DB.prepare(`
                 SELECT
@@ -1538,46 +1799,91 @@ async function handleTributeWebhook(request, env) {
                 )
                 .first();
 
+
         if (!mapping) {
             return json({
                 ok: true,
-                status: "received",
-                access: "not_mapped",
-                product_id: productId,
-                telegram_user_id: telegramUserId,
-                event_id: eventId
+                status:
+                    "received",
+                access:
+                    "not_mapped",
+                product_id:
+                    productId,
+                telegram_user_id:
+                    telegramUserId,
+                event_id:
+                    eventId
             });
         }
 
-        await env.DB.prepare(`
-            INSERT OR IGNORE INTO user_programs (
-                telegram_user_id,
-                program_id,
-                tribute_product_id,
-                purchase_id,
-                granted_at
-            )
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-        `)
-            .bind(
-                String(telegramUserId),
-                String(mapping.program_id),
-                String(productId),
-                purchaseId
-                    ? String(purchaseId)
-                    : null
-            )
-            .run();
+
+        /*
+         * Находим Telegram пользователя
+         * в нашей users.
+         */
+
+        const user =
+            await env.DB.prepare(`
+                SELECT id
+                FROM users
+                WHERE telegram_id = ?
+                LIMIT 1
+            `)
+                .bind(
+                    Number(
+                        telegramUserId
+                    )
+                )
+                .first();
+
+
+        if (!user) {
+            return json({
+                ok: true,
+                status:
+                    "received",
+                access:
+                    "user_not_found",
+                telegram_user_id:
+                    telegramUserId,
+                event_id:
+                    eventId
+            });
+        }
+
+
+        /*
+         * Пытаемся выдать доступ к курсам
+         * программы через существующую
+         * таблицу user_courses.
+         */
+
+        const granted =
+            await grantProgramCourses(
+                env.DB,
+                user.id,
+                mapping.program_id
+            );
+
 
         return json({
             ok: true,
-            status: "processed",
-            access: "granted",
-            product_id: productId,
-            telegram_user_id: telegramUserId,
-            program_id: mapping.program_id,
-            purchase_id: purchaseId || null,
-            event_id: eventId
+            status:
+                "processed",
+            access:
+                granted
+                    ? "granted"
+                    : "no_courses",
+            product_id:
+                productId,
+            telegram_user_id:
+                telegramUserId,
+            program_id:
+                mapping.program_id,
+            purchase_id:
+                purchaseId,
+            event_id:
+                eventId
         });
 
     } catch (error) {
@@ -1589,10 +1895,126 @@ async function handleTributeWebhook(request, env) {
         return json(
             {
                 ok: false,
-                error: "Failed to process Tribute webhook"
+                error:
+                    "Failed to process Tribute webhook"
             },
             500
         );
+    }
+}
+
+
+/*
+ * =========================================================
+ * GRANT PROGRAM COURSES
+ * =========================================================
+ */
+
+async function grantProgramCourses(
+    db,
+    userId,
+    programId
+) {
+    try {
+
+        const courses =
+            await db.prepare(`
+                SELECT id
+                FROM courses
+                WHERE program_id = ?
+            `)
+                .bind(
+                    Number(programId)
+                )
+                .all();
+
+
+        const rows =
+            courses.results || [];
+
+
+        if (!rows.length) {
+            return false;
+        }
+
+
+        /*
+         * Получаем реальные колонки user_courses.
+         */
+
+        const columns =
+            await getTableColumns(
+                db,
+                "user_courses"
+            );
+
+
+        if (
+            !columns.includes("user_id") ||
+            !columns.includes("course_id")
+        ) {
+            console.error(
+                "user_courses does not contain user_id/course_id"
+            );
+
+            return false;
+        }
+
+
+        for (const course of rows) {
+
+            /*
+             * Проверяем существующий доступ.
+             */
+
+            const existing =
+                await db.prepare(`
+                    SELECT *
+                    FROM user_courses
+                    WHERE user_id = ?
+                    AND course_id = ?
+                    LIMIT 1
+                `)
+                    .bind(
+                        userId,
+                        course.id
+                    )
+                    .first();
+
+
+            if (existing) {
+                continue;
+            }
+
+
+            /*
+             * Минимальная запись.
+             */
+
+            await db.prepare(`
+                INSERT INTO user_courses (
+                    user_id,
+                    course_id
+                )
+                VALUES (?, ?)
+            `)
+                .bind(
+                    userId,
+                    course.id
+                )
+                .run();
+        }
+
+
+        return true;
+
+    } catch (error) {
+        console.error(
+            "Grant program courses error:",
+            error
+        );
+
+        return false;
     }
 }
 
@@ -1604,26 +2026,20 @@ async function handleTributeWebhook(request, env) {
  */
 
 async function ensureTributeTables(db) {
+
     await db.prepare(`
-        CREATE TABLE IF NOT EXISTS tribute_product_programs (
+        CREATE TABLE IF NOT EXISTS
+        tribute_product_programs (
             tribute_product_id TEXT PRIMARY KEY,
             program_id TEXT NOT NULL
         )
-    `).run();
+    `)
+        .run();
+
 
     await db.prepare(`
-        CREATE TABLE IF NOT EXISTS user_programs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_user_id TEXT NOT NULL,
-            program_id TEXT NOT NULL,
-            tribute_product_id TEXT NOT NULL,
-            purchase_id TEXT,
-            granted_at TEXT NOT NULL
-        )
-    `).run();
-
-    await db.prepare(`
-        CREATE TABLE IF NOT EXISTS tribute_webhook_events (
+        CREATE TABLE IF NOT EXISTS
+        tribute_webhook_events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             event_id TEXT NOT NULL UNIQUE,
             event_name TEXT NOT NULL,
@@ -1633,13 +2049,16 @@ async function ensureTributeTables(db) {
             transaction_id TEXT,
             created_at TEXT NOT NULL
         )
-    `).run();
+    `)
+        .run();
+
 
     await db.prepare(`
         CREATE INDEX IF NOT EXISTS
-        idx_user_programs_telegram_user
-        ON user_programs(telegram_user_id)
-    `).run();
+        idx_tribute_events_event_id
+        ON tribute_webhook_events(event_id)
+    `)
+        .run();
 }
 
 
@@ -1651,14 +2070,20 @@ async function ensureTributeTables(db) {
 
 async function hashPassword(password) {
     const salt =
-        crypto.getRandomValues(
-            new Uint8Array(16)
-        );
+        new Uint8Array(16);
+
+
+    crypto.getRandomValues(
+        salt
+    );
+
 
     const key =
         await crypto.subtle.importKey(
             "raw",
-            new TextEncoder().encode(password),
+            new TextEncoder().encode(
+                password
+            ),
             {
                 name: "PBKDF2"
             },
@@ -1668,57 +2093,76 @@ async function hashPassword(password) {
             ]
         );
 
-    const hash =
+
+    const bits =
         await crypto.subtle.deriveBits(
             {
                 name: "PBKDF2",
                 salt,
-                iterations: PASSWORD_ITERATIONS,
-                hash: "SHA-256"
+                iterations:
+                    PASSWORD_ITERATIONS,
+                hash:
+                    "SHA-256"
             },
             key,
             256
         );
 
+
     return [
         "pbkdf2",
+        "sha256",
         PASSWORD_ITERATIONS,
         bytesToBase64(salt),
         bytesToBase64(
-            new Uint8Array(hash)
+            new Uint8Array(bits)
         )
     ].join("$");
 }
 
 
+/*
+ * =========================================================
+ * PASSWORD VERIFY
+ * =========================================================
+ */
+
 async function verifyPassword(
     password,
-    storedHash
+    stored
 ) {
     try {
         const parts =
-            String(storedHash).split("$");
+            String(stored).split("$");
+
 
         if (
-            parts.length !== 4 ||
-            parts[0] !== "pbkdf2"
+            parts.length !== 5 ||
+            parts[0] !== "pbkdf2" ||
+            parts[1] !== "sha256"
         ) {
             return false;
         }
 
+
         const iterations =
-            Number(parts[1]);
+            Number(parts[2]);
+
 
         const salt =
-            base64ToBytes(parts[2]);
-
-        const expectedHash =
             base64ToBytes(parts[3]);
+
+
+        const expected =
+            base64ToBytes(parts[4]);
+
 
         const key =
             await crypto.subtle.importKey(
                 "raw",
-                new TextEncoder().encode(password),
+                new TextEncoder().encode(
+                    password
+                ),
                 {
                     name: "PBKDF2"
                 },
@@ -1728,24 +2172,36 @@ async function verifyPassword(
                 ]
             );
 
-        const hash =
+
+        const bits =
             await crypto.subtle.deriveBits(
                 {
                     name: "PBKDF2",
                     salt,
                     iterations,
-                    hash: "SHA-256"
+                    hash:
+                        "SHA-256"
                 },
                 key,
-                256
+                expected.length * 8
             );
 
-        return timingSafeEqualBytes(
-            new Uint8Array(hash),
-            expectedHash
+
+        const actual =
+            new Uint8Array(bits);
+
+
+        return timingSafeBytesEqual(
+            actual,
+            expected
         );
 
-    } catch {
+    } catch (error) {
+        console.error(
+            "Password verification error:",
+            error
+        );
+
         return false;
     }
 }
@@ -1753,37 +2209,91 @@ async function verifyPassword(
 
 /*
  * =========================================================
- * TELEGRAM / USER HELPERS
+ * TECHNICAL TELEGRAM ID
  * =========================================================
  */
 
-async function getUserById(
-    db,
-    userId
-) {
-    return db.prepare(`
-        SELECT
-            id,
-            telegram_id,
-            username,
-            first_name,
-            last_name,
-            phone,
-            role,
-            status,
-            blocked_reason,
-            blocked_at,
-            created_at,
-            updated_at,
-            login
-        FROM users
-        WHERE id = ?
-        LIMIT 1
-    `)
-        .bind(userId)
-        .first();
+async function generateTechnicalTelegramId(db) {
+    /*
+     * Отрицательные значения отделяют
+     * обычные аккаунты от реальных Telegram ID.
+     */
+
+    for (let attempt = 0; attempt < 10; attempt++) {
+
+        const random =
+            new Uint32Array(1);
+
+        crypto.getRandomValues(
+            random
+        );
+
+
+        const id =
+            -(
+                1000000000 +
+                Number(
+                    random[0] %
+                    2000000000
+                )
+            );
+
+
+        const existing =
+            await db.prepare(`
+                SELECT id
+                FROM users
+                WHERE telegram_id = ?
+                LIMIT 1
+            `)
+                .bind(id)
+                .first();
+
+
+        if (!existing) {
+            return id;
+        }
+    }
+
+
+    /*
+     * Резервный вариант.
+     */
+
+    return -Date.now();
 }
 
+
+/*
+ * =========================================================
+ * TABLE COLUMNS
+ * =========================================================
+ */
+
+async function getTableColumns(
+    db,
+    tableName
+) {
+    const result =
+        await db.prepare(
+            `PRAGMA table_info(${tableName})`
+        )
+            .all();
+
+
+    return (result.results || [])
+        .map(
+            row =>
+                String(row.name)
+        );
+}
+
+
+/*
+ * =========================================================
+ * AUTHORIZATION HEADER
+ * =========================================================
+ */
 
 function getBearerToken(request) {
     const header =
@@ -1791,9 +2301,11 @@ function getBearerToken(request) {
             "Authorization"
         );
 
+
     if (!header) {
         return null;
     }
+
 
     if (
         !header.startsWith(
@@ -1803,45 +2315,34 @@ function getBearerToken(request) {
         return null;
     }
 
+
     const token =
         header.slice(7).trim();
+
 
     return token || null;
 }
 
 
+/*
+ * =========================================================
+ * RANDOM TOKEN
+ * =========================================================
+ */
+
 function randomToken() {
     const bytes =
-        crypto.getRandomValues(
-            new Uint8Array(32)
-        );
-
-    return bytesToBase64Url(bytes);
-}
+        new Uint8Array(32);
 
 
-function normalizeLogin(value) {
-    return String(
-        value || ""
-    )
-        .trim()
-        .toLowerCase();
-}
-
-
-function isValidLogin(login) {
-    return /^[a-zA-Z0-9_-]{3,30}$/.test(
-        login
+    crypto.getRandomValues(
+        bytes
     );
-}
 
 
-function cleanText(value) {
-    const text =
-        String(value || "")
-            .trim();
-
-    return text || null;
+    return bytesToBase64Url(
+        bytes
+    );
 }
 
 
@@ -1854,14 +2355,17 @@ function cleanText(value) {
 function bytesToBase64(bytes) {
     let binary = "";
 
+
     for (
-        const byte
-        of bytes
+        let i = 0;
+        i < bytes.length;
+        i++
     ) {
         binary += String.fromCharCode(
-            byte
+            bytes[i]
         );
     }
+
 
     return btoa(binary);
 }
@@ -1871,10 +2375,12 @@ function base64ToBytes(value) {
     const binary =
         atob(value);
 
+
     const bytes =
         new Uint8Array(
             binary.length
         );
+
 
     for (
         let i = 0;
@@ -1885,6 +2391,7 @@ function base64ToBytes(value) {
             binary.charCodeAt(i);
     }
 
+
     return bytes;
 }
 
@@ -1893,7 +2400,43 @@ function bytesToBase64Url(bytes) {
     return bytesToBase64(bytes)
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
-        .replace(/=/g, "");
+        .replace(/=+$/g, "");
+}
+
+
+/*
+ * =========================================================
+ * TIMING SAFE
+ * =========================================================
+ */
+
+function timingSafeBytesEqual(
+    a,
+    b
+) {
+    if (
+        a.length !==
+        b.length
+    ) {
+        return false;
+    }
+
+
+    let result = 0;
+
+
+    for (
+        let i = 0;
+        i < a.length;
+        i++
+    ) {
+        result |=
+            a[i] ^
+            b[i];
+    }
+
+
+    return result === 0;
 }
 
 
@@ -1912,10 +2455,13 @@ async function verifyTributeSignature(
         const encoder =
             new TextEncoder();
 
+
         const key =
             await crypto.subtle.importKey(
                 "raw",
-                encoder.encode(apiKey),
+                encoder.encode(
+                    apiKey
+                ),
                 {
                     name: "HMAC",
                     hash: "SHA-256"
@@ -1926,12 +2472,16 @@ async function verifyTributeSignature(
                 ]
             );
 
+
         const signatureBuffer =
             await crypto.subtle.sign(
                 "HMAC",
                 key,
-                encoder.encode(rawBody)
+                encoder.encode(
+                    rawBody
+                )
             );
+
 
         const expected =
             bytesToHex(
@@ -1940,7 +2490,8 @@ async function verifyTributeSignature(
                 )
             );
 
-        return timingSafeEqual(
+
+        return timingSafeStringEqual(
             expected.toLowerCase(),
             String(
                 receivedSignature
@@ -1951,7 +2502,7 @@ async function verifyTributeSignature(
 
     } catch (error) {
         console.error(
-            "Tribute signature verification error:",
+            "Tribute signature error:",
             error
         );
 
@@ -1962,16 +2513,45 @@ async function verifyTributeSignature(
 
 /*
  * =========================================================
- * SAFE COMPARE
+ * HEX
  * =========================================================
  */
 
-function timingSafeEqual(a, b) {
-    if (a.length !== b.length) {
+function bytesToHex(bytes) {
+    return Array.from(bytes)
+        .map(
+            byte =>
+                byte
+                    .toString(16)
+                    .padStart(
+                        2,
+                        "0"
+                    )
+        )
+        .join("");
+}
+
+
+/*
+ * =========================================================
+ * STRING TIMING SAFE
+ * =========================================================
+ */
+
+function timingSafeStringEqual(
+    a,
+    b
+) {
+    if (
+        a.length !==
+        b.length
+    ) {
         return false;
     }
 
+
     let result = 0;
+
 
     for (
         let i = 0;
@@ -1983,42 +2563,53 @@ function timingSafeEqual(a, b) {
             b.charCodeAt(i);
     }
 
-    return result === 0;
-}
-
-
-function timingSafeEqualBytes(
-    a,
-    b
-) {
-    if (a.length !== b.length) {
-        return false;
-    }
-
-    let result = 0;
-
-    for (
-        let i = 0;
-        i < a.length;
-        i++
-    ) {
-        result |=
-            a[i] ^ b[i];
-    }
 
     return result === 0;
 }
 
 
-function bytesToHex(bytes) {
-    return Array.from(bytes)
-        .map(
-            byte =>
-                byte
-                    .toString(16)
-                    .padStart(2, "0")
-        )
-        .join("");
+/*
+ * =========================================================
+ * LOGIN NORMALIZATION
+ * =========================================================
+ */
+
+function normalizeLogin(value) {
+    return String(
+        value || ""
+    )
+        .trim()
+        .toLowerCase();
+}
+
+
+/*
+ * =========================================================
+ * LOGIN VALIDATION
+ * =========================================================
+ */
+
+function isValidLogin(login) {
+    return /^[a-zA-Z0-9_-]{3,30}$/
+        .test(login);
+}
+
+
+/*
+ * =========================================================
+ * TEXT CLEAN
+ * =========================================================
+ */
+
+function cleanText(value) {
+    const text =
+        String(value || "")
+            .trim();
+
+
+    return text
+        ? text.slice(0, 200)
+        : null;
 }
 
 
