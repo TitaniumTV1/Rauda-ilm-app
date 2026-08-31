@@ -1,61 +1,16 @@
 import { verifyTelegramInitData } from "./telegram.js";
 
+const SESSION_DAYS = 30;
+const PASSWORD_ITERATIONS = 100000;
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
-
-        /*
-         * ============================
-         * CORS
-         * ============================
-         */
 
         if (request.method === "OPTIONS") {
             return new Response(null, {
                 status: 204,
                 headers: corsHeaders()
-            });
-        }
-
-        /*
-         * ============================
-         * DATABASE INITIALIZATION
-         * ============================
-         */
-
-        if (env.DB) {
-            try {
-                await ensureAuthTables(env.DB);
-                await ensureTributeTables(env.DB);
-            } catch (error) {
-                console.error(
-                    "Database initialization error:",
-                    error
-                );
-            }
-        }
-
-        /*
-         * ============================
-         * DEBUG CONFIG
-         * ============================
-         */
-
-        if (
-            url.pathname === "/api/debug-config" &&
-            request.method === "GET"
-        ) {
-            return json({
-                ok: true,
-                app: env.APP_NAME || "RAUDA ILM",
-                telegram_bot_token:
-                    !!env.TELEGRAM_BOT_TOKEN,
-                database:
-                    !!env.DB,
-                assets:
-                    !!env.ASSETS,
-                tribute_api_key:
-                    !!env.TRIBUTE_API_KEY
             });
         }
 
@@ -72,14 +27,34 @@ export default {
             return json({
                 ok: true,
                 app: env.APP_NAME || "RAUDA ILM",
-                database:
-                    !!env.DB
+                database: !!env.DB,
+                assets: !!env.ASSETS
             });
         }
 
         /*
          * ============================
-         * REGISTER
+         * DEBUG CONFIG
+         * ============================
+         */
+
+        if (
+            url.pathname === "/api/debug-config" &&
+            request.method === "GET"
+        ) {
+            return json({
+                ok: true,
+                app: env.APP_NAME || "RAUDA ILM",
+                telegram_bot_token: !!env.TELEGRAM_BOT_TOKEN,
+                database: !!env.DB,
+                assets: !!env.ASSETS,
+                tribute_api_key: !!env.TRIBUTE_API_KEY
+            });
+        }
+
+        /*
+         * ============================
+         * AUTH
          * ============================
          */
 
@@ -87,106 +62,61 @@ export default {
             url.pathname === "/api/auth/register" &&
             request.method === "POST"
         ) {
-            return handleRegister(
-                request,
-                env
-            );
+            return handleRegister(request, env);
         }
-
-        /*
-         * ============================
-         * LOGIN
-         * ============================
-         */
 
         if (
             url.pathname === "/api/auth/login" &&
             request.method === "POST"
         ) {
-            return handleLogin(
-                request,
-                env
-            );
+            return handleLogin(request, env);
         }
-
-        /*
-         * ============================
-         * LOGOUT
-         * ============================
-         */
-
-        if (
-            url.pathname === "/api/auth/logout" &&
-            request.method === "POST"
-        ) {
-            return handleLogout(
-                request,
-                env
-            );
-        }
-
-        /*
-         * ============================
-         * CURRENT USER
-         * ============================
-         */
-
-        if (
-            url.pathname === "/api/auth/me" &&
-            request.method === "GET"
-        ) {
-            return handleMe(
-                request,
-                env
-            );
-        }
-
-        /*
-         * ============================
-         * TELEGRAM AUTH
-         * ============================
-         */
 
         if (
             url.pathname === "/api/auth/telegram" &&
             request.method === "POST"
         ) {
-            return handleTelegramAuth(
-                request,
-                env
-            );
+            return handleTelegramAuth(request, env);
+        }
+
+        if (
+            url.pathname === "/api/auth/me" &&
+            request.method === "GET"
+        ) {
+            return handleMe(request, env);
+        }
+
+        if (
+            url.pathname === "/api/auth/logout" &&
+            request.method === "POST"
+        ) {
+            return handleLogout(request, env);
         }
 
         /*
          * ============================
-         * LINK TELEGRAM
+         * PROGRAMS
          * ============================
          */
 
         if (
-            url.pathname === "/api/auth/link-telegram" &&
-            request.method === "POST"
+            url.pathname === "/api/programs" &&
+            request.method === "GET"
         ) {
-            return handleLinkTelegram(
-                request,
-                env
-            );
+            return handlePrograms(request, env);
         }
 
         /*
          * ============================
-         * TRIBUTE WEBHOOK
+         * COURSES
          * ============================
          */
 
         if (
-            url.pathname === "/api/webhooks/tribute" &&
-            request.method === "POST"
+            url.pathname === "/api/courses" &&
+            request.method === "GET"
         ) {
-            return handleTributeWebhook(
-                request,
-                env
-            );
+            return handleCourses(request, env);
         }
 
         /*
@@ -199,10 +129,7 @@ export default {
             url.pathname === "/api/lessons" &&
             request.method === "GET"
         ) {
-            return handleLessons(
-                request,
-                env
-            );
+            return handleLessons(request, env);
         }
 
         /*
@@ -215,10 +142,20 @@ export default {
             url.pathname === "/api/progress" &&
             request.method === "POST"
         ) {
-            return handleProgress(
-                request,
-                env
-            );
+            return handleProgress(request, env);
+        }
+
+        /*
+         * ============================
+         * TRIBUTE
+         * ============================
+         */
+
+        if (
+            url.pathname === "/api/webhooks/tribute" &&
+            request.method === "POST"
+        ) {
+            return handleTributeWebhook(request, env);
         }
 
         /*
@@ -228,261 +165,144 @@ export default {
          */
 
         if (env.ASSETS) {
-            return env.ASSETS.fetch(
-                request
-            );
+            return env.ASSETS.fetch(request);
         }
 
-        return new Response(
-            "RAUDA ILM",
-            {
-                status: 200,
-                headers: {
-                    "Content-Type":
-                        "text/plain; charset=utf-8"
-                }
+        return new Response("RAUDA ILM", {
+            status: 200,
+            headers: {
+                "Content-Type": "text/plain; charset=utf-8"
             }
-        );
+        });
     }
 };
 
 
 /*
- * ============================================================
- * AUTH DATABASE
- * ============================================================
- */
-
-async function ensureAuthTables(db) {
-
-    /*
-     * Пользователи.
-     */
-
-    await db.prepare(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            telegram_user_id TEXT UNIQUE,
-
-            username TEXT UNIQUE,
-
-            password_hash TEXT,
-
-            password_salt TEXT,
-
-            first_name TEXT,
-
-            last_name TEXT,
-
-            role TEXT NOT NULL DEFAULT 'user',
-
-            is_active INTEGER NOT NULL DEFAULT 1,
-
-            created_at TEXT NOT NULL,
-
-            updated_at TEXT NOT NULL
-        )
-    `).run();
-
-
-    /*
-     * Сессии.
-     */
-
-    await db.prepare(`
-        CREATE TABLE IF NOT EXISTS auth_sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            user_id INTEGER NOT NULL,
-
-            token_hash TEXT NOT NULL UNIQUE,
-
-            expires_at TEXT NOT NULL,
-
-            created_at TEXT NOT NULL,
-
-            FOREIGN KEY(user_id)
-                REFERENCES users(id)
-                ON DELETE CASCADE
-        )
-    `).run();
-
-
-    await db.prepare(`
-        CREATE INDEX IF NOT EXISTS
-        idx_auth_sessions_token
-        ON auth_sessions(token_hash)
-    `).run();
-
-
-    await db.prepare(`
-        CREATE INDEX IF NOT EXISTS
-        idx_auth_sessions_user
-        ON auth_sessions(user_id)
-    `).run();
-
-
-    await db.prepare(`
-        CREATE INDEX IF NOT EXISTS
-        idx_users_telegram
-        ON users(telegram_user_id)
-    `).run();
-}
-
-
-/*
- * ============================================================
+ * =========================================================
  * REGISTER
- * ============================================================
+ * =========================================================
  */
 
-async function handleRegister(
-    request,
-    env
-) {
+async function handleRegister(request, env) {
+    if (!env.DB) {
+        return json(
+            {
+                ok: false,
+                error: "Database is not configured"
+            },
+            500
+        );
+    }
+
     try {
+        const body = await request.json();
 
-        if (!env.DB) {
+        const login = normalizeLogin(body?.login);
+        const password = String(body?.password || "");
+        const firstName = cleanText(body?.first_name);
+        const lastName = cleanText(body?.last_name);
+        const phone = cleanText(body?.phone);
+
+        if (!login) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Database is not configured"
-                },
-                500
-            );
-        }
-
-
-        const body =
-            await request.json();
-
-
-        const username =
-            normalizeUsername(
-                body?.username
-            );
-
-
-        const password =
-            String(
-                body?.password || ""
-            );
-
-
-        const firstName =
-            String(
-                body?.first_name || ""
-            ).trim();
-
-
-        const lastName =
-            String(
-                body?.last_name || ""
-            ).trim();
-
-
-        if (!username) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Введите логин"
+                    error: "Введите логин"
                 },
                 400
             );
         }
 
-
-        if (!isValidUsername(username)) {
+        if (!isValidLogin(login)) {
             return json(
                 {
                     ok: false,
                     error:
-                        "Логин должен содержать 3–32 символа: латинские буквы, цифры, точка, дефис или подчёркивание"
+                        "Логин должен содержать 3–30 символов: буквы, цифры, _ или -"
                 },
                 400
             );
         }
-
 
         if (password.length < 8) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Пароль должен содержать минимум 8 символов"
+                    error: "Пароль должен содержать минимум 8 символов"
                 },
                 400
             );
         }
 
+        /*
+         * Проверяем существующий login.
+         */
 
         const existing =
             await env.DB.prepare(`
                 SELECT id
                 FROM users
-                WHERE username = ?
+                WHERE login = ?
                 LIMIT 1
             `)
-                .bind(username)
+                .bind(login)
                 .first();
-
 
         if (existing) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Такой логин уже существует"
+                    error: "Этот логин уже занят"
                 },
                 409
             );
         }
 
+        const passwordHash =
+            await hashPassword(password);
 
-        const passwordData =
-            await hashPassword(
-                password
-            );
-
-
-        const now =
-            new Date().toISOString();
-
+        /*
+         * telegram_id оставляем NULL,
+         * поскольку регистрация обычная.
+         */
 
         const result =
             await env.DB.prepare(`
-                INSERT INTO users
-                (
+                INSERT INTO users (
+                    telegram_id,
                     username,
-                    password_hash,
-                    password_salt,
                     first_name,
                     last_name,
+                    phone,
                     role,
-                    is_active,
-                    created_at,
-                    updated_at
+                    status,
+                    login,
+                    password_hash
                 )
-                VALUES (?, ?, ?, ?, ?, 'user', 1, ?, ?)
+                VALUES (
+                    NULL,
+                    NULL,
+                    ?,
+                    ?,
+                    ?,
+                    'student',
+                    'active',
+                    ?,
+                    ?
+                )
             `)
                 .bind(
-                    username,
-                    passwordData.hash,
-                    passwordData.salt,
                     firstName || null,
                     lastName || null,
-                    now,
-                    now
+                    phone || null,
+                    login,
+                    passwordHash
                 )
                 .run();
 
-
         const userId =
-            result.meta?.last_row_id;
-
+            Number(result.meta.last_row_id);
 
         const user =
             await getUserById(
@@ -490,34 +310,29 @@ async function handleRegister(
                 userId
             );
 
-
         const session =
             await createSession(
                 env.DB,
                 userId
             );
 
-
         return json({
             ok: true,
             user,
-            token: session.token
+            token: session.token,
+            expires_at: session.expiresAt
         });
 
-
     } catch (error) {
-
         console.error(
             "Register error:",
             error
         );
 
-
         return json(
             {
                 ok: false,
-                error:
-                    "Не удалось создать аккаунт"
+                error: "Не удалось зарегистрировать пользователя"
             },
             500
         );
@@ -526,113 +341,110 @@ async function handleRegister(
 
 
 /*
- * ============================================================
+ * =========================================================
  * LOGIN
- * ============================================================
+ * =========================================================
  */
 
-async function handleLogin(
-    request,
-    env
-) {
+async function handleLogin(request, env) {
+    if (!env.DB) {
+        return json(
+            {
+                ok: false,
+                error: "Database is not configured"
+            },
+            500
+        );
+    }
+
     try {
+        const body = await request.json();
 
-        if (!env.DB) {
+        const login = normalizeLogin(body?.login);
+        const password = String(body?.password || "");
+
+        if (!login || !password) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Database is not configured"
-                },
-                500
-            );
-        }
-
-
-        const body =
-            await request.json();
-
-
-        const username =
-            normalizeUsername(
-                body?.username
-            );
-
-
-        const password =
-            String(
-                body?.password || ""
-            );
-
-
-        if (!username || !password) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Введите логин и пароль"
+                    error: "Введите логин и пароль"
                 },
                 400
             );
         }
 
-
         const user =
             await env.DB.prepare(`
-                SELECT *
+                SELECT
+                    id,
+                    telegram_id,
+                    username,
+                    first_name,
+                    last_name,
+                    phone,
+                    role,
+                    status,
+                    blocked_reason,
+                    blocked_at,
+                    created_at,
+                    updated_at,
+                    login,
+                    password_hash
                 FROM users
-                WHERE username = ?
+                WHERE login = ?
                 LIMIT 1
             `)
-                .bind(username)
+                .bind(login)
                 .first();
-
 
         if (!user) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Неверный логин или пароль"
+                    error: "Неверный логин или пароль"
                 },
                 401
             );
         }
 
-
-        if (
-            Number(user.is_active) !== 1
-        ) {
+        if (user.status !== "active") {
             return json(
                 {
                     ok: false,
                     error:
-                        "Этот аккаунт отключён"
+                        user.blocked_reason ||
+                        "Ваш аккаунт заблокирован"
                 },
                 403
             );
         }
 
+        if (!user.password_hash) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Для этого аккаунта пароль ещё не установлен"
+                },
+                401
+            );
+        }
 
         const valid =
             await verifyPassword(
                 password,
-                user.password_hash,
-                user.password_salt
+                user.password_hash
             );
-
 
         if (!valid) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Неверный логин или пароль"
+                    error: "Неверный логин или пароль"
                 },
                 401
             );
         }
-
 
         const session =
             await createSession(
@@ -640,29 +452,25 @@ async function handleLogin(
                 user.id
             );
 
+        delete user.password_hash;
 
         return json({
             ok: true,
-            user:
-                sanitizeUser(user),
-            token:
-                session.token
+            user,
+            token: session.token,
+            expires_at: session.expiresAt
         });
 
-
     } catch (error) {
-
         console.error(
             "Login error:",
             error
         );
 
-
         return json(
             {
                 ok: false,
-                error:
-                    "Не удалось выполнить вход"
+                error: "Не удалось выполнить вход"
             },
             500
         );
@@ -671,159 +479,47 @@ async function handleLogin(
 
 
 /*
- * ============================================================
- * LOGOUT
- * ============================================================
- */
-
-async function handleLogout(
-    request,
-    env
-) {
-    try {
-
-        if (!env.DB) {
-            return json({
-                ok: true
-            });
-        }
-
-
-        const token =
-            getBearerToken(
-                request
-            );
-
-
-        if (!token) {
-            return json({
-                ok: true
-            });
-        }
-
-
-        const tokenHash =
-            await sha256Hex(
-                token
-            );
-
-
-        await env.DB.prepare(`
-            DELETE FROM auth_sessions
-            WHERE token_hash = ?
-        `)
-            .bind(tokenHash)
-            .run();
-
-
-        return json({
-            ok: true
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Logout error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Logout failed"
-            },
-            500
-        );
-    }
-}
-
-
-/*
- * ============================================================
- * CURRENT USER
- * ============================================================
- */
-
-async function handleMe(
-    request,
-    env
-) {
-
-    const auth =
-        await getCurrentAuth(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            401
-        );
-    }
-
-
-    return json({
-        ok: true,
-        user:
-            sanitizeUser(
-                auth.user
-            )
-    });
-}
-
-
-/*
- * ============================================================
+ * =========================================================
  * TELEGRAM AUTH
- * ============================================================
+ * =========================================================
  */
 
-async function handleTelegramAuth(
-    request,
-    env
-) {
+async function handleTelegramAuth(request, env) {
+    if (!env.DB) {
+        return json(
+            {
+                ok: false,
+                error: "Database is not configured"
+            },
+            500
+        );
+    }
+
+    if (!env.TELEGRAM_BOT_TOKEN) {
+        return json(
+            {
+                ok: false,
+                error: "Telegram bot token is not configured"
+            },
+            500
+        );
+    }
+
     try {
-
-        if (!env.TELEGRAM_BOT_TOKEN) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Telegram bot token is not configured"
-                },
-                500
-            );
-        }
-
-
-        const body =
-            await request.json();
-
+        const body = await request.json();
 
         const initData =
             body?.initData;
-
 
         if (!initData) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Telegram initData is missing"
+                    error: "Telegram initData is missing"
                 },
                 400
             );
         }
-
 
         const verification =
             await verifyTelegramInitData(
@@ -831,55 +527,128 @@ async function handleTelegramAuth(
                 env.TELEGRAM_BOT_TOKEN
             );
 
-
         if (!verification.ok) {
             return json(
                 {
                     ok: false,
-                    error:
-                        verification.error
+                    error: verification.error
                 },
                 401
             );
         }
-
 
         const telegramUser =
             verification.user;
 
+        const telegramId =
+            Number(telegramUser.id);
 
-        if (!telegramUser?.id) {
+        if (!telegramId) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Telegram user data is missing"
+                    error: "Invalid Telegram user ID"
                 },
                 401
             );
         }
 
+        /*
+         * Ищем пользователя.
+         */
 
-        if (!env.DB) {
+        let user =
+            await env.DB.prepare(`
+                SELECT *
+                FROM users
+                WHERE telegram_id = ?
+                LIMIT 1
+            `)
+                .bind(telegramId)
+                .first();
+
+        /*
+         * Если пользователя ещё нет —
+         * создаём.
+         */
+
+        if (!user) {
+            const result =
+                await env.DB.prepare(`
+                    INSERT INTO users (
+                        telegram_id,
+                        username,
+                        first_name,
+                        last_name,
+                        role,
+                        status
+                    )
+                    VALUES (
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        'student',
+                        'active'
+                    )
+                `)
+                    .bind(
+                        telegramId,
+                        telegramUser.username || null,
+                        telegramUser.first_name || null,
+                        telegramUser.last_name || null
+                    )
+                    .run();
+
+            user =
+                await getUserById(
+                    env.DB,
+                    Number(result.meta.last_row_id)
+                );
+        } else {
             /*
-             * Сохраняем старое поведение,
-             * если D1 ещё не подключена.
+             * Обновляем данные Telegram.
              */
 
-            return json({
-                ok: true,
-                user:
-                    telegramUser
-            });
+            await env.DB.prepare(`
+                UPDATE users
+                SET
+                    username = ?,
+                    first_name = ?,
+                    last_name = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `)
+                .bind(
+                    telegramUser.username || null,
+                    telegramUser.first_name || null,
+                    telegramUser.last_name || null,
+                    user.id
+                )
+                .run();
+
+            user =
+                await getUserById(
+                    env.DB,
+                    user.id
+                );
         }
 
-
-        const user =
-            await upsertTelegramUser(
-                env.DB,
-                telegramUser
+        if (user.status !== "active") {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        user.blocked_reason ||
+                        "Ваш аккаунт заблокирован"
+                },
+                403
             );
+        }
 
+        /*
+         * Создаём обычную серверную сессию.
+         */
 
         const session =
             await createSession(
@@ -887,587 +656,231 @@ async function handleTelegramAuth(
                 user.id
             );
 
-
         return json({
             ok: true,
-            user:
-                sanitizeUser(user),
-            token:
-                session.token
+            user,
+            token: session.token,
+            expires_at: session.expiresAt
         });
 
-
     } catch (error) {
-
         console.error(
             "Telegram auth error:",
             error
         );
 
-
         return json(
             {
                 ok: false,
-                error:
-                    "Invalid JSON request"
+                error: "Telegram authentication failed"
             },
-            400
+            500
         );
     }
 }
 
 
 /*
- * ============================================================
- * TELEGRAM USER UPSERT
- * ============================================================
+ * =========================================================
+ * ME
+ * =========================================================
  */
 
-async function upsertTelegramUser(
-    db,
-    telegramUser
-) {
-
-    const telegramId =
-        String(
-            telegramUser.id
-        );
-
-
-    const existing =
-        await db.prepare(`
-            SELECT *
-            FROM users
-            WHERE telegram_user_id = ?
-            LIMIT 1
-        `)
-            .bind(telegramId)
-            .first();
-
-
-    const now =
-        new Date().toISOString();
-
-
-    if (existing) {
-
-        await db.prepare(`
-            UPDATE users
-            SET
-                first_name = ?,
-                last_name = ?,
-                updated_at = ?
-            WHERE id = ?
-        `)
-            .bind(
-                telegramUser.first_name ||
-                    null,
-
-                telegramUser.last_name ||
-                    null,
-
-                now,
-
-                existing.id
-            )
-            .run();
-
-
-        return await getUserById(
-            db,
-            existing.id
-        );
-    }
-
-
-    const result =
-        await db.prepare(`
-            INSERT INTO users
-            (
-                telegram_user_id,
-                first_name,
-                last_name,
-                role,
-                is_active,
-                created_at,
-                updated_at
-            )
-            VALUES (?, ?, ?, 'user', 1, ?, ?)
-        `)
-            .bind(
-                telegramId,
-                telegramUser.first_name ||
-                    null,
-                telegramUser.last_name ||
-                    null,
-                now,
-                now
-            )
-            .run();
-
-
-    return await getUserById(
-        db,
-        result.meta?.last_row_id
-    );
-}
-
-
-/*
- * ============================================================
- * LINK TELEGRAM TO LOGIN ACCOUNT
- * ============================================================
- */
-
-async function handleLinkTelegram(
-    request,
-    env
-) {
-
+async function handleMe(request, env) {
     const auth =
-        await getSessionAuth(
+        await requireUser(
             request,
             env
         );
-
 
     if (!auth.ok) {
         return json(
             {
                 ok: false,
-                error:
-                    auth.error
+                error: auth.error
             },
-            401
+            auth.status
         );
     }
 
+    return json({
+        ok: true,
+        user: auth.user
+    });
+}
 
-    if (!env.TELEGRAM_BOT_TOKEN) {
+
+/*
+ * =========================================================
+ * LOGOUT
+ * =========================================================
+ */
+
+async function handleLogout(request, env) {
+    if (!env.DB) {
         return json(
             {
                 ok: false,
-                error:
-                    "Telegram bot token is not configured"
+                error: "Database is not configured"
             },
             500
         );
     }
 
+    const token =
+        getBearerToken(request);
 
-    try {
-
-        const body =
-            await request.json();
-
-
-        const initData =
-            body?.initData;
-
-
-        if (!initData) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Telegram initData is missing"
-                },
-                400
-            );
-        }
-
-
-        const verification =
-            await verifyTelegramInitData(
-                initData,
-                env.TELEGRAM_BOT_TOKEN
-            );
-
-
-        if (!verification.ok) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        verification.error
-                },
-                401
-            );
-        }
-
-
-        const telegramId =
-            String(
-                verification.user.id
-            );
-
-
-        const existing =
-            await env.DB.prepare(`
-                SELECT id
-                FROM users
-                WHERE telegram_user_id = ?
-                AND id != ?
-                LIMIT 1
-            `)
-                .bind(
-                    telegramId,
-                    auth.user.id
-                )
-                .first();
-
-
-        if (existing) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Этот Telegram уже привязан к другому аккаунту"
-                },
-                409
-            );
-        }
-
-
+    if (token) {
         await env.DB.prepare(`
-            UPDATE users
-            SET
-                telegram_user_id = ?,
-                updated_at = ?
-            WHERE id = ?
+            DELETE FROM auth_sessions
+            WHERE token = ?
         `)
-            .bind(
-                telegramId,
-                new Date().toISOString(),
-                auth.user.id
-            )
+            .bind(token)
             .run();
-
-
-        const user =
-            await getUserById(
-                env.DB,
-                auth.user.id
-            );
-
-
-        return json({
-            ok: true,
-            user:
-                sanitizeUser(user)
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Link Telegram error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to link Telegram"
-            },
-            500
-        );
     }
+
+    return json({
+        ok: true
+    });
 }
 
 
 /*
- * ============================================================
- * CURRENT AUTH
- * ============================================================
+ * =========================================================
+ * AUTHENTICATION
+ * =========================================================
  */
 
-async function getCurrentAuth(
-    request,
-    env
-) {
-
-    const sessionAuth =
-        await getSessionAuth(
-            request,
-            env
-        );
-
-
-    if (sessionAuth.ok) {
-        return sessionAuth;
-    }
-
-
-    /*
-     * Если это старый Telegram Bearer initData,
-     * сохраняем совместимость.
-     */
-
-    const telegramAuth =
-        await getTelegramUser(
-            request,
-            env
-        );
-
-
-    if (telegramAuth.ok) {
-
-        if (
-            env.DB &&
-            telegramAuth.user?.id
-        ) {
-
-            const user =
-                await upsertTelegramUser(
-                    env.DB,
-                    telegramAuth.user
-                );
-
-
-            return {
-                ok: true,
-                type: "telegram",
-                user
-            };
-        }
-
-
-        return {
-            ok: true,
-            type: "telegram",
-            user:
-                telegramAuth.user
-        };
-    }
-
-
-    return {
-        ok: false,
-        error:
-            "Authorization required"
-    };
-}
-
-
-/*
- * ============================================================
- * SESSION AUTH
- * ============================================================
- */
-
-async function getSessionAuth(
-    request,
-    env
-) {
-
+async function requireUser(request, env) {
     if (!env.DB) {
         return {
             ok: false,
-            error:
-                "Database is not configured"
+            status: 500,
+            error: "Database is not configured"
         };
     }
 
-
     const token =
-        getBearerToken(
-            request
-        );
-
+        getBearerToken(request);
 
     if (!token) {
         return {
             ok: false,
-            error:
-                "Authorization required"
+            status: 401,
+            error: "Authorization required"
         };
     }
 
-
-    const tokenHash =
-        await sha256Hex(
-            token
-        );
-
-
-    const session =
+    const row =
         await env.DB.prepare(`
             SELECT
-                s.id AS session_id,
-                s.expires_at,
-                u.*
+                u.id,
+                u.telegram_id,
+                u.username,
+                u.first_name,
+                u.last_name,
+                u.phone,
+                u.role,
+                u.status,
+                u.blocked_reason,
+                u.blocked_at,
+                u.created_at,
+                u.updated_at,
+                u.login,
+                s.token,
+                s.expires_at
             FROM auth_sessions s
             JOIN users u
                 ON u.id = s.user_id
-            WHERE s.token_hash = ?
+            WHERE s.token = ?
             LIMIT 1
         `)
-            .bind(tokenHash)
+            .bind(token)
             .first();
 
-
-    if (!session) {
+    if (!row) {
         return {
             ok: false,
-            error:
-                "Invalid session"
+            status: 401,
+            error: "Invalid or expired session"
         };
     }
-
-
-    if (
-        Number(session.is_active) !== 1
-    ) {
-
-        return {
-            ok: false,
-            error:
-                "Account is disabled"
-        };
-    }
-
 
     const expires =
-        new Date(
-            session.expires_at
-        ).getTime();
-
+        new Date(row.expires_at);
 
     if (
-        !Number.isFinite(expires) ||
-        expires <= Date.now()
+        Number.isNaN(expires.getTime()) ||
+        expires.getTime() <= Date.now()
     ) {
-
         await env.DB.prepare(`
             DELETE FROM auth_sessions
-            WHERE id = ?
+            WHERE token = ?
         `)
-            .bind(
-                session.session_id
-            )
+            .bind(token)
             .run();
-
 
         return {
             ok: false,
-            error:
-                "Session expired"
+            status: 401,
+            error: "Session expired"
         };
     }
 
+    if (row.status !== "active") {
+        return {
+            ok: false,
+            status: 403,
+            error:
+                row.blocked_reason ||
+                "User is blocked"
+        };
+    }
+
+    delete row.token;
+    delete row.expires_at;
 
     return {
         ok: true,
-        type: "session",
-        user: session
+        user: row
     };
 }
 
 
 /*
- * ============================================================
- * SESSION CREATION
- * ============================================================
+ * =========================================================
+ * SESSION
+ * =========================================================
  */
 
-async function createSession(
-    db,
-    userId
-) {
-
+async function createSession(db, userId) {
     const token =
-        randomToken(
-            32
-        );
-
-
-    const tokenHash =
-        await sha256Hex(
-            token
-        );
-
-
-    /*
-     * 30 дней.
-     */
+        randomToken();
 
     const expiresAt =
         new Date(
             Date.now() +
-            30 * 24 * 60 * 60 * 1000
+            SESSION_DAYS *
+            24 *
+            60 *
+            60 *
+            1000
         ).toISOString();
 
-
-    const createdAt =
-        new Date().toISOString();
-
-
-    /*
-     * Удаляем старые сессии
-     * пользователя.
-     *
-     * Оставляем максимум 5.
-     */
-
-    const oldSessions =
-        await db.prepare(`
-            SELECT id
-            FROM auth_sessions
-            WHERE user_id = ?
-            ORDER BY created_at DESC
-        `)
-            .bind(userId)
-            .all();
-
-
-    const old =
-        oldSessions.results || [];
-
-
-    if (old.length >= 5) {
-
-        const toDelete =
-            old
-                .slice(4)
-                .map(
-                    row =>
-                        row.id
-                );
-
-
-        for (const id of toDelete) {
-
-            await db.prepare(`
-                DELETE FROM auth_sessions
-                WHERE id = ?
-            `)
-                .bind(id)
-                .run();
-        }
-    }
-
-
     await db.prepare(`
-        INSERT INTO auth_sessions
-        (
+        INSERT INTO auth_sessions (
             user_id,
-            token_hash,
-            expires_at,
-            created_at
+            token,
+            expires_at
         )
-        VALUES (?, ?, ?, ?)
+        VALUES (?, ?, ?)
     `)
         .bind(
             userId,
-            tokenHash,
-            expiresAt,
-            createdAt
+            token,
+            expiresAt
         )
         .run();
-
 
     return {
         token,
@@ -1477,575 +890,505 @@ async function createSession(
 
 
 /*
- * ============================================================
- * USER HELPERS
- * ============================================================
+ * =========================================================
+ * PROGRAMS
+ * =========================================================
  */
 
-async function getUserById(
-    db,
-    id
-) {
-
-    if (!id) {
-        return null;
-    }
-
-
-    return await db.prepare(`
-        SELECT *
-        FROM users
-        WHERE id = ?
-        LIMIT 1
-    `)
-        .bind(id)
-        .first();
-}
-
-
-function sanitizeUser(
-    user
-) {
-
-    if (!user) {
-        return null;
-    }
-
-
-    return {
-        id:
-            user.id,
-
-        telegram_user_id:
-            user.telegram_user_id ||
-            null,
-
-        username:
-            user.username ||
-            null,
-
-        first_name:
-            user.first_name ||
-            null,
-
-        last_name:
-            user.last_name ||
-            null,
-
-        role:
-            user.role ||
-            "user",
-
-        is_active:
-            Number(
-                user.is_active
-            ) === 1,
-
-        created_at:
-            user.created_at ||
-            null
-    };
-}
-
-
-function normalizeUsername(
-    value
-) {
-
-    return String(
-        value || ""
-    )
-        .trim()
-        .toLowerCase();
-}
-
-
-function isValidUsername(
-    username
-) {
-
-    return /^[a-z0-9_.-]{3,32}$/.test(
-        username
-    );
-}
-
-
-/*
- * ============================================================
- * PASSWORD HASHING
- * ============================================================
- *
- * PBKDF2
- * SHA-256
- * 120000 iterations
- *
- * Пароль никогда не хранится
- * в открытом виде.
- */
-
-async function hashPassword(
-    password
-) {
-
-    const encoder =
-        new TextEncoder();
-
-
-    const salt =
-        new Uint8Array(
-            16
+async function handlePrograms(request, env) {
+    const auth =
+        await requireUser(
+            request,
+            env
         );
 
-
-    crypto.getRandomValues(
-        salt
-    );
-
-
-    const key =
-        await crypto.subtle.importKey(
-            "raw",
-            encoder.encode(password),
+    if (!auth.ok) {
+        return json(
             {
-                name:
-                    "PBKDF2"
+                ok: false,
+                error: auth.error
             },
-            false,
-            [
-                "deriveBits"
-            ]
+            auth.status
         );
-
-
-    const bits =
-        await crypto.subtle.deriveBits(
-            {
-                name:
-                    "PBKDF2",
-
-                salt,
-
-                iterations:
-                    120000,
-
-                hash:
-                    "SHA-256"
-            },
-            key,
-            256
-        );
-
-
-    return {
-        salt:
-            bytesToBase64(salt),
-
-        hash:
-            bytesToBase64(
-                new Uint8Array(bits)
-            )
-    };
-}
-
-
-async function verifyPassword(
-    password,
-    storedHash,
-    storedSalt
-) {
-
-    if (
-        !storedHash ||
-        !storedSalt
-    ) {
-        return false;
     }
-
 
     try {
+        const result =
+            await env.DB.prepare(`
+                SELECT *
+                FROM programs
+                ORDER BY id ASC
+            `)
+                .all();
 
-        const encoder =
-            new TextEncoder();
-
-
-        const salt =
-            base64ToBytes(
-                storedSalt
-            );
-
-
-        const key =
-            await crypto.subtle.importKey(
-                "raw",
-                encoder.encode(password),
-                {
-                    name:
-                        "PBKDF2"
-                },
-                false,
-                [
-                    "deriveBits"
-                ]
-            );
-
-
-        const bits =
-            await crypto.subtle.deriveBits(
-                {
-                    name:
-                        "PBKDF2",
-
-                    salt,
-
-                    iterations:
-                        120000,
-
-                    hash:
-                        "SHA-256"
-                },
-                key,
-                256
-            );
-
-
-        const calculated =
-            new Uint8Array(bits);
-
-
-        const expected =
-            base64ToBytes(
-                storedHash
-            );
-
-
-        return timingSafeBytesEqual(
-            calculated,
-            expected
-        );
+        return json({
+            ok: true,
+            programs:
+                result.results || []
+        });
 
     } catch (error) {
-
         console.error(
-            "Password verification error:",
+            "Programs error:",
             error
         );
 
-        return false;
+        return json(
+            {
+                ok: false,
+                error: "Failed to load programs"
+            },
+            500
+        );
     }
 }
 
 
 /*
- * ============================================================
- * CRYPTO HELPERS
- * ============================================================
+ * =========================================================
+ * COURSES
+ * =========================================================
  */
 
-async function sha256Hex(
-    value
-) {
-
-    const encoder =
-        new TextEncoder();
-
-
-    const buffer =
-        await crypto.subtle.digest(
-            "SHA-256",
-            encoder.encode(
-                value
-            )
+async function handleCourses(request, env) {
+    const auth =
+        await requireUser(
+            request,
+            env
         );
 
-
-    return bytesToHex(
-        new Uint8Array(
-            buffer
-        )
-    );
-}
-
-
-function randomToken(
-    byteLength = 32
-) {
-
-    const bytes =
-        new Uint8Array(
-            byteLength
+    if (!auth.ok) {
+        return json(
+            {
+                ok: false,
+                error: auth.error
+            },
+            auth.status
         );
-
-
-    crypto.getRandomValues(
-        bytes
-    );
-
-
-    return bytesToBase64Url(
-        bytes
-    );
-}
-
-
-function bytesToBase64(
-    bytes
-) {
-
-    let binary = "";
-
-    for (
-        const byte of bytes
-    ) {
-        binary +=
-            String.fromCharCode(
-                byte
-            );
     }
-
-
-    return btoa(binary);
-}
-
-
-function base64ToBytes(
-    value
-) {
-
-    const binary =
-        atob(value);
-
-
-    const bytes =
-        new Uint8Array(
-            binary.length
-        );
-
-
-    for (
-        let i = 0;
-        i < binary.length;
-        i++
-    ) {
-        bytes[i] =
-            binary.charCodeAt(i);
-    }
-
-
-    return bytes;
-}
-
-
-function bytesToBase64Url(
-    bytes
-) {
-
-    return bytesToBase64(
-        bytes
-    )
-        .replaceAll(
-            "+",
-            "-"
-        )
-        .replaceAll(
-            "/",
-            "_"
-        )
-        .replaceAll(
-            "=",
-            ""
-        );
-}
-
-
-function timingSafeBytesEqual(
-    a,
-    b
-) {
-
-    if (
-        a.length !== b.length
-    ) {
-        return false;
-    }
-
-
-    let result = 0;
-
-
-    for (
-        let i = 0;
-        i < a.length;
-        i++
-    ) {
-
-        result |=
-            a[i] ^
-            b[i];
-    }
-
-
-    return result === 0;
-}
-
-
-/*
- * ============================================================
- * BEARER
- * ============================================================
- */
-
-function getBearerToken(
-    request
-) {
-
-    const header =
-        request.headers.get(
-            "Authorization"
-        );
-
-
-    if (!header) {
-        return null;
-    }
-
-
-    if (
-        !header.startsWith(
-            "Bearer "
-        )
-    ) {
-        return null;
-    }
-
-
-    return header
-        .slice(7)
-        .trim() ||
-        null;
-}
-
-
-/*
- * ============================================================
- * TELEGRAM USER FROM REQUEST
- * ============================================================
- */
-
-async function getTelegramUser(
-    request,
-    env
-) {
-
-    if (!env.TELEGRAM_BOT_TOKEN) {
-        return {
-            ok: false,
-            error:
-                "Telegram bot token is not configured"
-        };
-    }
-
-
-    const authHeader =
-        request.headers.get(
-            "Authorization"
-        );
-
-
-    if (!authHeader) {
-        return {
-            ok: false,
-            error:
-                "Authorization header is missing"
-        };
-    }
-
-
-    if (
-        !authHeader.startsWith(
-            "Bearer "
-        )
-    ) {
-        return {
-            ok: false,
-            error:
-                "Invalid authorization header"
-        };
-    }
-
-
-    const initData =
-        authHeader.slice(7);
-
-
-    if (!initData) {
-        return {
-            ok: false,
-            error:
-                "Telegram initData is missing"
-        };
-    }
-
-
-    return verifyTelegramInitData(
-        initData,
-        env.TELEGRAM_BOT_TOKEN
-    );
-}
-
-
-/*
- * ============================================================
- * TRIBUTE WEBHOOK
- * ============================================================
- */
-
-async function handleTributeWebhook(
-    request,
-    env
-) {
 
     try {
+        const url =
+            new URL(request.url);
 
-        if (!env.TRIBUTE_API_KEY) {
-
-            console.error(
-                "Tribute webhook received but TRIBUTE_API_KEY is missing"
+        const programId =
+            url.searchParams.get(
+                "program_id"
             );
 
+        let result;
 
+        if (programId) {
+            result =
+                await env.DB.prepare(`
+                    SELECT *
+                    FROM courses
+                    WHERE is_active = 1
+                      AND id IN (
+                          SELECT DISTINCT course_id
+                          FROM lessons
+                          WHERE program_id = ?
+                      )
+                    ORDER BY id ASC
+                `)
+                    .bind(
+                        Number(programId)
+                    )
+                    .all();
+        } else {
+            result =
+                await env.DB.prepare(`
+                    SELECT *
+                    FROM courses
+                    WHERE is_active = 1
+                    ORDER BY id ASC
+                `)
+                    .all();
+        }
+
+        return json({
+            ok: true,
+            courses:
+                result.results || []
+        });
+
+    } catch (error) {
+        console.error(
+            "Courses error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error: "Failed to load courses"
+            },
+            500
+        );
+    }
+}
+
+
+/*
+ * =========================================================
+ * LESSONS
+ * =========================================================
+ */
+
+async function handleLessons(request, env) {
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return json(
+            {
+                ok: false,
+                error: auth.error
+            },
+            auth.status
+        );
+    }
+
+    try {
+        const url =
+            new URL(request.url);
+
+        const courseId =
+            url.searchParams.get(
+                "course_id"
+            );
+
+        const programId =
+            url.searchParams.get(
+                "program_id"
+            );
+
+        let result;
+
+        if (courseId) {
+            result =
+                await env.DB.prepare(`
+                    SELECT
+                        id,
+                        course_id,
+                        program_id,
+                        semester_id,
+                        subject_id,
+                        title,
+                        description,
+                        lesson_number,
+                        content,
+                        sort_order,
+                        is_visible
+                    FROM lessons
+                    WHERE is_visible = 1
+                      AND course_id = ?
+                    ORDER BY sort_order ASC, id ASC
+                `)
+                    .bind(
+                        Number(courseId)
+                    )
+                    .all();
+
+        } else if (programId) {
+            result =
+                await env.DB.prepare(`
+                    SELECT
+                        id,
+                        course_id,
+                        program_id,
+                        semester_id,
+                        subject_id,
+                        title,
+                        description,
+                        lesson_number,
+                        content,
+                        sort_order,
+                        is_visible
+                    FROM lessons
+                    WHERE is_visible = 1
+                      AND program_id = ?
+                    ORDER BY sort_order ASC, id ASC
+                `)
+                    .bind(
+                        Number(programId)
+                    )
+                    .all();
+
+        } else {
+            result =
+                await env.DB.prepare(`
+                    SELECT
+                        id,
+                        course_id,
+                        program_id,
+                        semester_id,
+                        subject_id,
+                        title,
+                        description,
+                        lesson_number,
+                        content,
+                        sort_order,
+                        is_visible
+                    FROM lessons
+                    WHERE is_visible = 1
+                    ORDER BY sort_order ASC, id ASC
+                `)
+                    .all();
+        }
+
+        const lessons =
+            result.results || [];
+
+        const progress =
+            await env.DB.prepare(`
+                SELECT
+                    lesson_id,
+                    course_id,
+                    completed,
+                    completed_at
+                FROM lesson_progress
+                WHERE user_id = ?
+            `)
+                .bind(
+                    auth.user.id
+                )
+                .all();
+
+        const progressMap =
+            new Map();
+
+        for (
+            const row
+            of progress.results || []
+        ) {
+            progressMap.set(
+                Number(row.lesson_id),
+                row
+            );
+        }
+
+        const completedLessonIds = [];
+
+        for (
+            const lesson
+            of lessons
+        ) {
+            const item =
+                progressMap.get(
+                    Number(lesson.id)
+                );
+
+            lesson.completed =
+                item
+                    ? Number(item.completed) === 1
+                    : false;
+
+            lesson.completed_at =
+                item?.completed_at ||
+                null;
+
+            if (lesson.completed) {
+                completedLessonIds.push(
+                    Number(lesson.id)
+                );
+            }
+        }
+
+        return json({
+            ok: true,
+            lessons,
+            completedLessonIds
+        });
+
+    } catch (error) {
+        console.error(
+            "Lessons error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error: "Failed to load lessons"
+            },
+            500
+        );
+    }
+}
+
+
+/*
+ * =========================================================
+ * PROGRESS
+ * =========================================================
+ */
+
+async function handleProgress(request, env) {
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return json(
+            {
+                ok: false,
+                error: auth.error
+            },
+            auth.status
+        );
+    }
+
+    try {
+        const body =
+            await request.json();
+
+        const lessonId =
+            Number(body?.lessonId);
+
+        if (!Number.isInteger(lessonId) || lessonId <= 0) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Tribute API key is not configured"
+                    error: "Invalid lessonId"
+                },
+                400
+            );
+        }
+
+        const lesson =
+            await env.DB.prepare(`
+                SELECT
+                    id,
+                    course_id
+                FROM lessons
+                WHERE id = ?
+                LIMIT 1
+            `)
+                .bind(lessonId)
+                .first();
+
+        if (!lesson) {
+            return json(
+                {
+                    ok: false,
+                    error: "Lesson not found"
+                },
+                404
+            );
+        }
+
+        await env.DB.prepare(`
+            INSERT INTO lesson_progress (
+                user_id,
+                course_id,
+                lesson_id,
+                completed,
+                completed_at
+            )
+            VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
+            ON CONFLICT DO NOTHING
+        `)
+            .bind(
+                auth.user.id,
+                lesson.course_id,
+                lesson.id
+            )
+            .run();
+
+        /*
+         * Если запись уже существовала,
+         * обновляем её.
+         */
+
+        await env.DB.prepare(`
+            UPDATE lesson_progress
+            SET
+                completed = 1,
+                completed_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ?
+              AND lesson_id = ?
+        `)
+            .bind(
+                auth.user.id,
+                lesson.id
+            )
+            .run();
+
+        return json({
+            ok: true,
+            completed: true,
+            lesson_id: lesson.id
+        });
+
+    } catch (error) {
+        console.error(
+            "Progress error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error: "Failed to save progress"
+            },
+            500
+        );
+    }
+}
+
+
+/*
+ * =========================================================
+ * TRIBUTE WEBHOOK
+ * =========================================================
+ */
+
+async function handleTributeWebhook(request, env) {
+    try {
+        if (!env.TRIBUTE_API_KEY) {
+            return json(
+                {
+                    ok: false,
+                    error: "Tribute API key is not configured"
                 },
                 500
             );
         }
 
+        if (!env.DB) {
+            return json(
+                {
+                    ok: false,
+                    error: "Database is not configured"
+                },
+                500
+            );
+        }
 
         const rawBody =
             await request.text();
-
 
         const signature =
             request.headers.get(
                 "trbt-signature"
             );
 
-
         if (!signature) {
-
             return json(
                 {
                     ok: false,
-                    error:
-                        "Tribute signature is missing"
+                    error: "Tribute signature is missing"
                 },
                 401
             );
         }
-
 
         const validSignature =
             await verifyTributeSignature(
@@ -2054,135 +1397,81 @@ async function handleTributeWebhook(
                 env.TRIBUTE_API_KEY
             );
 
-
         if (!validSignature) {
-
-            console.error(
-                "Invalid Tribute webhook signature"
-            );
-
-
             return json(
                 {
                     ok: false,
-                    error:
-                        "Invalid webhook signature"
+                    error: "Invalid webhook signature"
                 },
                 401
             );
         }
 
-
         let event;
 
-
         try {
-
             event =
-                JSON.parse(
-                    rawBody
-                );
-
-        } catch (error) {
-
+                JSON.parse(rawBody);
+        } catch {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Invalid webhook JSON"
+                    error: "Invalid webhook JSON"
                 },
                 400
             );
         }
-
 
         if (
             event?.name !==
             "new_digital_product"
         ) {
-
             return json({
                 ok: true,
-                status:
-                    "ignored",
-                event:
-                    event?.name ||
-                    null
+                status: "ignored",
+                event: event?.name || null
             });
         }
-
 
         const payload =
             event?.payload;
 
-
         if (!payload) {
-
             return json(
                 {
                     ok: false,
-                    error:
-                        "Tribute payload is missing"
+                    error: "Tribute payload is missing"
                 },
                 400
             );
         }
-
 
         const productId =
             payload?.product_id;
 
-
         const telegramUserId =
             payload?.telegram_user_id;
-
 
         const purchaseId =
             payload?.purchase_id;
 
-
         const transactionId =
             payload?.transaction_id;
 
-
-        if (!productId) {
-
+        if (!productId || !telegramUserId) {
             return json(
                 {
                     ok: false,
                     error:
-                        "Tribute product_id is missing"
+                        "Tribute product_id or telegram_user_id is missing"
                 },
                 400
             );
         }
 
-
-        if (!telegramUserId) {
-
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Tribute telegram_user_id is missing"
-                },
-                400
-            );
-        }
-
-
-        if (!env.DB) {
-
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Database is not configured"
-                },
-                500
-            );
-        }
-
+        await ensureTributeTables(
+            env.DB
+        );
 
         const eventId =
             purchaseId
@@ -2190,7 +1479,6 @@ async function handleTributeWebhook(
                 : transactionId
                     ? `transaction:${transactionId}`
                     : `event:${event.created_at || ""}:${productId}:${telegramUserId}`;
-
 
         const existing =
             await env.DB.prepare(`
@@ -2202,22 +1490,16 @@ async function handleTributeWebhook(
                 .bind(eventId)
                 .first();
 
-
         if (existing) {
-
             return json({
                 ok: true,
-                status:
-                    "already_processed",
-                event_id:
-                    eventId
+                status: "already_processed",
+                event_id: eventId
             });
         }
 
-
         await env.DB.prepare(`
-            INSERT INTO tribute_webhook_events
-            (
+            INSERT INTO tribute_webhook_events (
                 event_id,
                 event_name,
                 product_id,
@@ -2226,7 +1508,7 @@ async function handleTributeWebhook(
                 transaction_id,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         `)
             .bind(
                 eventId,
@@ -2234,18 +1516,13 @@ async function handleTributeWebhook(
                 String(productId),
                 String(telegramUserId),
                 purchaseId
-                    ? String(
-                        purchaseId
-                    )
+                    ? String(purchaseId)
                     : null,
                 transactionId
-                    ? String(
-                        transactionId
-                    )
+                    ? String(transactionId)
                     : null
             )
             .run();
-
 
         const mapping =
             await env.DB.prepare(`
@@ -2261,146 +1538,58 @@ async function handleTributeWebhook(
                 )
                 .first();
 
-
         if (!mapping) {
-
-            console.warn(
-                "Tribute product is not mapped:",
-                productId
-            );
-
-
             return json({
                 ok: true,
-                status:
-                    "received",
-                access:
-                    "not_mapped",
-                product_id:
-                    productId,
-                telegram_user_id:
-                    telegramUserId,
-                event_id:
-                    eventId
+                status: "received",
+                access: "not_mapped",
+                product_id: productId,
+                telegram_user_id: telegramUserId,
+                event_id: eventId
             });
         }
 
-
         await env.DB.prepare(`
-            INSERT OR IGNORE INTO user_programs
-            (
+            INSERT OR IGNORE INTO user_programs (
                 telegram_user_id,
                 program_id,
                 tribute_product_id,
                 purchase_id,
                 granted_at
             )
-            VALUES (?, ?, ?, ?, datetime('now'))
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
         `)
             .bind(
-                String(
-                    telegramUserId
-                ),
-                String(
-                    mapping.program_id
-                ),
-                String(
-                    productId
-                ),
+                String(telegramUserId),
+                String(mapping.program_id),
+                String(productId),
                 purchaseId
-                    ? String(
-                        purchaseId
-                    )
+                    ? String(purchaseId)
                     : null
             )
             .run();
 
-
-        /*
-         * Если Telegram-пользователь уже существует
-         * в users — ничего дополнительно делать не нужно.
-         *
-         * Если нет — создаём техническую запись,
-         * чтобы покупка была связана с аккаунтом.
-         */
-
-        const existingUser =
-            await env.DB.prepare(`
-                SELECT id
-                FROM users
-                WHERE telegram_user_id = ?
-                LIMIT 1
-            `)
-                .bind(
-                    String(
-                        telegramUserId
-                    )
-                )
-                .first();
-
-
-        if (!existingUser) {
-
-            const now =
-                new Date()
-                    .toISOString();
-
-
-            await env.DB.prepare(`
-                INSERT OR IGNORE INTO users
-                (
-                    telegram_user_id,
-                    role,
-                    is_active,
-                    created_at,
-                    updated_at
-                )
-                VALUES (?, 'user', 1, ?, ?)
-            `)
-                .bind(
-                    String(
-                        telegramUserId
-                    ),
-                    now,
-                    now
-                )
-                .run();
-        }
-
-
         return json({
             ok: true,
-            status:
-                "processed",
-            access:
-                "granted",
-            product_id:
-                productId,
-            telegram_user_id:
-                telegramUserId,
-            program_id:
-                mapping.program_id,
-            purchase_id:
-                purchaseId ||
-                null,
-            event_id:
-                eventId
+            status: "processed",
+            access: "granted",
+            product_id: productId,
+            telegram_user_id: telegramUserId,
+            program_id: mapping.program_id,
+            purchase_id: purchaseId || null,
+            event_id: eventId
         });
 
-
     } catch (error) {
-
         console.error(
             "Tribute webhook error:",
             error
         );
 
-
         return json(
             {
                 ok: false,
-                error:
-                    "Failed to process Tribute webhook"
+                error: "Failed to process Tribute webhook"
             },
             500
         );
@@ -2409,102 +1598,18 @@ async function handleTributeWebhook(
 
 
 /*
- * ============================================================
- * TRIBUTE SIGNATURE
- * ============================================================
- */
-
-async function verifyTributeSignature(
-    rawBody,
-    receivedSignature,
-    apiKey
-) {
-
-    try {
-
-        const encoder =
-            new TextEncoder();
-
-
-        const key =
-            await crypto.subtle.importKey(
-                "raw",
-                encoder.encode(
-                    apiKey
-                ),
-                {
-                    name:
-                        "HMAC",
-                    hash:
-                        "SHA-256"
-                },
-                false,
-                [
-                    "sign"
-                ]
-            );
-
-
-        const signatureBuffer =
-            await crypto.subtle.sign(
-                "HMAC",
-                key,
-                encoder.encode(
-                    rawBody
-                )
-            );
-
-
-        const expectedSignature =
-            bytesToHex(
-                new Uint8Array(
-                    signatureBuffer
-                )
-            );
-
-
-        return timingSafeEqual(
-            expectedSignature
-                .toLowerCase(),
-
-            String(
-                receivedSignature
-            )
-                .trim()
-                .toLowerCase()
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Tribute signature verification error:",
-            error
-        );
-
-
-        return false;
-    }
-}
-
-
-/*
- * ============================================================
+ * =========================================================
  * TRIBUTE TABLES
- * ============================================================
+ * =========================================================
  */
 
-async function ensureTributeTables(
-    db
-) {
-
+async function ensureTributeTables(db) {
     await db.prepare(`
         CREATE TABLE IF NOT EXISTS tribute_product_programs (
             tribute_product_id TEXT PRIMARY KEY,
             program_id TEXT NOT NULL
         )
     `).run();
-
 
     await db.prepare(`
         CREATE TABLE IF NOT EXISTS user_programs (
@@ -2516,7 +1621,6 @@ async function ensureTributeTables(
             granted_at TEXT NOT NULL
         )
     `).run();
-
 
     await db.prepare(`
         CREATE TABLE IF NOT EXISTS tribute_webhook_events (
@@ -2531,7 +1635,6 @@ async function ensureTributeTables(
         )
     `).run();
 
-
     await db.prepare(`
         CREATE INDEX IF NOT EXISTS
         idx_user_programs_telegram_user
@@ -2541,294 +1644,400 @@ async function ensureTributeTables(
 
 
 /*
- * ============================================================
- * LESSONS
- * ============================================================
+ * =========================================================
+ * PASSWORD HASH
+ * =========================================================
  */
 
-async function handleLessons(
-    request,
-    env
-) {
-
-    const auth =
-        await getCurrentAuth(
-            request,
-            env
+async function hashPassword(password) {
+    const salt =
+        crypto.getRandomValues(
+            new Uint8Array(16)
         );
 
-
-    if (!auth.ok) {
-
-        return json(
+    const key =
+        await crypto.subtle.importKey(
+            "raw",
+            new TextEncoder().encode(password),
             {
-                ok: false,
-                error:
-                    auth.error
+                name: "PBKDF2"
             },
-            401
-        );
-    }
-
-
-    if (!env.DB) {
-
-        return json({
-            ok: true,
-            lessons: [],
-            completedLessonIds: []
-        });
-    }
-
-
-    try {
-
-        /*
-         * Для совместимости с существующей системой
-         * используем Telegram ID, если он есть.
-         *
-         * Для обычного аккаунта используем:
-         *
-         * user:<id>
-         */
-
-        const userKey =
-            getUserProgressKey(
-                auth.user
-            );
-
-
-        const lessonsResult =
-            await env.DB.prepare(`
-                SELECT
-                    id,
-                    title,
-                    description,
-                    content_text,
-                    video_url,
-                    audio_url
-                FROM lessons
-                WHERE is_active = 1
-                ORDER BY sort_order ASC, id ASC
-            `)
-                .all();
-
-
-        const progressResult =
-            await env.DB.prepare(`
-                SELECT lesson_id
-                FROM lesson_progress
-                WHERE telegram_user_id = ?
-            `)
-                .bind(userKey)
-                .all();
-
-
-        const completedLessonIds =
-            (
-                progressResult.results ||
-                []
-            )
-                .map(
-                    row =>
-                        Number(
-                            row.lesson_id
-                        )
-                );
-
-
-        return json({
-            ok: true,
-
-            lessons:
-                lessonsResult.results ||
-                [],
-
-            completedLessonIds
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Lessons error:",
-            error
+            false,
+            [
+                "deriveBits"
+            ]
         );
 
-
-        return json(
+    const hash =
+        await crypto.subtle.deriveBits(
             {
-                ok: false,
-                error:
-                    "Failed to load lessons"
+                name: "PBKDF2",
+                salt,
+                iterations: PASSWORD_ITERATIONS,
+                hash: "SHA-256"
             },
-            500
+            key,
+            256
         );
-    }
+
+    return [
+        "pbkdf2",
+        PASSWORD_ITERATIONS,
+        bytesToBase64(salt),
+        bytesToBase64(
+            new Uint8Array(hash)
+        )
+    ].join("$");
 }
 
 
-/*
- * ============================================================
- * PROGRESS
- * ============================================================
- */
-
-async function handleProgress(
-    request,
-    env
+async function verifyPassword(
+    password,
+    storedHash
 ) {
-
-    const auth =
-        await getCurrentAuth(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            401
-        );
-    }
-
-
-    if (!env.DB) {
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Database is not configured"
-            },
-            500
-        );
-    }
-
-
     try {
+        const parts =
+            String(storedHash).split("$");
 
-        const body =
-            await request.json();
-
-
-        const lessonId =
-            Number(
-                body?.lessonId
-            );
-
-
-        if (!lessonId) {
-
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "lessonId is required"
-                },
-                400
-            );
+        if (
+            parts.length !== 4 ||
+            parts[0] !== "pbkdf2"
+        ) {
+            return false;
         }
 
+        const iterations =
+            Number(parts[1]);
 
-        const userKey =
-            getUserProgressKey(
-                auth.user
+        const salt =
+            base64ToBytes(parts[2]);
+
+        const expectedHash =
+            base64ToBytes(parts[3]);
+
+        const key =
+            await crypto.subtle.importKey(
+                "raw",
+                new TextEncoder().encode(password),
+                {
+                    name: "PBKDF2"
+                },
+                false,
+                [
+                    "deriveBits"
+                ]
             );
 
+        const hash =
+            await crypto.subtle.deriveBits(
+                {
+                    name: "PBKDF2",
+                    salt,
+                    iterations,
+                    hash: "SHA-256"
+                },
+                key,
+                256
+            );
 
-        await env.DB.prepare(`
-            INSERT OR IGNORE INTO lesson_progress
-            (
-                telegram_user_id,
-                lesson_id,
-                completed_at
+        return timingSafeEqualBytes(
+            new Uint8Array(hash),
+            expectedHash
+        );
+
+    } catch {
+        return false;
+    }
+}
+
+
+/*
+ * =========================================================
+ * TELEGRAM / USER HELPERS
+ * =========================================================
+ */
+
+async function getUserById(
+    db,
+    userId
+) {
+    return db.prepare(`
+        SELECT
+            id,
+            telegram_id,
+            username,
+            first_name,
+            last_name,
+            phone,
+            role,
+            status,
+            blocked_reason,
+            blocked_at,
+            created_at,
+            updated_at,
+            login
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+    `)
+        .bind(userId)
+        .first();
+}
+
+
+function getBearerToken(request) {
+    const header =
+        request.headers.get(
+            "Authorization"
+        );
+
+    if (!header) {
+        return null;
+    }
+
+    if (
+        !header.startsWith(
+            "Bearer "
+        )
+    ) {
+        return null;
+    }
+
+    const token =
+        header.slice(7).trim();
+
+    return token || null;
+}
+
+
+function randomToken() {
+    const bytes =
+        crypto.getRandomValues(
+            new Uint8Array(32)
+        );
+
+    return bytesToBase64Url(bytes);
+}
+
+
+function normalizeLogin(value) {
+    return String(
+        value || ""
+    )
+        .trim()
+        .toLowerCase();
+}
+
+
+function isValidLogin(login) {
+    return /^[a-zA-Z0-9_-]{3,30}$/.test(
+        login
+    );
+}
+
+
+function cleanText(value) {
+    const text =
+        String(value || "")
+            .trim();
+
+    return text || null;
+}
+
+
+/*
+ * =========================================================
+ * BASE64
+ * =========================================================
+ */
+
+function bytesToBase64(bytes) {
+    let binary = "";
+
+    for (
+        const byte
+        of bytes
+    ) {
+        binary += String.fromCharCode(
+            byte
+        );
+    }
+
+    return btoa(binary);
+}
+
+
+function base64ToBytes(value) {
+    const binary =
+        atob(value);
+
+    const bytes =
+        new Uint8Array(
+            binary.length
+        );
+
+    for (
+        let i = 0;
+        i < binary.length;
+        i++
+    ) {
+        bytes[i] =
+            binary.charCodeAt(i);
+    }
+
+    return bytes;
+}
+
+
+function bytesToBase64Url(bytes) {
+    return bytesToBase64(bytes)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");
+}
+
+
+/*
+ * =========================================================
+ * TRIBUTE SIGNATURE
+ * =========================================================
+ */
+
+async function verifyTributeSignature(
+    rawBody,
+    receivedSignature,
+    apiKey
+) {
+    try {
+        const encoder =
+            new TextEncoder();
+
+        const key =
+            await crypto.subtle.importKey(
+                "raw",
+                encoder.encode(apiKey),
+                {
+                    name: "HMAC",
+                    hash: "SHA-256"
+                },
+                false,
+                [
+                    "sign"
+                ]
+            );
+
+        const signatureBuffer =
+            await crypto.subtle.sign(
+                "HMAC",
+                key,
+                encoder.encode(rawBody)
+            );
+
+        const expected =
+            bytesToHex(
+                new Uint8Array(
+                    signatureBuffer
+                )
+            );
+
+        return timingSafeEqual(
+            expected.toLowerCase(),
+            String(
+                receivedSignature
             )
-            VALUES (?, ?, datetime('now'))
-        `)
-            .bind(
-                userKey,
-                lessonId
-            )
-            .run();
-
-
-        return json({
-            ok: true,
-            completed:
-                true
-        });
-
+                .trim()
+                .toLowerCase()
+        );
 
     } catch (error) {
-
         console.error(
-            "Progress error:",
+            "Tribute signature verification error:",
             error
         );
 
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to save progress"
-            },
-            500
-        );
+        return false;
     }
 }
 
 
 /*
- * ============================================================
- * PROGRESS KEY
- * ============================================================
+ * =========================================================
+ * SAFE COMPARE
+ * =========================================================
  */
 
-function getUserProgressKey(
-    user
-) {
-
-    if (
-        user?.telegram_user_id
-    ) {
-
-        return String(
-            user.telegram_user_id
-        );
+function timingSafeEqual(a, b) {
+    if (a.length !== b.length) {
+        return false;
     }
 
+    let result = 0;
 
-    return `user:${user.id}`;
+    for (
+        let i = 0;
+        i < a.length;
+        i++
+    ) {
+        result |=
+            a.charCodeAt(i) ^
+            b.charCodeAt(i);
+    }
+
+    return result === 0;
+}
+
+
+function timingSafeEqualBytes(
+    a,
+    b
+) {
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    let result = 0;
+
+    for (
+        let i = 0;
+        i < a.length;
+        i++
+    ) {
+        result |=
+            a[i] ^ b[i];
+    }
+
+    return result === 0;
+}
+
+
+function bytesToHex(bytes) {
+    return Array.from(bytes)
+        .map(
+            byte =>
+                byte
+                    .toString(16)
+                    .padStart(2, "0")
+        )
+        .join("");
 }
 
 
 /*
- * ============================================================
+ * =========================================================
  * JSON
- * ============================================================
+ * =========================================================
  */
 
 function json(
     data,
     status = 200
 ) {
-
     return new Response(
         JSON.stringify(data),
         {
             status,
-
             headers: {
                 ...corsHeaders(),
-
                 "Content-Type":
                     "application/json; charset=utf-8"
             }
@@ -2838,85 +2047,17 @@ function json(
 
 
 /*
- * ============================================================
+ * =========================================================
  * CORS
- * ============================================================
+ * =========================================================
  */
 
 function corsHeaders() {
-
     return {
-
-        "Access-Control-Allow-Origin":
-            "*",
-
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods":
             "GET, POST, OPTIONS",
-
         "Access-Control-Allow-Headers":
             "Content-Type, Authorization"
     };
-}
-
-
-/*
- * ============================================================
- * SIMPLE HEX
- * ============================================================
- */
-
-function bytesToHex(
-    bytes
-) {
-
-    return Array.from(
-        bytes
-    )
-        .map(
-            byte =>
-                byte
-                    .toString(16)
-                    .padStart(
-                        2,
-                        "0"
-                    )
-        )
-        .join("");
-}
-
-
-/*
- * ============================================================
- * TIMING SAFE STRING
- * ============================================================
- */
-
-function timingSafeEqual(
-    a,
-    b
-) {
-
-    if (
-        a.length !== b.length
-    ) {
-        return false;
-    }
-
-
-    let result = 0;
-
-
-    for (
-        let i = 0;
-        i < a.length;
-        i++
-    ) {
-
-        result |=
-            a.charCodeAt(i) ^
-            b.charCodeAt(i);
-    }
-
-
-    return result === 0;
 }
