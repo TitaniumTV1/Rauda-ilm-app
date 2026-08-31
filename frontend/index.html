@@ -1,4952 +1,1906 @@
-<!DOCTYPE html>
-<html lang="ru">
+<!DOCTYPE html><html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#f5f6f3">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>RAUDA ILM</title>
 
-    <title>RAUDA ILM</title>
+<style>
+    * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        background: #f5f7fb;
+        color: #172033;
+    }
 
-    <style>
-        :root {
-            --bg: #f5f6f3;
-            --card: #ffffff;
-            --text: #17201c;
-            --muted: #7b837e;
-            --green: #123c32;
-            --green2: #1c5546;
-            --green-light: #e7eee9;
-            --gold: #c5a46d;
-            --line: #e3e6e1;
-            --danger: #a13e35;
-        }
+    button,
+    input {
+        font: inherit;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
+    button {
+        cursor: pointer;
+    }
 
-        html,
-        body {
-            min-height: 100%;
-        }
+    .app {
+        min-height: 100vh;
+    }
 
-        body {
-            position: relative;
-            overflow-x: hidden;
+    /* =========================
+       HEADER
+    ========================= */
 
-            background: var(--bg);
-            color: var(--text);
+    .header {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        background: white;
+        border-bottom: 1px solid #e8ebf1;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
 
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Roboto,
-                Arial,
-                sans-serif;
-        }
+    .logo {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: .5px;
+    }
 
-        /*
-         * ФОНОВЫЙ УЗОР
-         */
+    .menu-button {
+        width: 44px;
+        height: 44px;
+        border: 0;
+        border-radius: 12px;
+        background: #f0f2f6;
+        font-size: 23px;
+    }
 
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
+    /* =========================
+       CONTENT
+    ========================= */
 
-            z-index: -2;
+    .content {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 22px 16px 40px;
+    }
 
-            pointer-events: none;
+    .screen {
+        display: none;
+    }
 
-            opacity: .42;
+    .screen.active {
+        display: block;
+    }
 
-            background-image:
-                linear-gradient(
-                    30deg,
-                    rgba(18,60,50,.035) 12%,
-                    transparent 12.5%,
-                    transparent 87%,
-                    rgba(18,60,50,.035) 87.5%,
-                    rgba(18,60,50,.035)
-                ),
-                linear-gradient(
-                    150deg,
-                    rgba(18,60,50,.035) 12%,
-                    transparent 12.5%,
-                    transparent 87%,
-                    rgba(18,60,50,.035) 87.5%,
-                    rgba(18,60,50,.035)
-                ),
-                linear-gradient(
-                    30deg,
-                    rgba(18,60,50,.035) 12%,
-                    transparent 12.5%,
-                    transparent 87%,
-                    rgba(18,60,50,.035) 87.5%,
-                    rgba(18,60,50,.035)
-                ),
-                linear-gradient(
-                    150deg,
-                    rgba(18,60,50,.035) 12%,
-                    transparent 12.5%,
-                    transparent 87%,
-                    rgba(18,60,50,.035) 87.5%,
-                    rgba(18,60,50,.035)
-                );
+    .welcome {
+        margin-bottom: 20px;
+    }
 
-            background-position:
-                0 0,
-                0 0,
-                20px 35px,
-                20px 35px;
+    .welcome-small {
+        color: #697386;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
 
-            background-size:
-                40px 70px,
-                40px 70px,
-                40px 70px,
-                40px 70px;
-        }
+    .welcome-title {
+        font-size: 27px;
+        font-weight: 800;
+        margin: 0;
+    }
 
-        body::after {
-            content: "";
-            position: fixed;
-            inset: 0;
+    /* =========================
+       CARDS
+    ========================= */
 
-            z-index: -1;
+    .card {
+        background: white;
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 16px;
+        border: 1px solid #e9edf3;
+        box-shadow: 0 4px 18px rgba(20, 30, 50, .04);
+    }
 
-            pointer-events: none;
+    .program-label {
+        color: #737d90;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
 
-            background:
-                radial-gradient(
-                    circle at 10% 10%,
-                    rgba(197,164,109,.07),
-                    transparent 24%
-                ),
-                radial-gradient(
-                    circle at 90% 75%,
-                    rgba(18,60,50,.055),
-                    transparent 27%
-                );
-        }
+    .program-title {
+        font-size: 22px;
+        font-weight: 750;
+        margin-bottom: 10px;
+    }
 
-        button,
-        input,
-        textarea,
-        select {
-            font: inherit;
-        }
+    .program-description {
+        color: #687386;
+        line-height: 1.5;
+        font-size: 14px;
+    }
 
-        button {
-            cursor: pointer;
-        }
+    .semester {
+        display: inline-block;
+        margin-top: 14px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: #f0f3f8;
+        font-size: 13px;
+        font-weight: 600;
+    }
 
-        .app {
-            min-height: 100vh;
-        }
+    /* =========================
+       BUTTONS
+    ========================= */
 
-        /*
-         * HEADER
-         */
+    .primary-button {
+        width: 100%;
+        border: 0;
+        border-radius: 13px;
+        padding: 14px 16px;
+        background: #172033;
+        color: white;
+        font-weight: 700;
+        margin-top: 12px;
+    }
 
-        .header {
-            position: sticky;
-            top: 0;
-            z-index: 20;
+    .secondary-button {
+        width: 100%;
+        border: 1px solid #dfe4ec;
+        border-radius: 13px;
+        padding: 13px 16px;
+        background: white;
+        color: #172033;
+        font-weight: 650;
+        margin-top: 10px;
+    }
 
-            min-height: 64px;
+    /* =========================
+       PROFILE
+    ========================= */
 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+    .back-button {
+        border: 0;
+        background: transparent;
+        padding: 4px 0 18px;
+        color: #58647a;
+        font-weight: 650;
+    }
 
-            padding:
-                calc(8px + env(safe-area-inset-top))
-                18px
-                8px;
+    .profile-header {
+        text-align: center;
+        padding: 15px 0 25px;
+    }
 
-            background: rgba(245,246,243,.86);
+    .avatar {
+        width: 82px;
+        height: 82px;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        background: #172033;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 800;
+    }
 
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+    .profile-name {
+        font-size: 23px;
+        font-weight: 800;
+    }
 
-            border-bottom: 1px solid rgba(0,0,0,.035);
-        }
+    .profile-role {
+        color: #707b8f;
+        margin-top: 5px;
+        font-size: 14px;
+    }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+    .profile-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 14px 0;
+        border-bottom: 1px solid #edf0f4;
+    }
 
-            border: 0;
-            background: transparent;
+    .profile-row:last-child {
+        border-bottom: 0;
+    }
 
-            color: var(--text);
-        }
+    .profile-row span:first-child {
+        color: #788296;
+    }
 
-        .logo-mark {
-            width: 36px;
-            height: 36px;
+    .profile-row span:last-child {
+        font-weight: 650;
+        text-align: right;
+        word-break: break-word;
+    }
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    /* =========================
+       LESSONS
+    ========================= */
 
-            border-radius: 11px;
+    .lesson {
+        padding: 16px 0;
+        border-bottom: 1px solid #edf0f4;
+    }
 
-            background: var(--green);
-            color: white;
+    .lesson:last-child {
+        border-bottom: 0;
+    }
 
-            font-size: 13px;
-            font-weight: 800;
-        }
+    .lesson-title {
+        font-size: 16px;
+        font-weight: 750;
+    }
 
-        .logo-name {
-            font-size: 18px;
-            font-weight: 800;
-            letter-spacing: .3px;
-        }
+    .lesson-description {
+        margin-top: 6px;
+        color: #707b8f;
+        font-size: 14px;
+        line-height: 1.45;
+    }
 
-        .menu-button {
-            width: 42px;
-            height: 42px;
+    .completed {
+        color: #17864b;
+        font-size: 13px;
+        font-weight: 700;
+        margin-top: 8px;
+    }
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    /* =========================
+       MENU
+    ========================= */
 
-            border: 1px solid var(--line);
-            border-radius: 13px;
+    .menu-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.35);
+        z-index: 100;
+    }
 
-            background: rgba(255,255,255,.92);
-        }
+    .menu-overlay.active {
+        display: block;
+    }
 
-        .hamburger {
-            width: 19px;
-            height: 14px;
+    .side-menu {
+        position: fixed;
+        top: 0;
+        right: -330px;
+        width: min(330px, 88vw);
+        height: 100vh;
+        background: white;
+        z-index: 110;
+        padding: 22px 16px;
+        transition: right .25s ease;
+        box-shadow: -8px 0 30px rgba(0,0,0,.12);
+    }
 
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+    .side-menu.active {
+        right: 0;
+    }
 
-        .hamburger span {
-            width: 100%;
-            height: 2px;
+    .menu-title {
+        font-size: 22px;
+        font-weight: 800;
+        margin: 5px 8px 20px;
+    }
 
-            border-radius: 10px;
+    .menu-item {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        text-align: left;
+        padding: 15px 12px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 650;
+        margin-bottom: 4px;
+    }
 
-            background: var(--green);
-        }
+    .menu-item:active {
+        background: #f1f3f7;
+    }
 
-        /*
-         * CONTENT
-         */
+    .menu-close {
+        position: absolute;
+        top: 18px;
+        right: 15px;
+        border: 0;
+        background: #f0f2f6;
+        border-radius: 10px;
+        width: 38px;
+        height: 38px;
+        font-size: 20px;
+    }
 
+    /* =========================
+       AUTH
+    ========================= */
+
+    .auth-screen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 430px;
+        background: white;
+        border-radius: 22px;
+        padding: 25px;
+        box-shadow: 0 10px 40px rgba(20,30,50,.08);
+        border: 1px solid #e8ebf1;
+    }
+
+    .auth-logo {
+        text-align: center;
+        font-size: 30px;
+        font-weight: 900;
+        margin-bottom: 8px;
+    }
+
+    .auth-subtitle {
+        text-align: center;
+        color: #788296;
+        font-size: 14px;
+        margin-bottom: 25px;
+    }
+
+    .input {
+        width: 100%;
+        border: 1px solid #dce1e9;
+        border-radius: 12px;
+        padding: 13px 14px;
+        outline: none;
+        margin-bottom: 10px;
+        background: #fafbfc;
+    }
+
+    .input:focus {
+        border-color: #8792a7;
+        background: white;
+    }
+
+    .auth-switch {
+        text-align: center;
+        color: #687386;
+        font-size: 14px;
+        margin-top: 18px;
+    }
+
+    .auth-switch button {
+        border: 0;
+        background: none;
+        font-weight: 750;
+        color: #172033;
+    }
+
+    .error {
+        display: none;
+        padding: 11px 12px;
+        border-radius: 10px;
+        background: #fff0f0;
+        color: #b42318;
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    .error.show {
+        display: block;
+    }
+
+    /* =========================
+       LOADING
+    ========================= */
+
+    .loading {
+        text-align: center;
+        color: #778196;
+        padding: 30px 10px;
+    }
+
+    .empty {
+        text-align: center;
+        color: #788296;
+        padding: 25px 10px;
+    }
+
+    @media (min-width: 700px) {
         .content {
-            width: 100%;
-            max-width: 720px;
-
-            margin: 0 auto;
-
-            padding:
-                12px 18px
-                calc(40px + env(safe-area-inset-bottom));
-        }
-
-        /*
-         * PAGES
-         */
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        /*
-         * LOADING
-         */
-
-        .loading {
-            padding: 80px 20px;
-
-            text-align: center;
-
-            color: var(--muted);
-        }
-
-        .loader {
-            width: 28px;
-            height: 28px;
-
-            margin: 0 auto 12px;
-
-            border: 3px solid #dce3de;
-            border-top-color: var(--green);
-
-            border-radius: 50%;
-
-            animation: spin .7s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /*
-         * HOME
-         */
-
-        .welcome {
-            margin: 15px 2px 20px;
-        }
-
-        .welcome-small {
-            color: var(--muted);
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .welcome-name {
-            font-size: 30px;
-            line-height: 1.12;
-            font-weight: 800;
-        }
-
-        .hero {
-            position: relative;
-            overflow: hidden;
-
-            padding: 23px;
-
-            border-radius: 26px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    var(--green),
-                    var(--green2)
-                );
-
-            color: white;
-
-            box-shadow:
-                0 15px 35px rgba(18,60,50,.18);
-        }
-
-        .hero::after {
-            content: "";
-
-            position: absolute;
-
-            width: 180px;
-            height: 180px;
-
-            right: -75px;
-            top: -80px;
-
-            border: 1px solid rgba(255,255,255,.09);
-
-            transform: rotate(45deg);
-
-            border-radius: 30px;
-        }
-
-        .hero-label {
-            color: rgba(255,255,255,.65);
-
-            font-size: 11px;
-            font-weight: 700;
-
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-        }
-
-        .hero-program {
-            margin-top: 9px;
-
-            font-size: 21px;
-            line-height: 1.3;
-            font-weight: 800;
-        }
-
-        .hero-bottom {
-            margin-top: 20px;
-
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-
-            gap: 10px;
-        }
-
-        .semester {
-            color: rgba(255,255,255,.72);
-
-            font-size: 13px;
-        }
-
-        .semester strong {
-            display: block;
-
-            margin-top: 4px;
-
-            color: white;
-            font-size: 15px;
-        }
-
-        .progress-number {
-            font-size: 25px;
-            font-weight: 800;
-        }
-
-        .progress-line {
-            height: 5px;
-
-            margin-top: 17px;
-
-            overflow: hidden;
-
-            border-radius: 10px;
-
-            background: rgba(255,255,255,.17);
-        }
-
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-
-            border-radius: 10px;
-
-            background: var(--gold);
-
-            transition: width .3s ease;
-        }
-
-        /*
-         * BUTTONS
-         */
-
-        .primary-button {
-            width: 100%;
-
-            padding: 14px 16px;
-
-            border: 0;
-            border-radius: 14px;
-
-            background: var(--green);
-            color: white;
-
-            font-weight: 700;
-        }
-
-        .primary-button:disabled {
-            opacity: .6;
-        }
-
-        .secondary-button {
-            width: 100%;
-
-            padding: 13px 16px;
-
-            border: 1px solid var(--line);
-            border-radius: 14px;
-
-            background: white;
-            color: var(--green);
-
-            font-weight: 700;
-        }
-
-        .continue {
-            width: 100%;
-
-            margin-top: 13px;
-            padding: 16px 18px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            border: 0;
-            border-radius: 17px;
-
-            background: rgba(255,255,255,.94);
-            color: var(--green);
-
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.045);
-
-            text-align: left;
-        }
-
-        .continue-left {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .continue-label {
-            color: var(--muted);
-            font-size: 12px;
-        }
-
-        .continue-title {
-            margin-top: 3px;
-
-            font-size: 15px;
-            font-weight: 750;
-        }
-
-        .arrow {
-            width: 36px;
-            height: 36px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 11px;
-
-            background: var(--green-light);
-
-            font-size: 18px;
-        }
-
-        /*
-         * SECTIONS
-         */
-
-        .section {
-            margin-top: 25px;
-        }
-
-        .section-title {
-            margin-bottom: 12px;
-
-            font-size: 18px;
-            font-weight: 800;
-        }
-
-        .quick-grid {
-            display: grid;
-
-            grid-template-columns:
-                1fr 1fr;
-
-            gap: 10px;
-        }
-
-        .quick-card {
-            min-height: 112px;
-
-            padding: 17px;
-
-            border: 1px solid rgba(0,0,0,.035);
-            border-radius: 19px;
-
-            background: rgba(255,255,255,.94);
-
-            text-align: left;
-
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.035);
-        }
-
-        .quick-icon {
-            width: 36px;
-            height: 36px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 11px;
-
-            background: var(--green-light);
-            color: var(--green);
-
-            font-size: 11px;
-            font-weight: 800;
-        }
-
-        .quick-title {
-            margin-top: 13px;
-
-            font-size: 14px;
-            font-weight: 750;
-        }
-
-        .quick-description {
-            margin-top: 3px;
-
-            color: var(--muted);
-
-            font-size: 11px;
-        }
-
-        /*
-         * PAGE HEADER
-         */
-
-        .page-header {
-            margin: 17px 0 20px;
-        }
-
-        .page-header h1 {
-            margin: 0;
-
-            font-size: 28px;
-            line-height: 1.15;
-        }
-
-        .page-header p {
-            margin-top: 7px;
-
-            color: var(--muted);
-
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-
-            margin-bottom: 15px;
-
-            padding: 5px 0;
-
-            border: 0;
-            background: transparent;
-
-            color: var(--green);
-
-            font-weight: 700;
-        }
-
-        /*
-         * LEARNING
-         */
-
-        .learning-summary {
-            display: grid;
-
-            grid-template-columns:
-                1fr 1fr;
-
-            gap: 10px;
-
-            margin-bottom: 20px;
-        }
-
-        .summary-card {
-            padding: 15px;
-
-            border-radius: 17px;
-
-            background: rgba(255,255,255,.94);
-        }
-
-        .summary-number {
-            color: var(--green);
-
-            font-size: 23px;
-            font-weight: 800;
-        }
-
-        .summary-label {
-            margin-top: 4px;
-
-            color: var(--muted);
-
-            font-size: 12px;
-        }
-
-        .year-card {
-            margin-bottom: 12px;
-
-            overflow: hidden;
-
-            border-radius: 19px;
-
-            background: rgba(255,255,255,.96);
-
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.035);
-        }
-
-        .year-header,
-        .semester-header,
-        .subject-header {
-            width: 100%;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            border: 0;
-
-            text-align: left;
-        }
-
-        .year-header {
-            padding: 17px;
-
-            background: transparent;
-        }
-
-        .year-title {
-            font-size: 17px;
-            font-weight: 800;
-        }
-
-        .year-subtitle {
-            margin-top: 3px;
-
-            color: var(--muted);
-
-            font-size: 12px;
-        }
-
-        .year-arrow,
-        .semester-arrow {
-            color: var(--green);
-        }
-
-        .year-content {
-            display: none;
-
-            padding: 0 12px 12px;
-        }
-
-        .year-card.open .year-content {
-            display: block;
-        }
-
-        .semester-card {
-            margin-top: 7px;
-
-            overflow: hidden;
-
-            border: 1px solid var(--line);
-            border-radius: 15px;
-        }
-
-        .semester-header {
-            padding: 14px;
-
-            background: #fafaf7;
-        }
-
-        .semester-title {
-            font-size: 14px;
-            font-weight: 750;
-        }
-
-        .semester-count {
-            color: var(--muted);
-            font-size: 11px;
-        }
-
-        .semester-content {
-            display: none;
-
-            padding: 8px;
-        }
-
-        .semester-card.open .semester-content {
-            display: block;
-        }
-
-        .subject {
-            margin-bottom: 7px;
-
-            overflow: hidden;
-
-            border: 1px solid #eeeeea;
-            border-radius: 13px;
-
-            background: white;
-        }
-
-        .subject-header {
-            padding: 13px;
-
-            background: white;
-        }
-
-        .subject-name {
-            font-size: 13px;
-            font-weight: 750;
-        }
-
-        .subject-progress {
-            color: var(--muted);
-
-            font-size: 11px;
-        }
-
-        .lessons {
-            display: none;
-
-            padding: 0 8px 8px;
-        }
-
-        .subject.open .lessons {
-            display: block;
-        }
-
-        .lesson-row {
-            width: 100%;
-
-            margin-top: 5px;
-            padding: 12px;
-
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            border: 0;
-            border-radius: 12px;
-
-            background: #f8f8f4;
-
-            text-align: left;
-        }
-
-        .lesson-status {
-            width: 27px;
-            height: 27px;
-
-            flex: 0 0 27px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 50%;
-
-            background: #e4e7e2;
-            color: var(--muted);
-
-            font-size: 12px;
-        }
-
-        .lesson-row.completed .lesson-status {
-            background: var(--green);
-            color: white;
-        }
-
-        .lesson-info {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .lesson-row-title {
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .lesson-meta {
-            margin-top: 3px;
-
-            color: var(--muted);
-
-            font-size: 10px;
-        }
-
-        /*
-         * LESSON
-         */
-
-        .lesson-page-card {
-            padding: 19px;
-
-            border-radius: 20px;
-
-            background: rgba(255,255,255,.96);
-
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.04);
-        }
-
-        .lesson-tag {
-            color: var(--green);
-
-            font-size: 11px;
-            font-weight: 800;
-
-            letter-spacing: .5px;
-            text-transform: uppercase;
-        }
-
-        .lesson-page-title {
-            margin-top: 9px;
-
-            font-size: 23px;
-            line-height: 1.25;
-            font-weight: 800;
-        }
-
-        .lesson-page-description {
-            margin-top: 9px;
-
-            color: var(--muted);
-
-            font-size: 13px;
-            line-height: 1.55;
-        }
-
-        .media-block {
-            margin-top: 18px;
-        }
-
-        .media-title {
-            margin-bottom: 8px;
-
-            font-size: 13px;
-            font-weight: 750;
-        }
-
-        video,
-        audio {
-            width: 100%;
-        }
-
-        video {
-            border-radius: 13px;
-            background: #111;
-        }
-
-        .audio-player {
-            padding: 12px;
-
-            border-radius: 14px;
-
-            background: var(--green-light);
-        }
-
-        .material-block {
-            margin-top: 18px;
-            padding: 15px;
-
-            border-radius: 15px;
-
-            background: #fafaf7;
-        }
-
-        .material-title {
-            font-size: 14px;
-            font-weight: 750;
-        }
-
-        .material-text {
-            margin-top: 7px;
-
-            color: var(--text);
-
-            font-size: 13px;
-            line-height: 1.6;
-
-            white-space: pre-wrap;
-        }
-
-        /*
-         * GENERIC
-         */
-
-        .info-card {
-            margin-bottom: 11px;
-            padding: 18px;
-
-            border-radius: 18px;
-
-            background: rgba(255,255,255,.96);
-
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.035);
-        }
-
-        .info-card-title {
-            font-size: 15px;
-            font-weight: 800;
-        }
-
-        .info-card-text {
-            margin-top: 6px;
-
-            color: var(--muted);
-
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        /*
-         * PROFILE
-         */
-
-        .profile-main {
-            padding: 20px;
-
-            border-radius: 20px;
-
-            background: rgba(255,255,255,.96);
-        }
-
-        .profile-avatar {
-            width: 78px;
-            height: 78px;
-
-            margin-bottom: 15px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            overflow: hidden;
-
-            border-radius: 23px;
-
-            background: var(--green);
-            color: white;
-
-            font-size: 24px;
-            font-weight: 800;
-        }
-
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-
-            object-fit: cover;
-        }
-
-        .profile-name-big {
-            font-size: 23px;
-            font-weight: 800;
-        }
-
-        .profile-username-big {
-            margin-top: 4px;
-
-            color: var(--muted);
-
-            font-size: 13px;
-        }
-
-        .telegram-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-
-            margin-top: 13px;
-            padding: 8px 11px;
-
-            border-radius: 10px;
-
-            background: var(--green-light);
-            color: var(--green);
-
-            font-size: 11px;
-            font-weight: 750;
-        }
-
-        .telegram-dot {
-            width: 7px;
-            height: 7px;
-
-            border-radius: 50%;
-
-            background: var(--green);
-        }
-
-        .profile-row {
-            margin-top: 18px;
-            padding-top: 15px;
-
-            border-top: 1px solid var(--line);
-        }
-
-        .profile-row-label {
-            color: var(--muted);
-
-            font-size: 11px;
-        }
-
-        .profile-row-value {
-            margin-top: 4px;
-
-            font-size: 14px;
-            font-weight: 700;
-
-            word-break: break-word;
+            padding-top: 35px;
         }
+    }
+</style>
 
-        /*
-         * MENU
-         */
+</head><body><div id="authApp" class="auth-screen"><div class="auth-card">
 
-        .overlay {
-            position: fixed;
-            inset: 0;
+    <div class="auth-logo">RAUDA ILM</div>
 
-            z-index: 40;
+    <div class="auth-subtitle">
+        Образовательная платформа
+    </div>
 
-            background: rgba(5,20,16,.35);
-
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
-
-            opacity: 0;
-            pointer-events: none;
-
-            transition: opacity .25s ease;
-        }
-
-        .overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .side-menu {
-            position: fixed;
-
-            top: 0;
-            right: 0;
-            bottom: 0;
-
-            z-index: 50;
-
-            width: min(330px, 88vw);
-
-            padding:
-                calc(18px + env(safe-area-inset-top))
-                18px
-                calc(25px + env(safe-area-inset-bottom));
-
-            overflow-y: auto;
-
-            background: #fafaf7;
-
-            transform: translateX(100%);
-
-            transition:
-                transform .27s cubic-bezier(.2,.8,.2,1);
-
-            box-shadow:
-                -20px 0 45px rgba(0,0,0,.12);
-        }
-
-        .side-menu.open {
-            transform: translateX(0);
-        }
-
-        .menu-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            margin-bottom: 22px;
-        }
-
-        .menu-title {
-            font-size: 21px;
-            font-weight: 800;
-        }
-
-        .close {
-            width: 40px;
-            height: 40px;
-
-            border: 0;
-            border-radius: 12px;
-
-            background: #ecece7;
-
-            font-size: 22px;
-        }
-
-        /*
-         * TELEGRAM MENU PROFILE
-         */
-
-        .profile-card {
-            padding: 16px;
-
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            border-radius: 17px;
-
-            background: var(--green);
-
-            color: white;
-        }
-
-        .menu-avatar {
-            width: 48px;
-            height: 48px;
-
-            flex: 0 0 48px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            overflow: hidden;
-
-            border-radius: 15px;
-
-            background: rgba(255,255,255,.16);
-
-            font-size: 16px;
-            font-weight: 800;
-        }
-
-        .menu-avatar img {
-            width: 100%;
-            height: 100%;
-
-            object-fit: cover;
-        }
-
-        .profile-details {
-            min-width: 0;
-        }
-
-        .profile-name {
-            font-size: 16px;
-            font-weight: 750;
-
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .profile-username {
-            margin-top: 4px;
-
-            color: rgba(255,255,255,.62);
-
-            font-size: 12px;
-
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .profile-auth {
-            margin-top: 5px;
-
-            color: rgba(255,255,255,.48);
-
-            font-size: 10px;
-        }
-
-        .menu-list {
-            margin-top: 22px;
-
-            display: flex;
-            flex-direction: column;
-
-            gap: 5px;
-        }
-
-        .menu-item {
-            width: 100%;
-
-            display: flex;
-            align-items: center;
-            gap: 13px;
-
-            padding: 13px;
-
-            border: 0;
-            border-radius: 13px;
-
-            background: transparent;
-
-            color: var(--text);
-
-            text-align: left;
-
-            font-size: 14px;
-            font-weight: 650;
-        }
-
-        .menu-item:active {
-            background: #e9ebe5;
-        }
-
-        .menu-item-icon {
-            width: 34px;
-            height: 34px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 10px;
-
-            background: #e8eee9;
-
-            color: var(--green);
-
-            font-size: 10px;
-            font-weight: 800;
-        }
-
-        .admin-menu-item {
-            margin-top: 10px;
-
-            background: var(--green-light);
-
-            color: var(--green);
-        }
-
-        /*
-         * NOTICES
-         */
-
-        .notice {
-            margin-bottom: 11px;
-
-            padding: 15px 16px;
-
-            border-radius: 16px;
-
-            background: rgba(255,255,255,.96);
-
-            border-left: 4px solid var(--gold);
-
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.035);
-        }
-
-        .notice-title {
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        .notice-text {
-            margin-top: 5px;
-
-            color: var(--muted);
-
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .empty {
-            padding: 35px 20px;
-
-            text-align: center;
-
-            color: var(--muted);
-        }
-
-        .error-box {
-            margin: 20px 0;
-            padding: 16px;
-
-            border-radius: 16px;
-
-            background: #fff4f2;
-            color: var(--danger);
-
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        @media (max-width: 390px) {
-
-            .content {
-                padding-left: 14px;
-                padding-right: 14px;
-            }
-
-            .welcome-name {
-                font-size: 27px;
-            }
-
-            .hero {
-                padding: 20px;
-            }
-
-            .quick-card {
-                padding: 14px;
-            }
-        }
-    </style>
-</head>
+    <div id="authError" class="error"></div>
 
-<body>
+    <!-- LOGIN -->
 
-<div class="app">
+    <div id="loginForm">
 
-    <!-- HEADER -->
+        <input
+            id="loginInput"
+            class="input"
+            type="text"
+            placeholder="Логин"
+            autocomplete="username"
+        >
 
-    <header class="header">
+        <input
+            id="loginPassword"
+            class="input"
+            type="password"
+            placeholder="Пароль"
+            autocomplete="current-password"
+        >
 
         <button
-            class="logo"
-            type="button"
-            onclick="showPage('home')"
+            class="primary-button"
+            onclick="login()"
         >
-            <div class="logo-mark">
-                RI
-            </div>
-
-            <div class="logo-name">
-                RAUDA ILM
-            </div>
+            Войти
         </button>
 
         <button
-            class="menu-button"
-            type="button"
-            aria-label="Открыть меню"
-            onclick="openMenu()"
+            class="secondary-button"
+            onclick="telegramLogin()"
         >
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+            Войти через Telegram
         </button>
 
-    </header>
+        <div class="auth-switch">
+            Нет аккаунта?
+            <button onclick="showRegister()">
+                Регистрация
+            </button>
+        </div>
 
+    </div>
 
-    <!-- CONTENT -->
+    <!-- REGISTER -->
 
-    <main class="content">
+    <div id="registerForm" style="display:none">
 
-        <!-- HOME -->
-
-        <section
-            id="page-home"
-            class="page active"
+        <input
+            id="registerLogin"
+            class="input"
+            type="text"
+            placeholder="Придумайте логин"
+            autocomplete="username"
         >
+
+        <input
+            id="registerPassword"
+            class="input"
+            type="password"
+            placeholder="Пароль минимум 8 символов"
+            autocomplete="new-password"
+        >
+
+        <input
+            id="registerFirstName"
+            class="input"
+            type="text"
+            placeholder="Имя"
+        >
+
+        <input
+            id="registerLastName"
+            class="input"
+            type="text"
+            placeholder="Фамилия"
+        >
+
+        <input
+            id="registerPhone"
+            class="input"
+            type="tel"
+            placeholder="Телефон"
+        >
+
+        <button
+            class="primary-button"
+            onclick="register()"
+        >
+            Создать аккаунт
+        </button>
+
+        <div class="auth-switch">
+            Уже есть аккаунт?
+            <button onclick="showLogin()">
+                Войти
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+</div><!-- APP --><div id="app" class="app" style="display:none"><header class="header">
+
+    <div class="logo">
+        RАUDA ILM
+    </div>
+
+    <button
+        class="menu-button"
+        onclick="openMenu()"
+        aria-label="Меню"
+    >
+        ☰
+    </button>
+
+</header>
+
+
+<main class="content">
+
+    <!-- HOME -->
+
+    <section
+        id="homeScreen"
+        class="screen active"
+    >
+
+        <div class="welcome">
+
+            <div class="welcome-small">
+                С возвращением
+            </div>
+
+            <h1
+                id="welcomeName"
+                class="welcome-title"
+            >
+                Студент
+            </h1>
+
+        </div>
+
+        <div class="card">
+
+            <div class="program-label">
+                Программа обучения
+            </div>
 
             <div
-                id="home-loading"
-                class="loading"
+                id="programTitle"
+                class="program-title"
             >
-                <div class="loader"></div>
-                <div>Загрузка...</div>
+                Загрузка...
             </div>
-
 
             <div
-                id="home-content"
-                class="hidden"
+                id="programDescription"
+                class="program-description"
             >
-
-                <div class="welcome">
-
-                    <div class="welcome-small">
-                        С возвращением
-                    </div>
-
-                    <div
-                        id="welcome-name"
-                        class="welcome-name"
-                    >
-                        Студент
-                    </div>
-
-                </div>
-
-
-                <div class="hero">
-
-                    <div class="hero-label">
-                        Образовательная программа
-                    </div>
-
-                    <div
-                        id="hero-program"
-                        class="hero-program"
-                    >
-                        Biology — sanitary epidemiology
-                    </div>
-
-
-                    <div class="hero-bottom">
-
-                        <div class="semester">
-                            Программа
-
-                            <strong id="hero-code">
-                                6В05102
-                            </strong>
-                        </div>
-
-
-                        <div class="semester">
-                            Семестр
-
-                            <strong id="hero-semester">
-                                2
-                            </strong>
-                        </div>
-
-
-                        <div class="progress-number">
-                            <span id="hero-progress">
-                                0
-                            </span>%
-                        </div>
-
-                    </div>
-
-
-                    <div class="progress-line">
-                        <div
-                            id="progress-fill"
-                            class="progress-fill"
-                        ></div>
-                    </div>
-
-                </div>
-
-
-                <button
-                    id="continue-button"
-                    class="continue"
-                    type="button"
-                    onclick="continueLearning()"
-                >
-
-                    <div class="continue-left">
-
-                        <span class="continue-label">
-                            Продолжить обучение
-                        </span>
-
-                        <span
-                            id="continue-title"
-                            class="continue-title"
-                        >
-                            Мои уроки
-                        </span>
-
-                    </div>
-
-                    <span class="arrow">
-                        →
-                    </span>
-
-                </button>
-
-
-                <div class="section">
-
-                    <div class="section-title">
-                        Быстрый доступ
-                    </div>
-
-
-                    <div class="quick-grid">
-
-                        <button
-                            class="quick-card"
-                            type="button"
-                            onclick="showPage('lessons')"
-                        >
-
-                            <div class="quick-icon">
-                                У
-                            </div>
-
-                            <div class="quick-title">
-                                Мои уроки
-                            </div>
-
-                            <div class="quick-description">
-                                Учебная программа
-                            </div>
-
-                        </button>
-
-
-                        <button
-                            class="quick-card"
-                            type="button"
-                            onclick="showPage('schedule')"
-                        >
-
-                            <div class="quick-icon">
-                                Р
-                            </div>
-
-                            <div class="quick-title">
-                                Расписание
-                            </div>
-
-                            <div class="quick-description">
-                                Занятия и пары
-                            </div>
-
-                        </button>
-
-
-                        <button
-                            class="quick-card"
-                            type="button"
-                            onclick="showPage('exams')"
-                        >
-
-                            <div class="quick-icon">
-                                Э
-                            </div>
-
-                            <div class="quick-title">
-                                Экзамены
-                            </div>
-
-                            <div class="quick-description">
-                                Контроль знаний
-                            </div>
-
-                        </button>
-
-
-                        <button
-                            class="quick-card"
-                            type="button"
-                            onclick="showPage('science')"
-                        >
-
-                            <div class="quick-icon">
-                                Н
-                            </div>
-
-                            <div class="quick-title">
-                                Научные материалы
-                            </div>
-
-                            <div class="quick-description">
-                                Материалы для изучения
-                            </div>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
+                Загружаем информацию о программе.
             </div>
 
-        </section>
-
-
-        <!-- LESSONS -->
-
-        <section
-            id="page-lessons"
-            class="page"
-        >
+            <div
+                id="semesterLabel"
+                class="semester"
+            >
+                Семестр
+            </div>
 
             <button
-                class="back-button"
-                type="button"
-                onclick="showPage('home')"
+                class="primary-button"
+                onclick="showScreen('lessonsScreen'); loadLessons();"
             >
-                ← Главная
+                Перейти к урокам
             </button>
 
+        </div>
 
-            <div class="page-header">
-
-                <h1>
-                    Мои уроки
-                </h1>
-
-                <p>
-                    Учебная программа и материалы курса
-                </p>
-
-            </div>
+    </section>
 
 
-            <div class="learning-summary">
+    <!-- PROFILE -->
 
-                <div class="summary-card">
+    <section
+        id="profileScreen"
+        class="screen"
+    >
 
-                    <div
-                        id="summary-lessons"
-                        class="summary-number"
-                    >
-                        0
-                    </div>
-
-                    <div class="summary-label">
-                        уроков
-                    </div>
-
-                </div>
-
-
-                <div class="summary-card">
-
-                    <div
-                        id="summary-completed"
-                        class="summary-number"
-                    >
-                        0
-                    </div>
-
-                    <div class="summary-label">
-                        завершено
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div id="curriculum">
-
-                <div class="loading">
-
-                    <div class="loader"></div>
-
-                    Загрузка программы...
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- LESSON -->
-
-        <section
-            id="page-lesson"
-            class="page"
+        <button
+            class="back-button"
+            onclick="showScreen('homeScreen')"
         >
+            ← Назад
+        </button>
 
-            <button
-                class="back-button"
-                type="button"
-                onclick="showPage('lessons')"
-            >
-                ← Мои уроки
-            </button>
+        <div class="card">
 
-
-            <div id="lesson-container">
-
-                <div class="loading">
-
-                    <div class="loader"></div>
-
-                    Загрузка урока...
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- SCHEDULE -->
-
-        <section
-            id="page-schedule"
-            class="page"
-        >
-
-            <button
-                class="back-button"
-                type="button"
-                onclick="showPage('home')"
-            >
-                ← Главная
-            </button>
-
-
-            <div class="page-header">
-
-                <h1>
-                    Расписание
-                </h1>
-
-                <p>
-                    Ваши учебные занятия
-                </p>
-
-            </div>
-
-
-            <div id="schedule-container">
-
-                <div class="empty">
-                    Расписание пока не добавлено.
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- EXAMS -->
-
-        <section
-            id="page-exams"
-            class="page"
-        >
-
-            <button
-                class="back-button"
-                type="button"
-                onclick="showPage('home')"
-            >
-                ← Главная
-            </button>
-
-
-            <div class="page-header">
-
-                <h1>
-                    Экзамены
-                </h1>
-
-                <p>
-                    Экзамены и контрольные мероприятия
-                </p>
-
-            </div>
-
-
-            <div id="exams-container">
-
-                <div class="empty">
-                    Информация об экзаменах пока не добавлена.
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- SCIENCE -->
-
-        <section
-            id="page-science"
-            class="page"
-        >
-
-            <button
-                class="back-button"
-                type="button"
-                onclick="showPage('home')"
-            >
-                ← Главная
-            </button>
-
-
-            <div class="page-header">
-
-                <h1>
-                    Научные материалы
-                </h1>
-
-                <p>
-                    Дополнительные материалы для обучения
-                </p>
-
-            </div>
-
-
-            <div id="science-container">
-
-                <div class="empty">
-                    Научные материалы пока не добавлены.
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- PROFILE -->
-
-        <section
-            id="page-profile"
-            class="page"
-        >
-
-            <button
-                class="back-button"
-                type="button"
-                onclick="showPage('home')"
-            >
-                ← Главная
-            </button>
-
-
-            <div class="page-header">
-
-                <h1>
-                    Профиль
-                </h1>
-
-                <p>
-                    Ваш профиль Telegram
-                </p>
-
-            </div>
-
-
-            <div class="profile-main">
+            <div class="profile-header">
 
                 <div
-                    id="profile-avatar"
-                    class="profile-avatar"
+                    id="profileAvatar"
+                    class="avatar"
                 >
                     С
                 </div>
 
-
                 <div
-                    id="profile-name-big"
-                    class="profile-name-big"
+                    id="profileName"
+                    class="profile-name"
                 >
                     Студент
                 </div>
 
-
                 <div
-                    id="profile-username-big"
-                    class="profile-username-big"
+                    id="profileRole"
+                    class="profile-role"
                 >
-                    —
-                </div>
-
-
-                <div
-                    id="telegram-status"
-                    class="telegram-status"
-                >
-                    <span class="telegram-dot"></span>
-
-                    <span id="telegram-status-text">
-                        Telegram не подключён
-                    </span>
-                </div>
-
-
-                <div class="profile-row">
-
-                    <div class="profile-row-label">
-                        Telegram ID
-                    </div>
-
-                    <div
-                        id="profile-telegram-id"
-                        class="profile-row-value"
-                    >
-                        —
-                    </div>
-
-                </div>
-
-
-                <div class="profile-row">
-
-                    <div class="profile-row-label">
-                        Образовательная программа
-                    </div>
-
-                    <div
-                        id="profile-program"
-                        class="profile-row-value"
-                    >
-                        Biology — sanitary epidemiology
-                    </div>
-
-                </div>
-
-
-                <div class="profile-row">
-
-                    <div class="profile-row-label">
-                        Код программы
-                    </div>
-
-                    <div
-                        id="profile-code"
-                        class="profile-row-value"
-                    >
-                        6В05102
-                    </div>
-
-                </div>
-
-
-                <div class="profile-row">
-
-                    <div class="profile-row-label">
-                        Семестр
-                    </div>
-
-                    <div
-                        id="profile-semester"
-                        class="profile-row-value"
-                    >
-                        2
-                    </div>
-
+                    Студент
                 </div>
 
             </div>
 
-        </section>
 
+            <div class="profile-row">
+                <span>Имя</span>
+                <span id="profileFirstName">—</span>
+            </div>
 
-        <!-- INFO -->
+            <div class="profile-row">
+                <span>Фамилия</span>
+                <span id="profileLastName">—</span>
+            </div>
 
-        <section
-            id="page-info"
-            class="page"
+            <div class="profile-row">
+                <span>Логин</span>
+                <span id="profileLogin">—</span>
+            </div>
+
+            <div class="profile-row">
+                <span>Telegram</span>
+                <span id="profileUsername">—</span>
+            </div>
+
+            <div class="profile-row">
+                <span>Телефон</span>
+                <span id="profilePhone">—</span>
+            </div>
+
+            <div class="profile-row">
+                <span>Роль</span>
+                <span id="profileRoleValue">—</span>
+            </div>
+
+            <div class="profile-row">
+                <span>Статус</span>
+                <span id="profileStatus">—</span>
+            </div>
+
+        </div>
+
+        <button
+            class="secondary-button"
+            onclick="logout()"
         >
+            Выйти из аккаунта
+        </button>
 
-            <button
-                class="back-button"
-                type="button"
-                onclick="showPage('home')"
+    </section>
+
+
+    <!-- LESSONS -->
+
+    <section
+        id="lessonsScreen"
+        class="screen"
+    >
+
+        <button
+            class="back-button"
+            onclick="showScreen('homeScreen')"
+        >
+            ← Назад
+        </button>
+
+        <div class="card">
+
+            <div class="program-title">
+                Мои уроки
+            </div>
+
+            <div
+                id="lessonsContainer"
             >
-                ← Главная
-            </button>
-
-
-            <div class="page-header">
-
-                <h1>
-                    О приложении
-                </h1>
-
-                <p>
-                    RAUDA ILM
-                </p>
-
+                <div class="loading">
+                    Загружаем уроки...
+                </div>
             </div>
 
+        </div>
 
-            <div class="info-card">
+    </section>
 
-                <div class="info-card-title">
-                    RAUDA ILM
-                </div>
 
-                <div class="info-card-text">
-                    Учебное приложение для студентов.
-                    Здесь находятся уроки, учебные материалы,
-                    расписание и информация об экзаменах.
-                </div>
+    <!-- SCHEDULE -->
 
+    <section
+        id="scheduleScreen"
+        class="screen"
+    >
+
+        <button
+            class="back-button"
+            onclick="showScreen('homeScreen')"
+        >
+            ← Назад
+        </button>
+
+        <div class="card">
+
+            <div class="program-title">
+                Расписание
             </div>
 
-
-            <div class="info-card">
-
-                <div class="info-card-title">
-                    Версия
-                </div>
-
-                <div class="info-card-text">
-                    1.1
-                </div>
-
+            <div class="empty">
+                Раздел готовится.
             </div>
 
-        </section>
+        </div>
 
-    </main>
+    </section>
 
+
+    <!-- EXAMS -->
+
+    <section
+        id="examsScreen"
+        class="screen"
+    >
+
+        <button
+            class="back-button"
+            onclick="showScreen('homeScreen')"
+        >
+            ← Назад
+        </button>
+
+        <div class="card">
+
+            <div class="program-title">
+                Экзамены
+            </div>
+
+            <div class="empty">
+                Раздел готовится.
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- SCIENCE -->
+
+    <section
+        id="scienceScreen"
+        class="screen"
+    >
+
+        <button
+            class="back-button"
+            onclick="showScreen('homeScreen')"
+        >
+            ← Назад
+        </button>
+
+        <div class="card">
+
+            <div class="program-title">
+                Научные материалы
+            </div>
+
+            <div class="empty">
+                Раздел готовится.
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+</div><!-- MENU --><div
+    id="menuOverlay"
+    class="menu-overlay"
+    onclick="closeMenu()"
+></div><div
+    id="sideMenu"
+    class="side-menu"
+><button
+    class="menu-close"
+    onclick="closeMenu()"
+>
+    ×
+</button>
+
+<div class="menu-title">
+    Меню
 </div>
 
-
-<!-- OVERLAY -->
-
-<div
-    id="overlay"
-    class="overlay"
-    onclick="closeMenu()"
-></div>
-
-
-<!-- SIDE MENU -->
-
-<aside
-    id="side-menu"
-    class="side-menu"
+<button
+    class="menu-item"
+    onclick="openProfile()"
 >
-
-    <div class="menu-header">
-
-        <div class="menu-title">
-            Меню
-        </div>
-
-        <button
-            class="close"
-            type="button"
-            onclick="closeMenu()"
-            aria-label="Закрыть"
-        >
-            ×
-        </button>
-
-    </div>
-
-
-    <!-- TELEGRAM PROFILE -->
-
-    <div class="profile-card">
-
-        <div
-            id="menu-avatar"
-            class="menu-avatar"
-        >
-            С
-        </div>
-
-
-        <div class="profile-details">
-
-            <div
-                id="menu-profile-name"
-                class="profile-name"
-            >
-                Студент
-            </div>
-
-            <div
-                id="menu-profile-username"
-                class="profile-username"
-            >
-                Telegram
-            </div>
-
-            <div
-                id="menu-profile-auth"
-                class="profile-auth"
-            >
-                Режим предпросмотра
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="menu-list">
-
-        <button
-            class="menu-item"
-            type="button"
-            onclick="navigateMenu('profile')"
-        >
-
-            <span class="menu-item-icon">
-                П
-            </span>
-
-            <span>
-                Пользователь Telegram
-            </span>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            type="button"
-            onclick="navigateMenu('lessons')"
-        >
-
-            <span class="menu-item-icon">
-                У
-            </span>
-
-            <span>
-                Мои уроки
-            </span>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            type="button"
-            onclick="navigateMenu('schedule')"
-        >
-
-            <span class="menu-item-icon">
-                Р
-            </span>
-
-            <span>
-                Расписание
-            </span>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            type="button"
-            onclick="navigateMenu('exams')"
-        >
-
-            <span class="menu-item-icon">
-                Э
-            </span>
-
-            <span>
-                Экзамены
-            </span>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            type="button"
-            onclick="navigateMenu('science')"
-        >
-
-            <span class="menu-item-icon">
-                Н
-            </span>
-
-            <span>
-                Научные материалы
-            </span>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            type="button"
-            onclick="navigateMenu('home')"
-        >
-
-            <span class="menu-item-icon">
-                Г
-            </span>
-
-            <span>
-                Главная
-            </span>
-
-        </button>
-
-
-        <button
-            class="menu-item"
-            type="button"
-            onclick="navigateMenu('info')"
-        >
-
-            <span class="menu-item-icon">
-                i
-            </span>
-
-            <span>
-                О приложении
-            </span>
-
-        </button>
-
-
-        <button
-            id="admin-menu-item"
-            class="menu-item admin-menu-item hidden"
-            type="button"
-            onclick="openAdmin()"
-        >
-
-            <span class="menu-item-icon">
-                А
-            </span>
-
-            <span>
-                Администрирование
-            </span>
-
-        </button>
-
-    </div>
-
-</aside>
-
-
-<script>
-"use strict";
-
-
-/*
-|--------------------------------------------------------------------------
-| CONFIG
-|--------------------------------------------------------------------------
-*/
-
-const API_BASE = "";
-
-
-/*
-|--------------------------------------------------------------------------
-| STATE
-|--------------------------------------------------------------------------
-*/
-
-const state = {
-
-    user: null,
-
-    profile: null,
-
-    curriculum: null,
-
-    schedule: [],
-
-    exams: [],
-
-    science: [],
-
-    currentLesson: null,
-
-    authorized: false,
-
-    telegram: false
-
-};
-
-
-/*
-|--------------------------------------------------------------------------
-| TELEGRAM
-|--------------------------------------------------------------------------
-*/
-
-function getTelegramWebApp() {
-
-    if (
-        window.Telegram &&
-        window.Telegram.WebApp
+    👤 Студент
+</button>
+
+<button
+    class="menu-item"
+    onclick="openLessons()"
+>
+    📚 Мои уроки
+</button>
+
+<button
+    class="menu-item"
+    onclick="openSchedule()"
+>
+    📅 Расписание
+</button>
+
+<button
+    class="menu-item"
+    onclick="openExams()"
+>
+    📝 Экзамены
+</button>
+
+<button
+    class="menu-item"
+    onclick="openScience()"
+>
+    🔬 Научные материалы
+</button>
+
+<button
+    class="menu-item"
+    onclick="logout()"
+>
+    🚪 Выйти
+</button>
+
+</div><script>
+
+    /*
+     * ============================
+     * CONFIG
+     * ============================
+     */
+
+    const API = "/api";
+
+    let currentUser = null;
+
+
+    /*
+     * ============================
+     * TOKEN
+     * ============================
+     */
+
+    function getToken() {
+        return localStorage.getItem("rauda_token");
+    }
+
+    function saveToken(token) {
+        localStorage.setItem(
+            "rauda_token",
+            token
+        );
+    }
+
+    function clearToken() {
+        localStorage.removeItem(
+            "rauda_token"
+        );
+    }
+
+
+    /*
+     * ============================
+     * API
+     * ============================
+     */
+
+    async function api(
+        path,
+        options = {}
     ) {
-        return window.Telegram.WebApp;
-    }
 
-    return null;
-}
+        const headers = {
+            "Content-Type":
+                "application/json",
+            ...(options.headers || {})
+        };
 
+        const token = getToken();
 
-function getTelegramUser() {
-
-    const tg =
-        getTelegramWebApp();
-
-
-    if (
-        tg &&
-        tg.initDataUnsafe &&
-        tg.initDataUnsafe.user
-    ) {
-        return tg.initDataUnsafe.user;
-    }
-
-
-    return null;
-}
-
-
-function getInitData() {
-
-    const tg =
-        getTelegramWebApp();
-
-
-    if (
-        tg &&
-        typeof tg.initData === "string" &&
-        tg.initData.trim()
-    ) {
-        return tg.initData;
-    }
-
-
-    return "";
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| TELEGRAM AVATAR
-|--------------------------------------------------------------------------
-*/
-
-function getTelegramPhotoUrl(user) {
-
-    if (!user) {
-        return "";
-    }
-
-
-    return (
-        user.photo_url ||
-        user.photoUrl ||
-        ""
-    );
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| SAFE API
-|--------------------------------------------------------------------------
-*/
-
-async function apiRequest(
-    path,
-    options = {}
-) {
-
-    try {
+        if (token) {
+            headers.Authorization =
+                "Bearer " + token;
+        }
 
         const response =
             await fetch(
-                API_BASE + path,
+                API + path,
                 {
                     ...options,
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-
-                        ...(options.headers || {})
-                    }
+                    headers
                 }
             );
 
+        let data;
 
-        const contentType =
-            response.headers.get(
-                "content-type"
-            ) || "";
-
-
-        let data = null;
-
-
-        if (
-            contentType.includes(
-                "application/json"
-            )
-        ) {
-
-            data =
-                await response.json();
-
-        } else {
-
-            const text =
-                await response.text();
-
-            data =
-                text
-                    ? { text }
-                    : null;
+        try {
+            data = await response.json();
+        } catch {
+            data = {
+                ok: false,
+                error: "Ошибка сервера"
+            };
         }
 
-
-        if (!response.ok) {
-
-            throw new Error(
-                data?.error ||
-                data?.message ||
-                `HTTP ${response.status}`
-            );
-        }
-
-
-        return data;
-
-    } catch (error) {
-
-        console.warn(
-            "API request failed:",
-            path,
-            error
-        );
-
-
-        return null;
+        return {
+            response,
+            data
+        };
     }
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| AUTHENTICATION
-|--------------------------------------------------------------------------
-*/
-
-async function authenticate() {
-
-    const telegramUser =
-        getTelegramUser();
-
-    const initData =
-        getInitData();
 
 
     /*
-     * Настоящий Telegram Mini App
+     * ============================
+     * AUTH UI
+     * ============================
      */
 
-    if (
-        telegramUser &&
-        initData
-    ) {
+    function showError(message) {
 
-        state.telegram = true;
+        const element =
+            document.getElementById(
+                "authError"
+            );
 
-        state.user =
-            telegramUser;
+        element.textContent =
+            message || "Произошла ошибка";
+
+        element.classList.add(
+            "show"
+        );
+    }
+
+    function hideError() {
+
+        document
+            .getElementById("authError")
+            .classList.remove("show");
+    }
+
+    function showRegister() {
+
+        hideError();
+
+        document
+            .getElementById("loginForm")
+            .style.display = "none";
+
+        document
+            .getElementById("registerForm")
+            .style.display = "block";
+    }
+
+    function showLogin() {
+
+        hideError();
+
+        document
+            .getElementById("registerForm")
+            .style.display = "none";
+
+        document
+            .getElementById("loginForm")
+            .style.display = "block";
+    }
 
 
-        /*
-         * Отправляем initData
-         * на backend.
-         */
+    /*
+     * ============================
+     * LOGIN
+     * ============================
+     */
+
+    async function login() {
+
+        hideError();
+
+        const loginValue =
+            document
+                .getElementById(
+                    "loginInput"
+                )
+                .value
+                .trim();
+
+        const password =
+            document
+                .getElementById(
+                    "loginPassword"
+                )
+                .value;
+
+        if (!loginValue || !password) {
+            showError(
+                "Введите логин и пароль"
+            );
+            return;
+        }
 
         const result =
-            await apiRequest(
-                "/api/auth/telegram",
+            await api(
+                "/auth/login",
                 {
                     method: "POST",
-
                     body: JSON.stringify({
-                        initData: initData
+                        login: loginValue,
+                        password
                     })
                 }
             );
 
-
-        if (result) {
-
-            state.authorized = true;
-
-
-            state.user =
-                result.user ||
-                telegramUser;
-
-
-            state.profile =
-                result.profile ||
-                null;
-
-
-            return true;
+        if (!result.data.ok) {
+            showError(
+                result.data.error
+            );
+            return;
         }
 
+        saveToken(
+            result.data.token
+        );
+
+        currentUser =
+            result.data.user;
+
+        openApp();
+
+    }
+
+
+    /*
+     * ============================
+     * REGISTER
+     * ============================
+     */
+
+    async function register() {
+
+        hideError();
+
+        const loginValue =
+            document
+                .getElementById(
+                    "registerLogin"
+                )
+                .value
+                .trim();
+
+        const password =
+            document
+                .getElementById(
+                    "registerPassword"
+                )
+                .value;
+
+        const firstName =
+            document
+                .getElementById(
+                    "registerFirstName"
+                )
+                .value
+                .trim();
+
+        const lastName =
+            document
+                .getElementById(
+                    "registerLastName"
+                )
+                .value
+                .trim();
+
+        const phone =
+            document
+                .getElementById(
+                    "registerPhone"
+                )
+                .value
+                .trim();
+
+        const result =
+            await api(
+                "/auth/register",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        login: loginValue,
+                        password,
+                        first_name:
+                            firstName,
+                        last_name:
+                            lastName,
+                        phone
+                    })
+                }
+            );
+
+        if (!result.data.ok) {
+            showError(
+                result.data.error
+            );
+            return;
+        }
+
+        saveToken(
+            result.data.token
+        );
+
+        currentUser =
+            result.data.user;
+
+        openApp();
+
+    }
+
+
+    /*
+     * ============================
+     * TELEGRAM
+     * ============================
+     */
+
+    async function telegramLogin() {
+
+        hideError();
 
         /*
-         * Backend пока не подключён
-         * или ещё не настроен.
-         *
-         * Пользователь всё равно
-         * отображается из Telegram.
+         * В Telegram Mini App
+         * данные доступны через
+         * Telegram.WebApp.initData.
          */
 
-        state.profile = null;
+        if (
+            !window.Telegram ||
+            !window.Telegram.WebApp
+        ) {
+            showError(
+                "Telegram авторизация доступна внутри Telegram Mini App"
+            );
+            return;
+        }
 
-        return false;
+        const tg =
+            window.Telegram.WebApp;
+
+        const initData =
+            tg.initData;
+
+        if (!initData) {
+            showError(
+                "Telegram initData отсутствует"
+            );
+            return;
+        }
+
+        const result =
+            await api(
+                "/auth/telegram",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        initData
+                    })
+                }
+            );
+
+        if (!result.data.ok) {
+            showError(
+                result.data.error
+            );
+            return;
+        }
+
+        saveToken(
+            result.data.token
+        );
+
+        currentUser =
+            result.data.user;
+
+        openApp();
+
     }
 
 
     /*
-     * Обычный браузер / Cloudflare Preview.
+     * ============================
+     * CHECK SESSION
+     * ============================
      */
 
-    state.telegram = false;
+    async function checkSession() {
 
-    state.authorized = false;
+        const token =
+            getToken();
 
+        if (!token) {
+            return false;
+        }
 
-    state.user = {
-
-        id: 0,
-
-        first_name:
-            "Студент",
-
-        last_name:
-            "",
-
-        username:
-            ""
-
-    };
-
-
-    state.profile = {
-
-        program_code:
-            "6В05102",
-
-        program_name:
-            "Biology — sanitary epidemiology",
-
-        semester:
-            2,
-
-        progress:
-            0
-
-    };
-
-
-    return false;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| USER HELPERS
-|--------------------------------------------------------------------------
-*/
-
-function getUserName() {
-
-    if (!state.user) {
-        return "Студент";
-    }
-
-
-    const first =
-        state.user.first_name ||
-        "";
-
-
-    const last =
-        state.user.last_name ||
-        "";
-
-
-    const full =
-        `${first} ${last}`.trim();
-
-
-    return full ||
-        "Студент";
-}
-
-
-function getUsername() {
-
-    if (
-        state.user &&
-        state.user.username
-    ) {
-        return "@" +
-            state.user.username;
-    }
-
-
-    if (state.telegram) {
-        return "Telegram";
-    }
-
-
-    return "Предпросмотр";
-}
-
-
-function getTelegramId() {
-
-    if (
-        state.user &&
-        state.user.id
-    ) {
-        return String(
-            state.user.id
-        );
-    }
-
-
-    return "—";
-}
-
-
-function getInitials(name) {
-
-    const parts =
-        String(name)
-            .trim()
-            .split(/\s+/)
-            .filter(Boolean);
-
-
-    if (!parts.length) {
-        return "С";
-    }
-
-
-    if (parts.length === 1) {
-
-        return parts[0]
-            .slice(0, 1)
-            .toUpperCase();
-    }
-
-
-    return (
-        parts[0].slice(0, 1) +
-        parts[1].slice(0, 1)
-    ).toUpperCase();
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| AVATAR
-|--------------------------------------------------------------------------
-*/
-
-function setAvatar(
-    containerId,
-    user
-) {
-
-    const container =
-        document.getElementById(
-            containerId
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    const name =
-        getUserName();
-
-
-    const photo =
-        getTelegramPhotoUrl(
-            user
-        );
-
-
-    container.innerHTML = "";
-
-
-    if (photo) {
-
-        const img =
-            document.createElement(
-                "img"
+        const result =
+            await api(
+                "/auth/me"
             );
 
+        if (!result.data.ok) {
 
-        img.src = photo;
+            clearToken();
 
-        img.alt = name;
+            return false;
+        }
+
+        currentUser =
+            result.data.user;
+
+        return true;
+    }
 
 
-        img.onerror = () => {
+    /*
+     * ============================
+     * OPEN APP
+     * ============================
+     */
 
-            container.innerHTML =
-                escapeHtml(
-                    getInitials(name)
-                );
+    function openApp() {
+
+        document
+            .getElementById(
+                "authApp"
+            )
+            .style.display = "none";
+
+        document
+            .getElementById(
+                "app"
+            )
+            .style.display = "block";
+
+        updateProfile();
+
+        loadPrograms();
+    }
+
+
+    /*
+     * ============================
+     * PROFILE
+     * ============================
+     */
+
+    function updateProfile() {
+
+        if (!currentUser) {
+            return;
+        }
+
+        const firstName =
+            currentUser.first_name ||
+            "";
+
+        const lastName =
+            currentUser.last_name ||
+            "";
+
+        const fullName =
+            (
+                firstName +
+                " " +
+                lastName
+            ).trim() ||
+            currentUser.username ||
+            currentUser.login ||
+            "Студент";
+
+        document
+            .getElementById(
+                "welcomeName"
+            )
+            .textContent =
+            fullName;
+
+        document
+            .getElementById(
+                "profileName"
+            )
+            .textContent =
+            fullName;
+
+        document
+            .getElementById(
+                "profileFirstName"
+            )
+            .textContent =
+            firstName || "—";
+
+        document
+            .getElementById(
+                "profileLastName"
+            )
+            .textContent =
+            lastName || "—";
+
+        document
+            .getElementById(
+                "profileLogin"
+            )
+            .textContent =
+            currentUser.login ||
+            "—";
+
+        document
+            .getElementById(
+                "profileUsername"
+            )
+            .textContent =
+            currentUser.username
+                ? "@" +
+                  currentUser.username
+                : "—";
+
+        document
+            .getElementById(
+                "profilePhone"
+            )
+            .textContent =
+            currentUser.phone ||
+            "—";
+
+        document
+            .getElementById(
+                "profileRole"
+            )
+            .textContent =
+            translateRole(
+                currentUser.role
+            );
+
+        document
+            .getElementById(
+                "profileRoleValue"
+            )
+            .textContent =
+            translateRole(
+                currentUser.role
+            );
+
+        document
+            .getElementById(
+                "profileStatus"
+            )
+            .textContent =
+            currentUser.status ===
+            "active"
+                ? "Активен"
+                : currentUser.status;
+
+        const avatar =
+            fullName
+                .charAt(0)
+                .toUpperCase();
+
+        document
+            .getElementById(
+                "profileAvatar"
+            )
+            .textContent =
+            avatar;
+
+    }
+
+
+    function translateRole(role) {
+
+        const roles = {
+            student: "Студент",
+            admin: "Администратор",
+            owner: "Владелец"
         };
 
-
-        container.appendChild(
-            img
-        );
-
-        return;
+        return roles[role] ||
+            role ||
+            "Студент";
     }
-
-
-    container.textContent =
-        getInitials(name);
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| PROFILE
-|--------------------------------------------------------------------------
-*/
-
-function getProfileValue(
-    key,
-    fallback
-) {
-
-    if (
-        state.profile &&
-        state.profile[key] !== undefined &&
-        state.profile[key] !== null
-    ) {
-
-        return state.profile[key];
-    }
-
-
-    return fallback;
-}
-
-
-function renderUser() {
-
-    const name =
-        getUserName();
-
-
-    const username =
-        getUsername();
-
-
-    const telegramId =
-        getTelegramId();
-
-
-    const programCode =
-        getProfileValue(
-            "program_code",
-            "6В05102"
-        );
-
-
-    const programName =
-        getProfileValue(
-            "program_name",
-            "Biology — sanitary epidemiology"
-        );
-
-
-    const semester =
-        getProfileValue(
-            "semester",
-            2
-        );
-
-
-    let progress =
-        Number(
-            getProfileValue(
-                "progress",
-                0
-            )
-        );
-
-
-    if (
-        !Number.isFinite(progress)
-    ) {
-        progress = 0;
-    }
-
-
-    progress =
-        Math.max(
-            0,
-            Math.min(
-                100,
-                progress
-            )
-        );
 
 
     /*
-     * HOME
+     * ============================
+     * PROGRAMS
+     * ============================
      */
 
-    document.getElementById(
-        "welcome-name"
-    ).textContent =
-        name;
+    async function loadPrograms() {
 
+        try {
 
-    document.getElementById(
-        "hero-program"
-    ).textContent =
-        programName;
-
-
-    document.getElementById(
-        "hero-code"
-    ).textContent =
-        programCode;
-
-
-    document.getElementById(
-        "hero-semester"
-    ).textContent =
-        semester;
-
-
-    document.getElementById(
-        "hero-progress"
-    ).textContent =
-        Math.round(progress);
-
-
-    document.getElementById(
-        "progress-fill"
-    ).style.width =
-        progress + "%";
-
-
-    /*
-     * MENU
-     */
-
-    document.getElementById(
-        "menu-profile-name"
-    ).textContent =
-        name;
-
-
-    document.getElementById(
-        "menu-profile-username"
-    ).textContent =
-        username;
-
-
-    document.getElementById(
-        "menu-profile-auth"
-    ).textContent =
-        state.telegram
-            ? (
-                state.authorized
-                    ? "Telegram авторизован"
-                    : "Telegram подключён"
-            )
-            : "Режим предпросмотра";
-
-
-    setAvatar(
-        "menu-avatar",
-        state.user
-    );
-
-
-    /*
-     * PROFILE
-     */
-
-    setAvatar(
-        "profile-avatar",
-        state.user
-    );
-
-
-    document.getElementById(
-        "profile-name-big"
-    ).textContent =
-        name;
-
-
-    document.getElementById(
-        "profile-username-big"
-    ).textContent =
-        username;
-
-
-    document.getElementById(
-        "profile-telegram-id"
-    ).textContent =
-        telegramId;
-
-
-    document.getElementById(
-        "profile-program"
-    ).textContent =
-        programName;
-
-
-    document.getElementById(
-        "profile-code"
-    ).textContent =
-        programCode;
-
-
-    document.getElementById(
-        "profile-semester"
-    ).textContent =
-        semester;
-
-
-    /*
-     * STATUS
-     */
-
-    const statusText =
-        document.getElementById(
-            "telegram-status-text"
-        );
-
-
-    if (state.telegram) {
-
-        statusText.textContent =
-            state.authorized
-                ? "Telegram авторизован"
-                : "Telegram подключён";
-
-    } else {
-
-        statusText.textContent =
-            "Открыто в предпросмотре";
-    }
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| DATA
-|--------------------------------------------------------------------------
-*/
-
-async function loadData() {
-
-    const [
-        curriculum,
-        schedule,
-        exams,
-        science
-    ] = await Promise.all([
-
-        apiRequest(
-            "/api/curriculum"
-        ),
-
-        apiRequest(
-            "/api/schedule"
-        ),
-
-        apiRequest(
-            "/api/exams"
-        ),
-
-        apiRequest(
-            "/api/science"
-        )
-
-    ]);
-
-
-    if (curriculum) {
-
-        state.curriculum =
-            curriculum.curriculum ||
-            curriculum;
-    }
-
-
-    if (schedule) {
-
-        state.schedule =
-            schedule.schedule ||
-            schedule.items ||
-            [];
-    }
-
-
-    if (exams) {
-
-        state.exams =
-            exams.exams ||
-            exams.items ||
-            [];
-    }
-
-
-    if (science) {
-
-        state.science =
-            science.science ||
-            science.items ||
-            [];
-    }
-
-
-    renderCurriculum();
-
-    renderSchedule();
-
-    renderExams();
-
-    renderScience();
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| DEFAULT CURRICULUM
-|--------------------------------------------------------------------------
-*/
-
-function getDefaultCurriculum() {
-
-    return [
-
-        {
-
-            year:
-                "1 курс",
-
-            semesters: [
-
-                {
-
-                    title:
-                        "1 семестр",
-
-                    subjects: [
-
-                        {
-
-                            name:
-                                "Общие дисциплины",
-
-                            lessons: [
-
-                                {
-
-                                    id:
-                                        "demo-1",
-
-                                    title:
-                                        "Введение в обучение",
-
-                                    description:
-                                        "Учебный материал пока не добавлен.",
-
-                                    completed:
-                                        false
-
-                                }
-
-                            ]
-
-                        }
-
-                    ]
-
-                }
-
-            ]
-
-        }
-
-    ];
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| CURRICULUM
-|--------------------------------------------------------------------------
-*/
-
-function normalizeCurriculum(data) {
-
-    if (!data) {
-
-        return getDefaultCurriculum();
-    }
-
-
-    if (Array.isArray(data)) {
-
-        return data;
-    }
-
-
-    if (Array.isArray(data.years)) {
-
-        return data.years;
-    }
-
-
-    if (Array.isArray(data.courses)) {
-
-        return data.courses;
-    }
-
-
-    return getDefaultCurriculum();
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| RENDER CURRICULUM
-|--------------------------------------------------------------------------
-*/
-
-function renderCurriculum() {
-
-    const container =
-        document.getElementById(
-            "curriculum"
-        );
-
-
-    const curriculum =
-        normalizeCurriculum(
-            state.curriculum
-        );
-
-
-    let totalLessons = 0;
-
-    let completedLessons = 0;
-
-
-    curriculum.forEach(
-        year => {
-
-            (year.semesters || [])
-                .forEach(
-                    semester => {
-
-                        (semester.subjects || [])
-                            .forEach(
-                                subject => {
-
-                                    (subject.lessons || [])
-                                        .forEach(
-                                            lesson => {
-
-                                                totalLessons++;
-
-
-                                                if (
-                                                    lesson.completed
-                                                ) {
-
-                                                    completedLessons++;
-                                                }
-
-                                            }
-                                        );
-
-                                }
-                            );
-
-                    }
+            const result =
+                await api(
+                    "/programs"
                 );
 
+            if (
+                !result.data.ok
+            ) {
+                return;
+            }
+
+            const programs =
+                result.data.programs ||
+                [];
+
+            if (!programs.length) {
+
+                document
+                    .getElementById(
+                        "programTitle"
+                    )
+                    .textContent =
+                    "Программа пока не назначена";
+
+                document
+                    .getElementById(
+                        "programDescription"
+                    )
+                    .textContent =
+                    "После назначения образовательной программы она появится здесь.";
+
+                return;
+            }
+
+            const program =
+                programs[0];
+
+            document
+                .getElementById(
+                    "programTitle"
+                )
+                .textContent =
+                program.name ||
+                "Образовательная программа";
+
+            document
+                .getElementById(
+                    "programDescription"
+                )
+                .textContent =
+                program.description ||
+                program.purpose ||
+                "Информация о программе отсутствует.";
+
+        } catch (error) {
+
+            console.error(
+                "Programs error:",
+                error
+            );
+
         }
-    );
 
-
-    document.getElementById(
-        "summary-lessons"
-    ).textContent =
-        totalLessons;
-
-
-    document.getElementById(
-        "summary-completed"
-    ).textContent =
-        completedLessons;
-
-
-    if (!curriculum.length) {
-
-        container.innerHTML = `
-            <div class="empty">
-                Учебная программа пока не добавлена.
-            </div>
-        `;
-
-        return;
     }
 
 
-    container.innerHTML =
-        curriculum
-            .map(
-                (year, yearIndex) => {
+    /*
+     * ============================
+     * LESSONS
+     * ============================
+     */
 
-                    const semesters =
-                        year.semesters || [];
+    async function loadLessons() {
 
+        const container =
+            document
+                .getElementById(
+                    "lessonsContainer"
+                );
 
-                    return `
+        container.innerHTML =
+            `<div class="loading">
+                Загружаем уроки...
+            </div>`;
 
-                        <div
-                            class="year-card ${
-                                yearIndex === 0
-                                    ? "open"
-                                    : ""
-                            }"
-                        >
+        const result =
+            await api(
+                "/lessons"
+            );
 
-                            <button
-                                class="year-header"
-                                type="button"
-                                onclick="toggleYear(this)"
-                            >
+        if (!result.data.ok) {
 
-                                <div>
+            container.innerHTML =
+                `<div class="empty">
+                    ${escapeHtml(
+                        result.data.error ||
+                        "Не удалось загрузить уроки"
+                    )}
+                </div>`;
 
-                                    <div class="year-title">
-                                        ${escapeHtml(
-                                            year.title ||
-                                            year.name ||
-                                            `Курс ${yearIndex + 1}`
-                                        )}
-                                    </div>
+            return;
+        }
 
-                                    <div class="year-subtitle">
-                                        ${semesters.length}
-                                        ${plural(
-                                            semesters.length,
-                                            "семестр",
-                                            "семестра",
-                                            "семестров"
-                                        )}
-                                    </div>
+        const lessons =
+            result.data.lessons ||
+            [];
 
+        const completed =
+            result.data.completedLessonIds ||
+            [];
+
+        if (!lessons.length) {
+
+            container.innerHTML =
+                `<div class="empty">
+                    Пока нет доступных уроков.
+                </div>`;
+
+            return;
+        }
+
+        container.innerHTML =
+            lessons
+                .map(
+                    lesson => {
+
+                        const isCompleted =
+                            completed.includes(
+                                Number(
+                                    lesson.id
+                                )
+                            );
+
+                        return `
+                            <div class="lesson">
+
+                                <div class="lesson-title">
+                                    ${escapeHtml(
+                                        lesson.title ||
+                                        "Урок"
+                                    )}
                                 </div>
 
-                                <div class="year-arrow">
-                                    ${
-                                        yearIndex === 0
-                                            ? "⌃"
-                                            : "⌄"
-                                    }
+                                <div class="lesson-description">
+                                    ${escapeHtml(
+                                        lesson.description ||
+                                        ""
+                                    )}
                                 </div>
-
-                            </button>
-
-
-                            <div class="year-content">
 
                                 ${
-                                    semesters
-                                        .map(
-                                            (
-                                                semester,
-                                                semesterIndex
-                                            ) =>
-                                                renderSemester(
-                                                    semester,
-                                                    semesterIndex
-                                                )
-                                        )
-                                        .join("")
+                                    isCompleted
+                                        ? `
+                                            <div class="completed">
+                                                ✓ Урок пройден
+                                            </div>
+                                          `
+                                        : `
+                                            <button
+                                                class="secondary-button"
+                                                onclick="completeLesson(${Number(lesson.id)})"
+                                            >
+                                                Отметить как пройденный
+                                            </button>
+                                          `
                                 }
 
                             </div>
+                        `;
 
-                        </div>
-                    `;
-                }
-            )
-            .join("");
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| SEMESTER
-|--------------------------------------------------------------------------
-*/
-
-function renderSemester(
-    semester,
-    semesterIndex
-) {
-
-    const subjects =
-        semester.subjects || [];
-
-
-    const lessonCount =
-        subjects.reduce(
-            (
-                sum,
-                subject
-            ) =>
-                sum +
-                (
-                    subject.lessons ||
-                    []
-                ).length,
-            0
-        );
-
-
-    return `
-
-        <div class="semester-card">
-
-            <button
-                class="semester-header"
-                type="button"
-                onclick="toggleSemester(this)"
-            >
-
-                <div>
-
-                    <div class="semester-title">
-                        ${escapeHtml(
-                            semester.title ||
-                            semester.name ||
-                            `Семестр ${semesterIndex + 1}`
-                        )}
-                    </div>
-
-                    <div class="semester-count">
-                        ${lessonCount}
-                        ${plural(
-                            lessonCount,
-                            "урок",
-                            "урока",
-                            "уроков"
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="semester-arrow">
-                    ⌄
-                </div>
-
-            </button>
-
-
-            <div class="semester-content">
-
-                ${
-                    subjects.length
-                        ? subjects
-                            .map(
-                                (
-                                    subject,
-                                    subjectIndex
-                                ) =>
-                                    renderSubject(
-                                        subject,
-                                        subjectIndex
-                                    )
-                            )
-                            .join("")
-                        : `
-                            <div class="empty">
-                                Предметы пока не добавлены.
-                            </div>
-                        `
-                }
-
-            </div>
-
-        </div>
-    `;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| SUBJECT
-|--------------------------------------------------------------------------
-*/
-
-function renderSubject(
-    subject,
-    subjectIndex
-) {
-
-    const lessons =
-        subject.lessons || [];
-
-
-    const completed =
-        lessons.filter(
-            lesson =>
-                lesson.completed
-        ).length;
-
-
-    return `
-
-        <div class="subject">
-
-            <button
-                class="subject-header"
-                type="button"
-                onclick="toggleSubject(this)"
-            >
-
-                <div>
-
-                    <div class="subject-name">
-                        ${escapeHtml(
-                            subject.name ||
-                            subject.title ||
-                            `Предмет ${subjectIndex + 1}`
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="subject-progress">
-                    ${completed}/${lessons.length}
-                </div>
-
-            </button>
-
-
-            <div class="lessons">
-
-                ${
-                    lessons.length
-                        ? lessons
-                            .map(
-                                lesson =>
-                                    renderLessonRow(
-                                        lesson
-                                    )
-                            )
-                            .join("")
-                        : `
-                            <div class="empty">
-                                Уроки пока не добавлены.
-                            </div>
-                        `
-                }
-
-            </div>
-
-        </div>
-    `;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| LESSON ROW
-|--------------------------------------------------------------------------
-*/
-
-function renderLessonRow(lesson) {
-
-    const id =
-        lesson.id ??
-        lesson.lesson_id ??
-        "";
-
-
-    return `
-
-        <button
-            class="lesson-row ${
-                lesson.completed
-                    ? "completed"
-                    : ""
-            }"
-            type="button"
-            onclick="openLesson('${escapeJs(
-                String(id)
-            )}')"
-        >
-
-            <div class="lesson-status">
-                ${
-                    lesson.completed
-                        ? "✓"
-                        : "•"
-                }
-            </div>
-
-
-            <div class="lesson-info">
-
-                <div class="lesson-row-title">
-                    ${escapeHtml(
-                        lesson.title ||
-                        lesson.name ||
-                        "Урок"
-                    )}
-                </div>
-
-                <div class="lesson-meta">
-                    ${
-                        lesson.duration
-                            ? escapeHtml(
-                                String(
-                                    lesson.duration
-                                )
-                            )
-                            : "Учебный материал"
                     }
-                </div>
-
-            </div>
-
-
-            <div class="arrow">
-                →
-            </div>
-
-        </button>
-    `;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| OPEN LESSON
-|--------------------------------------------------------------------------
-*/
-
-async function openLesson(id) {
-
-    showPage(
-        "lesson"
-    );
-
-
-    const container =
-        document.getElementById(
-            "lesson-container"
-        );
-
-
-    container.innerHTML = `
-
-        <div class="loading">
-
-            <div class="loader"></div>
-
-            Загрузка урока...
-
-        </div>
-    `;
-
-
-    let lesson = null;
-
-
-    const result =
-        await apiRequest(
-            "/api/lessons/" +
-            encodeURIComponent(id)
-        );
-
-
-    if (result) {
-
-        lesson =
-            result.lesson ||
-            result;
-    }
-
-
-    if (!lesson) {
-
-        const curriculum =
-            normalizeCurriculum(
-                state.curriculum
-            );
-
-
-        for (
-            const year
-            of curriculum
-        ) {
-
-            for (
-                const semester
-                of (
-                    year.semesters ||
-                    []
                 )
-            ) {
-
-                for (
-                    const subject
-                    of (
-                        semester.subjects ||
-                        []
-                    )
-                ) {
-
-                    for (
-                        const item
-                        of (
-                            subject.lessons ||
-                            []
-                        )
-                    ) {
-
-                        if (
-                            String(
-                                item.id
-                            ) ===
-                            String(id)
-                        ) {
-
-                            lesson = {
-
-                                ...item,
-
-                                subject:
-                                    subject.name,
-
-                                semester:
-                                    semester.title
-
-                            };
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-        }
+                .join("");
 
     }
 
 
-    if (!lesson) {
+    async function completeLesson(
+        lessonId
+    ) {
 
-        container.innerHTML = `
-
-            <div class="error-box">
-                Урок не найден.
-            </div>
-
-        `;
-
-        return;
-    }
-
-
-    state.currentLesson =
-        lesson;
-
-
-    renderLesson(
-        lesson
-    );
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| RENDER LESSON
-|--------------------------------------------------------------------------
-*/
-
-function renderLesson(lesson) {
-
-    const container =
-        document.getElementById(
-            "lesson-container"
-        );
-
-
-    const video =
-        lesson.video_url ||
-        lesson.video ||
-        "";
-
-
-    const audio =
-        lesson.audio_url ||
-        lesson.audio ||
-        "";
-
-
-    const material =
-        lesson.material ||
-        lesson.text ||
-        lesson.content ||
-        "";
-
-
-    container.innerHTML = `
-
-        <div class="lesson-page-card">
-
-            <div class="lesson-tag">
-                ${escapeHtml(
-                    lesson.subject ||
-                    "Урок"
-                )}
-            </div>
-
-
-            <div class="lesson-page-title">
-                ${escapeHtml(
-                    lesson.title ||
-                    lesson.name ||
-                    "Учебный урок"
-                )}
-            </div>
-
-
-            ${
-                lesson.description
-                    ? `
-                        <div class="lesson-page-description">
-                            ${escapeHtml(
-                                lesson.description
-                            )}
-                        </div>
-                    `
-                    : ""
-            }
-
-
-            ${
-                video
-                    ? `
-                        <div class="media-block">
-
-                            <div class="media-title">
-                                Видео
-                            </div>
-
-                            <video
-                                controls
-                                playsinline
-                                src="${escapeAttr(
-                                    video
-                                )}"
-                            ></video>
-
-                        </div>
-                    `
-                    : ""
-            }
-
-
-            ${
-                audio
-                    ? `
-                        <div class="media-block">
-
-                            <div class="media-title">
-                                Аудио
-                            </div>
-
-                            <div class="audio-player">
-
-                                <audio
-                                    controls
-                                    src="${escapeAttr(
-                                        audio
-                                    )}"
-                                ></audio>
-
-                            </div>
-
-                        </div>
-                    `
-                    : ""
-            }
-
-
-            ${
-                material
-                    ? `
-                        <div class="material-block">
-
-                            <div class="material-title">
-                                Материал урока
-                            </div>
-
-                            <div class="material-text">
-                                ${escapeHtml(
-                                    material
-                                )}
-                            </div>
-
-                        </div>
-                    `
-                    : `
-                        <div class="material-block">
-
-                            <div class="material-title">
-                                Материал
-                            </div>
-
-                            <div class="material-text">
-                                Материал этого урока
-                                пока не добавлен.
-                            </div>
-
-                        </div>
-                    `
-            }
-
-
-            <button
-                class="primary-button"
-                style="margin-top:18px"
-                type="button"
-                onclick="completeLesson('${escapeJs(
-                    String(
-                        lesson.id ??
-                        ""
-                    )
-                )}')"
-            >
-                ${
-                    lesson.completed
-                        ? "Урок завершён"
-                        : "Отметить как завершённый"
-                }
-            </button>
-
-        </div>
-    `;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| COMPLETE LESSON
-|--------------------------------------------------------------------------
-*/
-
-async function completeLesson(id) {
-
-    const result =
-        await apiRequest(
-            "/api/lessons/" +
-            encodeURIComponent(id) +
-            "/complete",
-            {
-                method:
-                    "POST",
-
-                body:
-                    JSON.stringify({
-                        lesson_id:
-                            id
+        const result =
+            await api(
+                "/progress",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        lessonId
                     })
-            }
-        );
-
-
-    if (
-        result &&
-        result.lesson
-    ) {
-
-        state.currentLesson =
-            result.lesson;
-
-    } else if (
-        state.currentLesson
-    ) {
-
-        state.currentLesson.completed =
-            true;
-    }
-
-
-    if (state.currentLesson) {
-
-        renderLesson(
-            state.currentLesson
-        );
-    }
-
-
-    updateProgressFromLocalData();
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| PROGRESS
-|--------------------------------------------------------------------------
-*/
-
-function updateProgressFromLocalData() {
-
-    const curriculum =
-        normalizeCurriculum(
-            state.curriculum
-        );
-
-
-    let total = 0;
-
-    let completed = 0;
-
-
-    curriculum.forEach(
-        year => {
-
-            (
-                year.semesters ||
-                []
-            )
-                .forEach(
-                    semester => {
-
-                        (
-                            semester.subjects ||
-                            []
-                        )
-                            .forEach(
-                                subject => {
-
-                                    (
-                                        subject.lessons ||
-                                        []
-                                    )
-                                        .forEach(
-                                            lesson => {
-
-                                                total++;
-
-
-                                                if (
-                                                    lesson.completed
-                                                ) {
-
-                                                    completed++;
-                                                }
-
-                                            }
-                                        );
-
-                                }
-                            );
-
-                    }
-                );
-
-        }
-    );
-
-
-    if (!total) {
-        return;
-    }
-
-
-    const progress =
-        Math.round(
-            completed /
-            total *
-            100
-        );
-
-
-    document.getElementById(
-        "hero-progress"
-    ).textContent =
-        progress;
-
-
-    document.getElementById(
-        "progress-fill"
-    ).style.width =
-        progress + "%";
-
-
-    document.getElementById(
-        "summary-lessons"
-    ).textContent =
-        total;
-
-
-    document.getElementById(
-        "summary-completed"
-    ).textContent =
-        completed;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| SCHEDULE
-|--------------------------------------------------------------------------
-*/
-
-function renderSchedule() {
-
-    const container =
-        document.getElementById(
-            "schedule-container"
-        );
-
-
-    if (
-        !Array.isArray(
-            state.schedule
-        ) ||
-        !state.schedule.length
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-                Расписание пока не добавлено.
-            </div>
-
-        `;
-
-        return;
-    }
-
-
-    container.innerHTML =
-        state.schedule
-            .map(
-                item => `
-
-                    <div class="info-card">
-
-                        <div class="info-card-title">
-                            ${escapeHtml(
-                                item.title ||
-                                item.subject ||
-                                "Занятие"
-                            )}
-                        </div>
-
-                        <div class="info-card-text">
-
-                            ${
-                                item.date
-                                    ? escapeHtml(
-                                        String(
-                                            item.date
-                                        )
-                                    )
-                                    : ""
-                            }
-
-                            ${
-                                item.time
-                                    ? " · " +
-                                      escapeHtml(
-                                          String(
-                                              item.time
-                                          )
-                                      )
-                                    : ""
-                            }
-
-                            ${
-                                item.teacher
-                                    ? `<br>${escapeHtml(
-                                        String(
-                                            item.teacher
-                                        )
-                                    )}`
-                                    : ""
-                            }
-
-                        </div>
-
-                    </div>
-                `
-            )
-            .join("");
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| EXAMS
-|--------------------------------------------------------------------------
-*/
-
-function renderExams() {
-
-    const container =
-        document.getElementById(
-            "exams-container"
-        );
-
-
-    if (
-        !Array.isArray(
-            state.exams
-        ) ||
-        !state.exams.length
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-                Информация об экзаменах пока не добавлена.
-            </div>
-
-        `;
-
-        return;
-    }
-
-
-    container.innerHTML =
-        state.exams
-            .map(
-                exam => `
-
-                    <div class="info-card">
-
-                        <div class="info-card-title">
-                            ${escapeHtml(
-                                exam.title ||
-                                exam.subject ||
-                                "Экзамен"
-                            )}
-                        </div>
-
-                        <div class="info-card-text">
-
-                            ${
-                                exam.date
-                                    ? "Дата: " +
-                                      escapeHtml(
-                                          String(
-                                              exam.date
-                                          )
-                                      )
-                                    : ""
-                            }
-
-                            ${
-                                exam.time
-                                    ? "<br>Время: " +
-                                      escapeHtml(
-                                          String(
-                                              exam.time
-                                          )
-                                      )
-                                    : ""
-                            }
-
-                        </div>
-
-                    </div>
-
-                `
-            )
-            .join("");
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| SCIENCE
-|--------------------------------------------------------------------------
-*/
-
-function renderScience() {
-
-    const container =
-        document.getElementById(
-            "science-container"
-        );
-
-
-    if (
-        !Array.isArray(
-            state.science
-        ) ||
-        !state.science.length
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-                Научные материалы пока не добавлены.
-            </div>
-
-        `;
-
-        return;
-    }
-
-
-    container.innerHTML =
-        state.science
-            .map(
-                item => `
-
-                    <div class="info-card">
-
-                        <div class="info-card-title">
-                            ${escapeHtml(
-                                item.title ||
-                                "Материал"
-                            )}
-                        </div>
-
-                        <div class="info-card-text">
-                            ${escapeHtml(
-                                item.description ||
-                                item.text ||
-                                ""
-                            )}
-                        </div>
-
-                        ${
-                            item.url
-                                ? `
-                                    <button
-                                        class="secondary-button"
-                                        style="margin-top:12px"
-                                        type="button"
-                                        onclick="openExternal('${escapeJs(
-                                            String(
-                                                item.url
-                                            )
-                                        )}')"
-                                    >
-                                        Открыть материал
-                                    </button>
-                                `
-                                : ""
-                        }
-
-                    </div>
-
-                `
-            )
-            .join("");
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| NAVIGATION
-|--------------------------------------------------------------------------
-*/
-
-function showPage(name) {
-
-    document
-        .querySelectorAll(
-            ".page"
-        )
-        .forEach(
-            page => {
-
-                page.classList.remove(
-                    "active"
-                );
-
-            }
-        );
-
-
-    const page =
-        document.getElementById(
-            "page-" + name
-        );
-
-
-    if (!page) {
-        return;
-    }
-
-
-    page.classList.add(
-        "active"
-    );
-
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-
-    closeMenu();
-}
-
-
-function navigateMenu(page) {
-
-    showPage(page);
-}
-
-
-function continueLearning() {
-
-    showPage(
-        "lessons"
-    );
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| MENU
-|--------------------------------------------------------------------------
-*/
-
-function openMenu() {
-
-    document
-        .getElementById(
-            "overlay"
-        )
-        .classList.add(
-            "open"
-        );
-
-
-    document
-        .getElementById(
-            "side-menu"
-        )
-        .classList.add(
-            "open"
-        );
-
-
-    document.body.style.overflow =
-        "hidden";
-}
-
-
-function closeMenu() {
-
-    document
-        .getElementById(
-            "overlay"
-        )
-        .classList.remove(
-            "open"
-        );
-
-
-    document
-        .getElementById(
-            "side-menu"
-        )
-        .classList.remove(
-            "open"
-        );
-
-
-    document.body.style.overflow =
-        "";
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| ACCORDIONS
-|--------------------------------------------------------------------------
-*/
-
-function toggleYear(button) {
-
-    const card =
-        button.closest(
-            ".year-card"
-        );
-
-
-    if (!card) {
-        return;
-    }
-
-
-    card.classList.toggle(
-        "open"
-    );
-
-
-    const arrow =
-        button.querySelector(
-            ".year-arrow"
-        );
-
-
-    if (arrow) {
-
-        arrow.textContent =
-            card.classList.contains(
-                "open"
-            )
-                ? "⌃"
-                : "⌄";
-    }
-}
-
-
-function toggleSemester(button) {
-
-    const card =
-        button.closest(
-            ".semester-card"
-        );
-
-
-    if (!card) {
-        return;
-    }
-
-
-    card.classList.toggle(
-        "open"
-    );
-
-
-    const arrow =
-        button.querySelector(
-            ".semester-arrow"
-        );
-
-
-    if (arrow) {
-
-        arrow.textContent =
-            card.classList.contains(
-                "open"
-            )
-                ? "⌃"
-                : "⌄";
-    }
-}
-
-
-function toggleSubject(button) {
-
-    const card =
-        button.closest(
-            ".subject"
-        );
-
-
-    if (!card) {
-        return;
-    }
-
-
-    card.classList.toggle(
-        "open"
-    );
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| ADMIN
-|--------------------------------------------------------------------------
-*/
-
-function openAdmin() {
-
-    closeMenu();
-
-
-    const url =
-        "/admin/";
-
-
-    const tg =
-        getTelegramWebApp();
-
-
-    if (tg) {
-
-        try {
-
-            tg.openLink(
-                url
+                }
             );
 
+        if (!result.data.ok) {
+            alert(
+                result.data.error ||
+                "Не удалось сохранить прогресс"
+            );
             return;
-
-        } catch (error) {
-
-            console.warn(
-                error
-            );
-        }
-    }
-
-
-    window.open(
-        url,
-        "_blank",
-        "noopener,noreferrer"
-    );
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| EXTERNAL
-|--------------------------------------------------------------------------
-*/
-
-function openExternal(url) {
-
-    if (!url) {
-        return;
-    }
-
-
-    const tg =
-        getTelegramWebApp();
-
-
-    if (tg) {
-
-        try {
-
-            tg.openLink(
-                url
-            );
-
-            return;
-
-        } catch (error) {
-
-            console.warn(
-                error
-            );
-        }
-    }
-
-
-    window.open(
-        url,
-        "_blank",
-        "noopener,noreferrer"
-    );
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| ESCAPING
-|--------------------------------------------------------------------------
-*/
-
-function escapeHtml(value) {
-
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-}
-
-
-function escapeAttr(value) {
-
-    return escapeHtml(
-        value
-    );
-}
-
-
-function escapeJs(value) {
-
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /\\/g,
-            "\\\\"
-        )
-        .replace(
-            /'/g,
-            "\\'"
-        )
-        .replace(
-            /"/g,
-            '\\"'
-        )
-        .replace(
-            /\n/g,
-            "\\n"
-        )
-        .replace(
-            /\r/g,
-            "\\r"
-        );
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| PLURAL
-|--------------------------------------------------------------------------
-*/
-
-function plural(
-    number,
-    one,
-    few,
-    many
-) {
-
-    const n =
-        Math.abs(
-            Number(number)
-        ) % 100;
-
-
-    const n1 =
-        n % 10;
-
-
-    if (
-        n > 10 &&
-        n < 20
-    ) {
-
-        return many;
-    }
-
-
-    if (n1 === 1) {
-
-        return one;
-    }
-
-
-    if (
-        n1 >= 2 &&
-        n1 <= 4
-    ) {
-
-        return few;
-    }
-
-
-    return many;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| TELEGRAM INIT
-|--------------------------------------------------------------------------
-*/
-
-function initTelegram() {
-
-    const tg =
-        getTelegramWebApp();
-
-
-    if (!tg) {
-        return;
-    }
-
-
-    try {
-
-        tg.ready();
-
-        tg.expand();
-
-
-        if (
-            typeof tg.setHeaderColor ===
-            "function"
-        ) {
-
-            tg.setHeaderColor(
-                "#f5f6f3"
-            );
         }
 
+        loadLessons();
 
-        if (
-            typeof tg.setBackgroundColor ===
-            "function"
-        ) {
-
-            tg.setBackgroundColor(
-                "#f5f6f3"
-            );
-        }
-
-    } catch (error) {
-
-        console.warn(
-            "Telegram initialization error:",
-            error
-        );
     }
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| APP START
-|--------------------------------------------------------------------------
-*/
-
-async function startApp() {
-
-    initTelegram();
-
-
-    await authenticate();
-
-
-    renderUser();
-
-
-    document.getElementById(
-        "home-loading"
-    ).classList.add(
-        "hidden"
-    );
-
-
-    document.getElementById(
-        "home-content"
-    ).classList.remove(
-        "hidden"
-    );
-
-
-    renderCurriculum();
-
-    renderSchedule();
-
-    renderExams();
-
-    renderScience();
 
 
     /*
-     * Пытаемся получить
-     * данные backend.
+     * ============================
+     * NAVIGATION
+     * ============================
      */
 
-    await loadData();
+    function showScreen(
+        screenId
+    ) {
 
+        document
+            .querySelectorAll(
+                ".screen"
+            )
+            .forEach(
+                screen =>
+                    screen.classList.remove(
+                        "active"
+                    )
+            );
 
-    updateProgressFromLocalData();
-}
+        const screen =
+            document.getElementById(
+                screenId
+            );
 
+        if (screen) {
+            screen.classList.add(
+                "active"
+            );
+        }
 
-/*
-|--------------------------------------------------------------------------
-| ERROR PROTECTION
-|--------------------------------------------------------------------------
-*/
-
-window.addEventListener(
-    "error",
-    event => {
-
-        console.warn(
-            "Frontend error:",
-            event.error ||
-            event.message
+        window.scrollTo(
+            0,
+            0
         );
     }
-);
 
 
-window.addEventListener(
-    "unhandledrejection",
-    event => {
+    /*
+     * ============================
+     * MENU
+     * ============================
+     */
 
-        console.warn(
-            "Unhandled promise rejection:",
-            event.reason
+    function openMenu() {
+
+        document
+            .getElementById(
+                "sideMenu"
+            )
+            .classList.add(
+                "active"
+            );
+
+        document
+            .getElementById(
+                "menuOverlay"
+            )
+            .classList.add(
+                "active"
+            );
+    }
+
+    function closeMenu() {
+
+        document
+            .getElementById(
+                "sideMenu"
+            )
+            .classList.remove(
+                "active"
+            );
+
+        document
+            .getElementById(
+                "menuOverlay"
+            )
+            .classList.remove(
+                "active"
+            );
+    }
+
+
+    function openProfile() {
+
+        closeMenu();
+
+        updateProfile();
+
+        showScreen(
+            "profileScreen"
         );
     }
-);
 
 
-/*
-|--------------------------------------------------------------------------
-| START
-|--------------------------------------------------------------------------
-*/
+    function openLessons() {
 
-if (
-    document.readyState ===
-    "loading"
-) {
+        closeMenu();
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        startApp
-    );
+        showScreen(
+            "lessonsScreen"
+        );
 
-} else {
+        loadLessons();
+    }
 
-    startApp();
-}
-</script>
 
-</body>
+    function openSchedule() {
+
+        closeMenu();
+
+        showScreen(
+            "scheduleScreen"
+        );
+    }
+
+
+    function openExams() {
+
+        closeMenu();
+
+        showScreen(
+            "examsScreen"
+        );
+    }
+
+
+    function openScience() {
+
+        closeMenu();
+
+        showScreen(
+            "scienceScreen"
+        );
+    }
+
+
+    /*
+     * ============================
+     * LOGOUT
+     * ============================
+     */
+
+    async function logout() {
+
+        try {
+            await api(
+                "/auth/logout",
+                {
+                    method: "POST"
+                }
+            );
+        } catch {}
+
+        clearToken();
+
+        currentUser =
+            null;
+
+        closeMenu();
+
+        document
+            .getElementById(
+                "app"
+            )
+            .style.display =
+            "none";
+
+        document
+            .getElementById(
+                "authApp"
+            )
+            .style.display =
+            "flex";
+
+        showLogin();
+
+    }
+
+
+    /*
+     * ============================
+     * HTML ESCAPE
+     * ============================
+     */
+
+    function escapeHtml(
+        value
+    ) {
+
+        return String(
+            value ?? ""
+        )
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+            .replaceAll(
+                '"',
+                "&quot;"
+            )
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+
+    }
+
+
+    /*
+     * ============================
+     * START
+     * ============================
+     */
+
+    async function start() {
+
+        const authenticated =
+            await checkSession();
+
+        if (authenticated) {
+            openApp();
+        }
+
+    }
+
+    start();
+
+</script><!-- Telegram Mini App SDK --><script src="https://telegram.org/js/telegram-web-app.js"></script></body>
 </html>
