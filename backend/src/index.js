@@ -2,4415 +2,1097 @@ import { verifyTelegramInitData } from "./telegram.js";
 
 const SESSION_DAYS = 30;
 const PASSWORD_ITERATIONS = 100000;
-
-
-/*
- * =========================================================
- * MAIN
- * =========================================================
- */
+const ADMIN_ROLES = new Set(["owner", "superadmin", "admin"]);
+const tableColumnsCache = new Map();
 
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
-        /*
-         * CORS
-         */
-        if (request.method === "OPTIONS") {
-            return new Response(null, {
-                status: 204,
-                headers: corsHeaders()
-            });
-        }
-
-
-        /*
-         * =====================================================
-         * HEALTH
-         * =====================================================
-         */
-
-        if (
-            url.pathname === "/api/health" &&
-            request.method === "GET"
-        ) {
-            return json({
-                ok: true,
-                app: env.APP_NAME || "RAUDA ILM",
-                database: !!env.DB,
-                assets: !!env.ASSETS,
-                files: !!env.FILES
-            });
-        }
-
-
-        /*
-         * =====================================================
-         * DEBUG
-         * =====================================================
-         */
-
-        if (
-            url.pathname === "/api/debug-config" &&
-            request.method === "GET"
-        ) {
-            return json({
-                ok: true,
-                app: env.APP_NAME || "RAUDA ILM",
-                telegram_bot_token:
-                    !!env.TELEGRAM_BOT_TOKEN,
-                database:
-                    !!env.DB,
-                assets:
-                    !!env.ASSETS,
-                files:
-                    !!env.FILES,
-                tribute_api_key:
-                    !!env.TRIBUTE_API_KEY
-            });
-        }
-
-
-        /*
-         * =====================================================
-         * AUTH
-         * =====================================================
-         */
-
-        if (
-            url.pathname === "/api/auth/register" &&
-            request.method === "POST"
-        ) {
-            return handleRegister(
-                request,
-                env
-            );
-        }
-
-        if (
-            url.pathname === "/api/auth/login" &&
-            request.method === "POST"
-        ) {
-            return handleLogin(
-                request,
-                env
-            );
-        }
-
-        if (
-            url.pathname === "/api/auth/telegram" &&
-            request.method === "POST"
-        ) {
-            return handleTelegramAuth(
-                request,
-                env
-            );
-        }
-
-        if (
-            url.pathname === "/api/auth/me" &&
-            request.method === "GET"
-        ) {
-            return handleMe(
-                request,
-                env
-            );
-        }
-
-        if (
-            url.pathname === "/api/auth/logout" &&
-            request.method === "POST"
-        ) {
-            return handleLogout(
-                request,
-                env
-            );
-        }
-
-
-        /*
-         * =====================================================
-         * PROGRAMS
-         * =====================================================
-         */
-
-        if (
-            url.pathname === "/api/programs" &&
-            request.method === "GET"
-        ) {
-            return handlePrograms(
-                request,
-                env
-            );
-        }
-
-
-        /*
-         * =====================================================
-         * COURSES
-         * =====================================================
-         */
-
-        if (
-            url.pathname === "/api/courses" &&
-            request.method === "GET"
-        ) {
-            return handleCourses(
-                request,
-                env
-            );
-        }
-
-        /*
- * =====================================================
- * ADMIN CREATE LESSON
- *
- * POST /api/admin/lessons
- * =====================================================
- */
-
-if (
-    url.pathname === "/api/admin/lessons" &&
-    request.method === "POST"
-) {
-    return handleAdminCreateLesson(request, env);
-}
-        /*
-         * =====================================================
-         * LESSONS LIST
-         * =====================================================
-         */
-
-        if (
-            url.pathname === "/api/lessons" &&
-            request.method === "GET"
-        ) {
-            return handleLessons(
-                request,
-                env
-            );
-        }
-
-
-        /*
-         * =====================================================
-         * SINGLE LESSON
-         *
-         * GET /api/lessons/123
-         * =====================================================
-         */
-
-        const singleLessonMatch =
-            url.pathname.match(
-                /^\/api\/lessons\/(\d+)$/
-            );
-
-        if (
-            singleLessonMatch &&
-            request.method === "GET"
-        ) {
-            return handleSingleLesson(
-                request,
-                env,
-                Number(
-                    singleLessonMatch[1]
-                )
-            );
-        }
-
-
-        /*
-         * =====================================================
-         * ADMIN LESSON FILE UPLOAD
-         *
-         * POST /api/admin/lessons/123/files
-         * =====================================================
-         */
-
-        const lessonUploadMatch =
-            url.pathname.match(
-                /^\/api\/admin\/lessons\/(\d+)\/files$/
-            );
-
-        if (
-            lessonUploadMatch &&
-            request.method === "POST"
-        ) {
-            return handleLessonFileUpload(
-                request,
-                env,
-                Number(
-                    lessonUploadMatch[1]
-                )
-            );
-        }
-
-
-        /*
-         * =====================================================
-         * GET LESSON FILE
-         *
-         * GET /api/lesson-files/123
-         * =====================================================
-         */
-
-        const lessonFileMatch =
-            url.pathname.match(
-                /^\/api\/lesson-files\/(\d+)$/
-            );
-
-        if (
-            lessonFileMatch &&
-            request.method === "GET"
-        ) {
-            return handleLessonFileGet(
-                request,
-                env,
-                Number(
-                    lessonFileMatch[1]
-                )
-            );
-        }
-
-
-        /*
-         * =====================================================
-         * DELETE LESSON FILE
-         *
-         * DELETE /api/admin/lesson-files/123
-         * =====================================================
-         */
-
-        const deleteLessonFileMatch =
-            url.pathname.match(
-                /^\/api\/admin\/lesson-files\/(\d+)$/
-            );
-
-        if (
-            deleteLessonFileMatch &&
-            request.method === "DELETE"
-        ) {
-            return handleLessonFileDelete(
-                request,
-                env,
-                Number(
-                    deleteLessonFileMatch[1]
-                )
-            );
-        }
-
-
-        /*
-         * =====================================================
-         * PROGRESS
-         * =====================================================
-         */
-
-        if (
-            url.pathname === "/api/progress" &&
-            request.method === "POST"
-        ) {
-            return handleProgress(
-                request,
-                env
-            );
-        }
-
-
-        /*
-         * =====================================================
-         * TRIBUTE
-         * =====================================================
-         */
-
-        if (
-            url.pathname === "/api/webhooks/tribute" &&
-            request.method === "POST"
-        ) {
-            return handleTributeWebhook(
-                request,
-                env
-            );
-        }
-
-
-        /*
-         * =====================================================
-         * FRONTEND
-         * =====================================================
-         */
-
-        if (env.ASSETS) {
-            return env.ASSETS.fetch(
-                request
-            );
-        }
-
-
-        return new Response(
-            "RAUDA ILM",
-            {
-                status: 200,
-                headers: {
-                    "Content-Type":
-                        "text/plain; charset=utf-8"
-                }
+        try {
+            if (request.method === "OPTIONS") {
+                return new Response(null, {
+                    status: 204,
+                    headers: corsHeaders(env)
+                });
             }
-        );
+
+            if (url.pathname === "/api/health" && request.method === "GET") {
+                return json({
+                    ok: true,
+                    app: env.APP_NAME || "RAUDA ILM",
+                    database: Boolean(env.DB),
+                    assets: Boolean(env.ASSETS),
+                    files: Boolean(env.FILES)
+                }, 200, env);
+            }
+
+            if (url.pathname === "/api/debug-config" && request.method === "GET") {
+                return json({
+                    ok: true,
+                    app: env.APP_NAME || "RAUDA ILM",
+                    telegram_bot_token: Boolean(env.TELEGRAM_BOT_TOKEN),
+                    database: Boolean(env.DB),
+                    assets: Boolean(env.ASSETS),
+                    files: Boolean(env.FILES),
+                    tribute_api_key: Boolean(env.TRIBUTE_API_KEY)
+                }, 200, env);
+            }
+
+            if (url.pathname === "/api/auth/register" && request.method === "POST") {
+                return handleRegister(request, env);
+            }
+            if (url.pathname === "/api/auth/login" && request.method === "POST") {
+                return handleLogin(request, env);
+            }
+            if (url.pathname === "/api/auth/telegram" && request.method === "POST") {
+                return handleTelegramAuth(request, env);
+            }
+            if (url.pathname === "/api/auth/me" && request.method === "GET") {
+                return handleMe(request, env);
+            }
+            if (url.pathname === "/api/auth/logout" && request.method === "POST") {
+                return handleLogout(request, env);
+            }
+
+            if (url.pathname === "/api/programs" && request.method === "GET") {
+                return handlePrograms(request, env);
+            }
+            if (url.pathname === "/api/courses" && request.method === "GET") {
+                return handleCourses(request, env);
+            }
+            if (url.pathname === "/api/lessons" && request.method === "GET") {
+                return handleLessons(request, env);
+            }
+
+            // Create the lesson first; the returned id is then used for file uploads.
+            if (url.pathname === "/api/admin/lessons" && request.method === "POST") {
+                return handleAdminCreateLesson(request, env);
+            }
+
+            const singleLesson = url.pathname.match(/^\/api\/lessons\/(\d+)$/);
+            if (singleLesson && request.method === "GET") {
+                return handleSingleLesson(request, env, Number(singleLesson[1]));
+            }
+
+            const lessonUpload = url.pathname.match(/^\/api\/admin\/lessons\/(\d+)\/files$/);
+            if (lessonUpload && request.method === "POST") {
+                return handleLessonFileUpload(request, env, Number(lessonUpload[1]));
+            }
+
+            const lessonFile = url.pathname.match(/^\/api\/lesson-files\/(\d+)$/);
+            if (lessonFile && request.method === "GET") {
+                return handleLessonFileGet(request, env, Number(lessonFile[1]));
+            }
+
+            const deleteLessonFile = url.pathname.match(/^\/api\/admin\/lesson-files\/(\d+)$/);
+            if (deleteLessonFile && request.method === "DELETE") {
+                return handleLessonFileDelete(request, env, Number(deleteLessonFile[1]));
+            }
+
+            if (url.pathname === "/api/progress" && request.method === "POST") {
+                return handleProgress(request, env);
+            }
+            if (url.pathname === "/api/webhooks/tribute" && request.method === "POST") {
+                return handleTributeWebhook(request, env);
+            }
+
+            if (env.ASSETS) {
+                const response = await env.ASSETS.fetch(request);
+                return withCors(response, env);
+            }
+
+            return new Response("RAUDA ILM", {
+                status: 200,
+                headers: { "Content-Type": "text/plain; charset=utf-8" }
+            });
+        } catch (error) {
+            console.error("Unhandled worker error:", error);
+            return json({ ok: false, error: "Внутренняя ошибка сервера" }, 500, env);
+        }
     }
 };
 
-
-/*
- * =========================================================
- * REGISTER
- * =========================================================
- */
-
-async function handleRegister(
-    request,
-    env
-) {
-    if (!env.DB) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "Database is not configured"
-            },
-            500
-        );
-    }
-
+async function handleRegister(request, env) {
+    if (!env.DB) return databaseMissing(env);
 
     try {
-        const body =
-            await request.json();
+        await ensureAuthSessionsTable(env.DB);
+        const body = await readJson(request);
+        const login = normalizeLogin(body?.login);
+        const password = String(body?.password || "");
+        const firstName = cleanText(body?.first_name);
+        const lastName = cleanText(body?.last_name);
+        const phone = cleanText(body?.phone);
 
-        const login =
-            normalizeLogin(
-                body?.login
-            );
-
-        const password =
-            String(
-                body?.password || ""
-            );
-
-        const firstName =
-            cleanText(
-                body?.first_name
-            );
-
-        const lastName =
-            cleanText(
-                body?.last_name
-            );
-
-        const phone =
-            cleanText(
-                body?.phone
-            );
-
-
-        if (!login) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Введите логин"
-                },
-                400
-            );
-        }
-
-
+        if (!login) return json({ ok: false, error: "Введите логин" }, 400, env);
         if (!isValidLogin(login)) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Логин должен содержать 3–30 символов: буквы, цифры, _ или -"
-                },
-                400
-            );
+            return json({ ok: false, error: "Логин должен содержать 3–30 символов: буквы, цифры, _ или -" }, 400, env);
+        }
+        if (password.length < 8) {
+            return json({ ok: false, error: "Пароль должен содержать минимум 8 символов" }, 400, env);
         }
 
+        const existing = await first(env.DB, "SELECT id FROM users WHERE login = ? LIMIT 1", [login]);
+        if (existing) return json({ ok: false, error: "Этот логин уже занят" }, 409, env);
 
-        if (
-            password.length < 8
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Пароль должен содержать минимум 8 символов"
-                },
-                400
-            );
-        }
+        const passwordHash = await hashPassword(password);
+        const technicalTelegramId = await generateTechnicalTelegramId(env.DB);
+        const result = await run(env.DB, `
+            INSERT INTO users (
+                telegram_id, username, first_name, last_name, phone,
+                role, status, login, password_hash
+            ) VALUES (?, NULL, ?, ?, ?, 'student', 'active', ?, ?)
+        `, [technicalTelegramId, firstName || null, lastName || null, phone || null, login, passwordHash]);
 
-
-        const existing =
-            await env.DB.prepare(`
-                SELECT id
-                FROM users
-                WHERE login = ?
-                LIMIT 1
-            `)
-                .bind(login)
-                .first();
-
-
-        if (existing) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Этот логин уже занят"
-                },
-                409
-            );
-        }
-
-
-        const passwordHash =
-            await hashPassword(
-                password
-            );
-
-
-        const technicalTelegramId =
-            await generateTechnicalTelegramId(
-                env.DB
-            );
-
-
-        const result =
-            await env.DB.prepare(`
-                INSERT INTO users (
-                    telegram_id,
-                    username,
-                    first_name,
-                    last_name,
-                    phone,
-                    role,
-                    status,
-                    login,
-                    password_hash
-                )
-                VALUES (
-                    ?,
-                    NULL,
-                    ?,
-                    ?,
-                    ?,
-                    'student',
-                    'active',
-                    ?,
-                    ?
-                )
-            `)
-                .bind(
-                    technicalTelegramId,
-                    firstName || null,
-                    lastName || null,
-                    phone || null,
-                    login,
-                    passwordHash
-                )
-                .run();
-
-
-        const userId =
-            Number(
-                result.meta.last_row_id
-            );
-
-
-        const user =
-            await getUserById(
-                env.DB,
-                userId
-            );
-
-
-        const session =
-            await createSession(
-                env.DB,
-                userId
-            );
-
-
-        return json({
-            ok: true,
-            user,
-            token:
-                session.token,
-            expires_at:
-                session.expiresAt
-        });
-
+        const user = await getUserById(env.DB, Number(result.meta.last_row_id));
+        const session = await createSession(env.DB, user.id);
+        return json({ ok: true, user, token: session.token, expires_at: session.expiresAt }, 201, env);
     } catch (error) {
-
-        console.error(
-            "Register error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Не удалось зарегистрировать пользователя"
-            },
-            500
-        );
+        console.error("Register error:", error);
+        return json({ ok: false, error: "Не удалось зарегистрировать пользователя" }, 500, env);
     }
 }
 
-
-/*
- * =========================================================
- * LOGIN
- * =========================================================
- */
-
-async function handleLogin(
-    request,
-    env
-) {
-    if (!env.DB) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "Database is not configured"
-            },
-            500
-        );
-    }
-
+async function handleLogin(request, env) {
+    if (!env.DB) return databaseMissing(env);
 
     try {
-        const body =
-            await request.json();
-
-        const login =
-            normalizeLogin(
-                body?.login
-            );
-
-        const password =
-            String(
-                body?.password || ""
-            );
-
-
-        if (
-            !login ||
-            !password
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Введите логин и пароль"
-                },
-                400
-            );
+        await ensureAuthSessionsTable(env.DB);
+        const body = await readJson(request);
+        const login = normalizeLogin(body?.login);
+        const password = String(body?.password || "");
+        if (!login || !password) {
+            return json({ ok: false, error: "Введите логин и пароль" }, 400, env);
         }
 
+        const user = await first(env.DB, `
+            SELECT id, telegram_id, username, first_name, last_name, phone,
+                   role, status, blocked_reason, blocked_at, created_at, updated_at,
+                   login, password_hash
+            FROM users WHERE login = ? LIMIT 1
+        `, [login]);
 
-        const user =
-            await env.DB.prepare(`
-                SELECT
-                    id,
-                    telegram_id,
-                    username,
-                    first_name,
-                    last_name,
-                    phone,
-                    role,
-                    status,
-                    blocked_reason,
-                    blocked_at,
-                    created_at,
-                    updated_at,
-                    login,
-                    password_hash
-                FROM users
-                WHERE login = ?
-                LIMIT 1
-            `)
-                .bind(login)
-                .first();
-
-
-        if (!user) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Неверный логин или пароль"
-                },
-                401
-            );
+        if (!user || !user.password_hash || !(await verifyPassword(password, user.password_hash))) {
+            return json({ ok: false, error: "Неверный логин или пароль" }, 401, env);
+        }
+        if (user.status !== "active") {
+            return json({ ok: false, error: user.blocked_reason || "Ваш аккаунт заблокирован" }, 403, env);
         }
 
-
-        if (
-            user.status !==
-            "active"
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        user.blocked_reason ||
-                        "Ваш аккаунт заблокирован"
-                },
-                403
-            );
-        }
-
-
-        if (
-            !user.password_hash
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Для этого аккаунта пароль ещё не установлен"
-                },
-                401
-            );
-        }
-
-
-        const valid =
-            await verifyPassword(
-                password,
-                user.password_hash
-            );
-
-
-        if (!valid) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Неверный логин или пароль"
-                },
-                401
-            );
-        }
-
-
-        const session =
-            await createSession(
-                env.DB,
-                user.id
-            );
-
-
-        delete user.password_hash;
-
-
+        const session = await createSession(env.DB, user.id);
         return json({
             ok: true,
-            user,
-            token:
-                session.token,
-            expires_at:
-                session.expiresAt
-        });
-
+            user: publicUser(user),
+            token: session.token,
+            expires_at: session.expiresAt
+        }, 200, env);
     } catch (error) {
-
-        console.error(
-            "Login error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Не удалось выполнить вход"
-            },
-            500
-        );
+        console.error("Login error:", error);
+        return json({ ok: false, error: "Не удалось выполнить вход" }, 500, env);
     }
 }
 
-
-/*
- * =========================================================
- * TELEGRAM AUTH
- * =========================================================
- */
-
-async function handleTelegramAuth(
-    request,
-    env
-) {
-    if (!env.DB) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "Database is not configured"
-            },
-            500
-        );
+async function handleTelegramAuth(request, env) {
+    if (!env.DB) return databaseMissing(env);
+    if (!env.TELEGRAM_BOT_TOKEN) {
+        return json({ ok: false, error: "Telegram bot token is not configured" }, 500, env);
     }
-
-
-    if (
-        !env.TELEGRAM_BOT_TOKEN
-    ) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "Telegram bot token is not configured"
-            },
-            500
-        );
-    }
-
 
     try {
-
-        const body =
-            await request.json();
-
-        const initData =
-            body?.initData;
-
-
-        if (!initData) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Telegram initData is missing"
-                },
-                400
-            );
+        await ensureAuthSessionsTable(env.DB);
+        const body = await readJson(request);
+        if (!body?.initData) {
+            return json({ ok: false, error: "Telegram initData is missing" }, 400, env);
         }
 
-
-        const verification =
-            await verifyTelegramInitData(
-                initData,
-                env.TELEGRAM_BOT_TOKEN
-            );
-
-
-        if (
-            !verification.ok
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        verification.error
-                },
-                401
-            );
+        const verification = await verifyTelegramInitData(body.initData, env.TELEGRAM_BOT_TOKEN);
+        if (!verification?.ok) {
+            return json({ ok: false, error: verification?.error || "Telegram authentication failed" }, 401, env);
         }
 
-
-        const telegramUser =
-            verification.user;
-
-
-        const telegramId =
-            Number(
-                telegramUser.id
-            );
-
-
-        if (!telegramId) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Invalid Telegram user ID"
-                },
-                401
-            );
+        const telegramUser = verification.user || {};
+        const telegramId = Number(telegramUser.id);
+        if (!Number.isSafeInteger(telegramId) || telegramId <= 0) {
+            return json({ ok: false, error: "Invalid Telegram user ID" }, 401, env);
         }
 
-
-        let user =
-            await env.DB.prepare(`
-                SELECT *
-                FROM users
-                WHERE telegram_id = ?
-                LIMIT 1
-            `)
-                .bind(
-                    telegramId
-                )
-                .first();
-
-
+        let user = await first(env.DB, "SELECT * FROM users WHERE telegram_id = ? LIMIT 1", [telegramId]);
         if (!user) {
-
-            const result =
-                await env.DB.prepare(`
-                    INSERT INTO users (
-                        telegram_id,
-                        username,
-                        first_name,
-                        last_name,
-                        role,
-                        status
-                    )
-                    VALUES (
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        'student',
-                        'active'
-                    )
-                `)
-                    .bind(
-                        telegramId,
-                        telegramUser.username ||
-                        null,
-                        telegramUser.first_name ||
-                        null,
-                        telegramUser.last_name ||
-                        null
-                    )
-                    .run();
-
-
-            user =
-                await getUserById(
-                    env.DB,
-                    Number(
-                        result.meta.last_row_id
-                    )
-                );
-
+            const result = await run(env.DB, `
+                INSERT INTO users (telegram_id, username, first_name, last_name, role, status)
+                VALUES (?, ?, ?, ?, 'student', 'active')
+            `, [telegramId, telegramUser.username || null, telegramUser.first_name || null, telegramUser.last_name || null]);
+            user = await getUserById(env.DB, Number(result.meta.last_row_id));
         } else {
-
-            await env.DB.prepare(`
+            await run(env.DB, `
                 UPDATE users
-                SET
-                    username = ?,
-                    first_name = ?,
-                    last_name = ?,
-                    updated_at =
-                        CURRENT_TIMESTAMP
+                SET username = ?, first_name = ?, last_name = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
-            `)
-                .bind(
-                    telegramUser.username ||
-                    null,
-                    telegramUser.first_name ||
-                    null,
-                    telegramUser.last_name ||
-                    null,
-                    user.id
-                )
-                .run();
-
-
-            user =
-                await getUserById(
-                    env.DB,
-                    user.id
-                );
+            `, [telegramUser.username || null, telegramUser.first_name || null, telegramUser.last_name || null, user.id]);
+            user = await getUserById(env.DB, user.id);
         }
 
-
-        if (
-            user.status !==
-            "active"
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        user.blocked_reason ||
-                        "Ваш аккаунт заблокирован"
-                },
-                403
-            );
+        if (user.status !== "active") {
+            return json({ ok: false, error: user.blocked_reason || "Ваш аккаунт заблокирован" }, 403, env);
         }
 
+        const session = await createSession(env.DB, user.id);
+        return json({ ok: true, user, token: session.token, expires_at: session.expiresAt }, 200, env);
+    } catch (error) {
+        console.error("Telegram auth error:", error);
+        return json({ ok: false, error: "Telegram authentication failed" }, 500, env);
+    }
+}
 
-        const session =
-            await createSession(
-                env.DB,
-                user.id
-            );
+async function handleMe(request, env) {
+    const auth = await requireUser(request, env);
+    if (!auth.ok) return authError(auth, env);
+    return json({ ok: true, user: auth.user }, 200, env);
+}
 
+async function handleLogout(request, env) {
+    if (!env.DB) return databaseMissing(env);
+    await ensureAuthSessionsTable(env.DB);
+    const token = getBearerToken(request);
+    if (token) await run(env.DB, "DELETE FROM auth_sessions WHERE token = ?", [token]);
+    return json({ ok: true }, 200, env);
+}
 
-        return json({
-            ok: true,
-            user,
-            token:
-                session.token,
-            expires_at:
-                session.expiresAt
+async function handlePrograms(request, env) {
+    const auth = await requireUser(request, env);
+    if (!auth.ok) return authError(auth, env);
+
+    try {
+        const rows = await listContentRows(env.DB, "programs", new URL(request.url).searchParams, auth.user);
+        const access = await accessByProgram(env.DB, auth.user.id);
+        const programs = rows.map((program) => ({
+            ...program,
+            has_access: isAdmin(auth.user) || access.has(Number(program.id))
+        }));
+        return json({ ok: true, programs }, 200, env);
+    } catch (error) {
+        console.error("Programs error:", error);
+        return json({ ok: false, error: "Не удалось получить программы" }, 500, env);
+    }
+}
+
+async function handleCourses(request, env) {
+    const auth = await requireUser(request, env);
+    if (!auth.ok) return authError(auth, env);
+
+    try {
+        const courses = await listContentRows(env.DB, "courses", new URL(request.url).searchParams, auth.user);
+        return json({ ok: true, courses }, 200, env);
+    } catch (error) {
+        console.error("Courses error:", error);
+        return json({ ok: false, error: "Не удалось получить курсы" }, 500, env);
+    }
+}
+
+async function handleLessons(request, env) {
+    const auth = await requireUser(request, env);
+    if (!auth.ok) return authError(auth, env);
+
+    try {
+        const lessons = await listContentRows(env.DB, "lessons", new URL(request.url).searchParams, auth.user);
+        return json({ ok: true, lessons }, 200, env);
+    } catch (error) {
+        console.error("Lessons error:", error);
+        return json({ ok: false, error: "Не удалось получить уроки" }, 500, env);
+    }
+}
+
+async function handleSingleLesson(request, env, lessonId) {
+    const auth = await requireUser(request, env);
+    if (!auth.ok) return authError(auth, env);
+
+    try {
+        const columns = await tableColumns(env.DB, "lessons");
+        if (!columns.length) return json({ ok: false, error: "Таблица уроков не найдена" }, 500, env);
+        const lesson = await first(env.DB, `SELECT * FROM lessons WHERE id = ? LIMIT 1`, [lessonId]);
+        if (!lesson || (!isAdmin(auth.user) && isHidden(lesson, columns))) {
+            return json({ ok: false, error: "Урок не найден" }, 404, env);
+        }
+
+        const files = await getLessonFiles(env.DB, lessonId);
+        const progress = await getLessonProgress(env.DB, auth.user.id, lessonId);
+        return json({ ok: true, lesson: { ...lesson, files, progress } }, 200, env);
+    } catch (error) {
+        console.error("Single lesson error:", error);
+        return json({ ok: false, error: "Не удалось получить урок" }, 500, env);
+    }
+}
+
+async function handleAdminCreateLesson(request, env) {
+    const auth = await requireAdmin(request, env);
+    if (!auth.ok) return authError(auth, env);
+
+    try {
+        const body = await readJson(request);
+        const title = cleanText(body?.title);
+        if (!title) return json({ ok: false, error: "Введите название урока" }, 400, env);
+
+        const courseId = positiveIntegerOrNull(body?.course_id);
+        let programId = positiveIntegerOrNull(body?.program_id);
+        const semesterId = positiveIntegerOrNull(body?.semester_id);
+        const subjectId = positiveIntegerOrNull(body?.subject_id);
+        if (courseId && !programId) {
+            const course = await first(env.DB, "SELECT program_id FROM courses WHERE id = ? LIMIT 1", [courseId]);
+            programId = positiveIntegerOrNull(course?.program_id);
+        }
+
+        const lesson = await insertLesson(env.DB, {
+            courseId,
+            programId,
+            semesterId,
+            subjectId,
+            title,
+            description: cleanText(body?.description),
+            content: cleanText(body?.content),
+            lessonNumber: nonNegativeNumber(body?.lesson_number),
+            sortOrder: nonNegativeNumber(body?.sort_order),
+            isVisible: body?.is_visible === false || body?.is_visible === 0 || body?.is_visible === "0" ? 0 : 1
+        });
+        return json({ ok: true, lesson }, 201, env);
+    } catch (error) {
+        console.error("Create lesson error:", error);
+        return json({ ok: false, error: "Не удалось создать урок" }, 500, env);
+    }
+}
+
+async function handleLessonFileUpload(request, env, lessonId) {
+    const auth = await requireAdmin(request, env);
+    if (!auth.ok) return authError(auth, env);
+    if (!env.FILES) return json({ ok: false, error: "Файловое хранилище FILES не настроено" }, 500, env);
+
+    try {
+        await ensureLessonFilesTable(env.DB);
+        const lesson = await first(env.DB, "SELECT id FROM lessons WHERE id = ? LIMIT 1", [lessonId]);
+        if (!lesson) return json({ ok: false, error: "Урок не найден" }, 404, env);
+
+        const form = await request.formData();
+        const uploaded = form.get("file") || form.getAll("files")[0];
+        if (!uploaded || typeof uploaded === "string") {
+            return json({ ok: false, error: "Выберите файл" }, 400, env);
+        }
+
+        const maxBytes = positiveIntegerOrNull(env.MAX_UPLOAD_BYTES) || 250 * 1024 * 1024;
+        if (uploaded.size > maxBytes) {
+            return json({ ok: false, error: `Файл больше допустимого размера (${maxBytes} байт)` }, 413, env);
+        }
+
+        const fileName = safeFileName(uploaded.name || "file");
+        const contentType = uploaded.type || "application/octet-stream";
+        const key = `lessons/${lessonId}/${crypto.randomUUID()}-${fileName}`;
+        const sortOrder = nonNegativeNumber(form.get("sort_order"));
+        const caption = cleanText(form.get("caption"));
+
+        await env.FILES.put(key, uploaded.stream(), {
+            httpMetadata: { contentType },
+            customMetadata: { original_name: fileName }
         });
 
+        try {
+            const file = await insertLessonFile(env.DB, {
+                lessonId,
+                key,
+                fileName,
+                contentType,
+                size: uploaded.size,
+                sortOrder,
+                caption,
+                uploadedBy: auth.user.id
+            });
+            return json({ ok: true, file }, 201, env);
+        } catch (error) {
+            await env.FILES.delete(key);
+            throw error;
+        }
     } catch (error) {
-
-        console.error(
-            "Telegram auth error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Telegram authentication failed"
-            },
-            500
-        );
+        console.error("Lesson file upload error:", error);
+        return json({ ok: false, error: "Не удалось загрузить файл" }, 500, env);
     }
 }
 
+async function handleLessonFileGet(request, env, fileId) {
+    const auth = await requireUser(request, env);
+    if (!auth.ok) return authError(auth, env);
+    if (!env.FILES) return json({ ok: false, error: "Файловое хранилище FILES не настроено" }, 500, env);
 
-/*
- * =========================================================
- * ME
- * =========================================================
- */
+    try {
+        await ensureLessonFilesTable(env.DB);
+        const row = await getLessonFileRow(env.DB, fileId);
+        if (!row) return json({ ok: false, error: "Файл не найден" }, 404, env);
 
-async function handleMe(
-    request,
-    env
-) {
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
+        const key = fileStorageKey(row);
+        if (!key) return json({ ok: false, error: "В записи файла отсутствует ключ R2" }, 500, env);
+        const head = await env.FILES.head(key);
+        if (!head) return json({ ok: false, error: "Файл не найден в R2" }, 404, env);
 
+        const requestedRange = parseRange(request.headers.get("Range"), head.size);
+        if (requestedRange?.invalid) {
+            return new Response(null, {
+                status: 416,
+                headers: {
+                    ...corsHeaders(env),
+                    "Accept-Ranges": "bytes",
+                    "Content-Range": `bytes */${head.size}`
+                }
+            });
+        }
 
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            auth.status
-        );
+        const object = requestedRange
+            ? await env.FILES.get(key, { range: { offset: requestedRange.start, length: requestedRange.length } })
+            : await env.FILES.get(key);
+        if (!object) return json({ ok: false, error: "Файл не найден в R2" }, 404, env);
+
+        const contentType = fileContentType(row) || object.httpMetadata?.contentType || "application/octet-stream";
+        const name = fileDisplayName(row);
+        const headers = {
+            ...corsHeaders(env),
+            "Content-Type": contentType,
+            "Accept-Ranges": "bytes",
+            "Content-Length": String(requestedRange ? requestedRange.length : head.size),
+            "Content-Disposition": contentDisposition(contentType, name)
+        };
+        if (object.httpEtag) headers.ETag = object.httpEtag;
+        if (requestedRange) {
+            headers["Content-Range"] = `bytes ${requestedRange.start}-${requestedRange.end}/${head.size}`;
+        }
+        return new Response(object.body, { status: requestedRange ? 206 : 200, headers });
+    } catch (error) {
+        console.error("Lesson file read error:", error);
+        return json({ ok: false, error: "Не удалось открыть файл" }, 500, env);
     }
-
-
-    return json({
-        ok: true,
-        user:
-            auth.user
-    });
 }
 
+async function handleLessonFileDelete(request, env, fileId) {
+    const auth = await requireAdmin(request, env);
+    if (!auth.ok) return authError(auth, env);
+    if (!env.FILES) return json({ ok: false, error: "Файловое хранилище FILES не настроено" }, 500, env);
 
-/*
- * =========================================================
- * LOGOUT
- * =========================================================
- */
-
-async function handleLogout(
-    request,
-    env
-) {
-    if (!env.DB) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "Database is not configured"
-            },
-            500
-        );
+    try {
+        await ensureLessonFilesTable(env.DB);
+        const row = await getLessonFileRow(env.DB, fileId);
+        if (!row) return json({ ok: false, error: "Файл не найден" }, 404, env);
+        const key = fileStorageKey(row);
+        if (key) await env.FILES.delete(key);
+        await run(env.DB, "DELETE FROM lesson_files WHERE id = ?", [fileId]);
+        return json({ ok: true }, 200, env);
+    } catch (error) {
+        console.error("Lesson file delete error:", error);
+        return json({ ok: false, error: "Не удалось удалить файл" }, 500, env);
     }
-
-
-    const token =
-        getBearerToken(
-            request
-        );
-
-
-    if (token) {
-        await env.DB.prepare(`
-            DELETE FROM auth_sessions
-            WHERE token = ?
-        `)
-            .bind(token)
-            .run();
-    }
-
-
-    return json({
-        ok: true
-    });
 }
 
+async function handleProgress(request, env) {
+    const auth = await requireUser(request, env);
+    if (!auth.ok) return authError(auth, env);
 
-/*
- * =========================================================
- * REQUIRE USER
- * =========================================================
- */
+    try {
+        const body = await readJson(request);
+        const lessonId = positiveIntegerOrNull(body?.lesson_id);
+        if (!lessonId) return json({ ok: false, error: "Укажите lesson_id" }, 400, env);
 
-async function requireUser(
-    request,
-    env
-) {
-    if (!env.DB) {
-        return {
-            ok: false,
-            status: 500,
-            error:
-                "Database is not configured"
-        };
+        const lesson = await first(env.DB, "SELECT id FROM lessons WHERE id = ? LIMIT 1", [lessonId]);
+        if (!lesson) return json({ ok: false, error: "Урок не найден" }, 404, env);
+
+        await ensureLessonProgressTable(env.DB);
+        const percentage = clampProgress(body?.progress_percent ?? body?.progress ?? (body?.completed || body?.is_completed ? 100 : 0));
+        const completed = body?.completed === true || body?.is_completed === true || percentage >= 100 ? 1 : 0;
+        const progress = await saveLessonProgress(env.DB, auth.user.id, lessonId, percentage, completed);
+        return json({ ok: true, progress }, 200, env);
+    } catch (error) {
+        console.error("Progress error:", error);
+        return json({ ok: false, error: "Не удалось сохранить прогресс" }, 500, env);
     }
-
-
-    const token =
-        getBearerToken(
-            request
-        );
-
-
-    if (!token) {
-        return {
-            ok: false,
-            status: 401,
-            error:
-                "Authorization required"
-        };
-    }
-
-
-    const row =
-        await env.DB.prepare(`
-            SELECT
-                u.id,
-                u.telegram_id,
-                u.username,
-                u.first_name,
-                u.last_name,
-                u.phone,
-                u.role,
-                u.status,
-                u.blocked_reason,
-                u.blocked_at,
-                u.created_at,
-                u.updated_at,
-                u.login,
-                s.expires_at
-            FROM auth_sessions s
-            JOIN users u
-                ON u.id = s.user_id
-            WHERE s.token = ?
-            LIMIT 1
-        `)
-            .bind(token)
-            .first();
-
-
-    if (!row) {
-        return {
-            ok: false,
-            status: 401,
-            error:
-                "Invalid or expired session"
-        };
-    }
-
-
-    const expires =
-        new Date(
-            row.expires_at
-        );
-
-
-    if (
-        Number.isNaN(
-            expires.getTime()
-        ) ||
-        expires.getTime() <=
-        Date.now()
-    ) {
-
-        await env.DB.prepare(`
-            DELETE FROM auth_sessions
-            WHERE token = ?
-        `)
-            .bind(token)
-            .run();
-
-
-        return {
-            ok: false,
-            status: 401,
-            error:
-                "Session expired"
-        };
-    }
-
-
-    if (
-        row.status !==
-        "active"
-    ) {
-        return {
-            ok: false,
-            status: 403,
-            error:
-                row.blocked_reason ||
-                "User is blocked"
-        };
-    }
-
-
-    delete row.expires_at;
-
-
-    return {
-        ok: true,
-        user: row
-    };
 }
 
+async function handleTributeWebhook(request, env) {
+    if (!env.DB) return databaseMissing(env);
 
-/*
- * =========================================================
- * REQUIRE ADMIN
- * =========================================================
- */
+    try {
+        const raw = await request.text();
+        if (!isValidTributeWebhook(request, raw, env)) {
+            return json({ ok: false, error: "Webhook signature is invalid" }, 401, env);
+        }
+        const payload = raw ? JSON.parse(raw) : {};
+        await ensureTributeTables(env.DB);
 
-async function requireAdmin(
-    request,
-    env
-) {
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
+        const data = payload.data || payload.payload || payload;
+        const metadata = { ...(payload.metadata || {}), ...(data.metadata || {}) };
+        const eventId = String(payload.id || payload.event_id || data.event_id || data.id || crypto.randomUUID());
+        const eventType = String(payload.type || payload.event || data.type || "unknown");
+        const status = String(data.status || payload.status || "unknown").toLowerCase();
+        const programId = positiveIntegerOrNull(metadata.program_id || data.program_id || payload.program_id);
+        const userId = await tributeUserId(env.DB, metadata, data, payload);
+        const rawJson = JSON.stringify(payload);
 
+        await run(env.DB, `
+            INSERT OR IGNORE INTO tribute_events
+                (event_id, event_type, payment_status, user_id, program_id, payload_json)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `, [eventId, eventType, status, userId, programId, rawJson]);
 
-    if (!auth.ok) {
-        return auth;
+        let accessGranted = false;
+        if (userId && programId && isSuccessfulTributeEvent(eventType, status)) {
+            await run(env.DB, `
+                INSERT INTO user_program_access (user_id, program_id, status, source, granted_at)
+                VALUES (?, ?, 'active', 'tribute', CURRENT_TIMESTAMP)
+                ON CONFLICT(user_id, program_id) DO UPDATE SET
+                    status = 'active', source = 'tribute', granted_at = CURRENT_TIMESTAMP
+            `, [userId, programId]);
+            accessGranted = true;
+        }
+
+        return json({ ok: true, event_id: eventId, access_granted: accessGranted }, 200, env);
+    } catch (error) {
+        console.error("Tribute webhook error:", error);
+        return json({ ok: false, error: "Не удалось обработать webhook Tribute" }, 500, env);
     }
+}
 
+async function requireUser(request, env) {
+    if (!env.DB) return { ok: false, status: 500, error: "Database is not configured" };
+    await ensureAuthSessionsTable(env.DB);
+    const token = getBearerToken(request);
+    if (!token) return { ok: false, status: 401, error: "Authorization required" };
 
-    const role =
-        String(
-            auth.user.role || ""
-        ).toLowerCase();
+    const row = await first(env.DB, `
+        SELECT u.id, u.telegram_id, u.username, u.first_name, u.last_name, u.phone,
+               u.role, u.status, u.blocked_reason, u.blocked_at, u.created_at,
+               u.updated_at, u.login, s.expires_at
+        FROM auth_sessions s JOIN users u ON u.id = s.user_id
+        WHERE s.token = ? LIMIT 1
+    `, [token]);
+    if (!row) return { ok: false, status: 401, error: "Invalid or expired session" };
 
-
-    const allowed =
-        [
-            "owner",
-            "superadmin",
-            "admin"
-        ];
-
-
-    if (
-        !allowed.includes(role)
-    ) {
-        return {
-            ok: false,
-            status: 403,
-            error:
-                "Administrator access required"
-        };
+    const expires = new Date(row.expires_at);
+    if (Number.isNaN(expires.getTime()) || expires.getTime() <= Date.now()) {
+        await run(env.DB, "DELETE FROM auth_sessions WHERE token = ?", [token]);
+        return { ok: false, status: 401, error: "Invalid or expired session" };
     }
+    if (row.status !== "active") {
+        return { ok: false, status: 403, error: row.blocked_reason || "Ваш аккаунт заблокирован" };
+    }
+    return { ok: true, user: publicUser(row), token };
+}
 
-
+async function requireAdmin(request, env) {
+    const auth = await requireUser(request, env);
+    if (!auth.ok) return auth;
+    if (!isAdmin(auth.user)) return { ok: false, status: 403, error: "Требуются права администратора" };
     return auth;
 }
 
+async function createSession(db, userId) {
+    await ensureAuthSessionsTable(db);
+    const token = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
+    const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    await run(db, "DELETE FROM auth_sessions WHERE expires_at <= ?", [new Date().toISOString()]);
+    await run(db, "INSERT INTO auth_sessions (user_id, token, expires_at) VALUES (?, ?, ?)", [userId, token, expiresAt]);
+    return { token, expiresAt };
+}
 
-/*
- * =========================================================
- * SESSION
- * =========================================================
- */
+async function getUserById(db, userId) {
+    const user = await first(db, `
+        SELECT id, telegram_id, username, first_name, last_name, phone, role, status,
+               blocked_reason, blocked_at, created_at, updated_at, login
+        FROM users WHERE id = ? LIMIT 1
+    `, [userId]);
+    return publicUser(user);
+}
 
-async function createSession(
-    db,
-    userId
-) {
-    const token =
-        randomToken();
+async function generateTechnicalTelegramId(db) {
+    const row = await first(db, "SELECT MIN(telegram_id) AS min_id FROM users WHERE telegram_id < 0");
+    return Number(row?.min_id || 0) - 1;
+}
 
+async function listContentRows(db, table, params, user) {
+    const columns = await tableColumns(db, table);
+    if (!columns.length) throw new Error(`Table ${table} is missing`);
+    const where = [];
+    const values = [];
+    if (!isAdmin(user)) {
+        const visibleColumn = firstColumn(columns, ["is_visible", "visible", "is_published", "published"]);
+        if (visibleColumn) where.push(`${quoteIdentifier(visibleColumn)} = 1`);
+    }
+    for (const [param, choices] of Object.entries({
+        program_id: ["program_id"],
+        course_id: ["course_id"],
+        semester_id: ["semester_id"],
+        subject_id: ["subject_id"]
+    })) {
+        const value = positiveIntegerOrNull(params.get(param));
+        const column = firstColumn(columns, choices);
+        if (value && column) {
+            where.push(`${quoteIdentifier(column)} = ?`);
+            values.push(value);
+        }
+    }
+    const order = contentOrder(columns);
+    const sql = `SELECT * FROM ${quoteIdentifier(table)}${where.length ? ` WHERE ${where.join(" AND ")}` : ""}${order ? ` ORDER BY ${order}` : ""}`;
+    return all(db, sql, values);
+}
 
-    const expires =
-        new Date(
-            Date.now() +
-            SESSION_DAYS *
-            24 *
-            60 *
-            60 *
-            1000
-        );
+async function insertLesson(db, data) {
+    const columns = await tableColumns(db, "lessons");
+    if (!columns.length) throw new Error("Table lessons is missing");
+    const fields = [];
+    const values = [];
+    const add = (choices, value) => {
+        const column = firstColumn(columns, choices);
+        if (column) {
+            fields.push(column);
+            values.push(value);
+        }
+    };
+    add(["course_id"], data.courseId);
+    add(["program_id"], data.programId);
+    add(["semester_id"], data.semesterId);
+    add(["subject_id"], data.subjectId);
+    add(["title", "name"], data.title);
+    add(["description", "summary"], data.description);
+    add(["content", "body", "text"], data.content);
+    add(["lesson_number", "number"], data.lessonNumber);
+    add(["sort_order", "position", "order_index"], data.sortOrder);
+    add(["is_visible", "visible", "is_published", "published"], data.isVisible);
+    if (!fields.length) throw new Error("No writable lesson columns were found");
 
+    const result = await run(db, `
+        INSERT INTO lessons (${fields.map(quoteIdentifier).join(", ")})
+        VALUES (${fields.map(() => "?").join(", ")})
+    `, values);
+    return first(db, "SELECT * FROM lessons WHERE id = ? LIMIT 1", [Number(result.meta.last_row_id)]);
+}
 
-    const expiresAt =
-        expires.toISOString();
-
-
-    await db.prepare(`
-        INSERT INTO auth_sessions (
-            user_id,
-            token,
-            expires_at
+async function ensureLessonFilesTable(db) {
+    await run(db, `
+        CREATE TABLE IF NOT EXISTS lesson_files (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lesson_id INTEGER NOT NULL,
+            file_key TEXT NOT NULL,
+            original_name TEXT NOT NULL,
+            content_type TEXT,
+            size INTEGER,
+            caption TEXT,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            uploaded_by INTEGER,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
-        VALUES (?, ?, ?)
-    `)
-        .bind(
-            userId,
-            token,
-            expiresAt
-        )
-        .run();
+    `);
+    await run(db, "CREATE INDEX IF NOT EXISTS idx_lesson_files_lesson_id ON lesson_files(lesson_id)");
+}
 
+async function getLessonFiles(db, lessonId) {
+    await ensureLessonFilesTable(db);
+    const columns = await tableColumns(db, "lesson_files");
+    const orderColumn = firstColumn(columns, ["sort_order", "position", "order_index", "id"]);
+    const rows = await all(db, `SELECT * FROM lesson_files WHERE lesson_id = ?${orderColumn ? ` ORDER BY ${quoteIdentifier(orderColumn)}, id` : ""}`, [lessonId]);
+    return rows.map(normalizeLessonFile);
+}
 
+async function getLessonFileRow(db, fileId) {
+    return first(db, "SELECT * FROM lesson_files WHERE id = ? LIMIT 1", [fileId]);
+}
+
+async function insertLessonFile(db, data) {
+    const columns = await tableColumns(db, "lesson_files");
+    const fields = [];
+    const values = [];
+    const add = (choices, value) => {
+        const column = firstColumn(columns, choices);
+        if (column) {
+            fields.push(column);
+            values.push(value);
+        }
+    };
+    add(["lesson_id"], data.lessonId);
+    add(["file_key", "r2_key", "storage_key", "object_key", "key"], data.key);
+    add(["original_name", "file_name", "name"], data.fileName);
+    add(["content_type", "mime_type", "file_type"], data.contentType);
+    add(["size", "file_size", "size_bytes"], data.size);
+    add(["caption", "description"], data.caption);
+    add(["sort_order", "position", "order_index"], data.sortOrder);
+    add(["uploaded_by", "user_id", "created_by"], data.uploadedBy);
+    if (!firstColumn(columns, ["lesson_id"]) || !firstColumn(columns, ["file_key", "r2_key", "storage_key", "object_key", "key"])) {
+        throw new Error("lesson_files must have lesson_id and an R2 key column");
+    }
+    const result = await run(db, `
+        INSERT INTO lesson_files (${fields.map(quoteIdentifier).join(", ")})
+        VALUES (${fields.map(() => "?").join(", ")})
+    `, values);
+    const row = await getLessonFileRow(db, Number(result.meta.last_row_id));
+    return normalizeLessonFile(row);
+}
+
+function normalizeLessonFile(row) {
+    if (!row) return null;
     return {
-        token,
-        expiresAt
+        ...row,
+        file_key: fileStorageKey(row),
+        file_name: fileDisplayName(row),
+        content_type: fileContentType(row),
+        size: Number(row.size ?? row.file_size ?? row.size_bytes ?? 0),
+        url: `/api/lesson-files/${row.id}`
     };
 }
 
-
-/*
- * =========================================================
- * GET USER
- * =========================================================
- */
-
-async function getUserById(
-    db,
-    userId
-) {
-    return await db.prepare(`
-        SELECT
-            id,
-            telegram_id,
-            username,
-            first_name,
-            last_name,
-            phone,
-            role,
-            status,
-            blocked_reason,
-            blocked_at,
-            created_at,
-            updated_at,
-            login
-        FROM users
-        WHERE id = ?
-        LIMIT 1
-    `)
-        .bind(userId)
-        .first();
+function fileStorageKey(row) {
+    return row.file_key || row.r2_key || row.storage_key || row.object_key || row.key || null;
 }
 
-
-/*
- * =========================================================
- * PROGRAMS
- * =========================================================
- */
-
-async function handlePrograms(
-    request,
-    env
-) {
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            auth.status
-        );
-    }
-
-
-    try {
-
-        const result =
-            await env.DB.prepare(`
-                SELECT
-                    id,
-                    name,
-                    description,
-                    purpose,
-                    cover_image,
-                    certificate_enabled,
-                    certificate_passing_score,
-                    is_active,
-                    created_at,
-                    updated_at
-                FROM programs
-                WHERE is_active = 1
-                ORDER BY id ASC
-            `)
-                .all();
-
-
-        return json({
-            ok: true,
-            programs:
-                result.results || []
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Programs error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to load programs"
-            },
-            500
-        );
-    }
+function fileDisplayName(row) {
+    return row.original_name || row.file_name || row.name || "file";
 }
 
-
-/*
- * =========================================================
- * COURSES
- * =========================================================
- */
-
-async function handleCourses(
-    request,
-    env
-) {
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            auth.status
-        );
-    }
-
-
-    try {
-
-        const result =
-            await env.DB.prepare(`
-                SELECT *
-                FROM courses
-                ORDER BY id ASC
-            `)
-                .all();
-
-
-        return json({
-            ok: true,
-            courses:
-                result.results || []
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Courses error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to load courses"
-            },
-            500
-        );
-    }
+function fileContentType(row) {
+    return row.content_type || row.mime_type || row.file_type || null;
 }
 
-
-/*
- * =========================================================
- * LESSONS
- * =========================================================
- */
-
-async function handleLessons(
-    request,
-    env
-) {
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            auth.status
-        );
-    }
-
-
-    try {
-
-        const userId =
-            Number(
-                auth.user.id
-            );
-
-
-        const courseId =
-            new URL(
-                request.url
-            )
-                .searchParams
-                .get(
-                    "course_id"
-                );
-
-
-        let lessonsResult;
-
-
-        if (courseId) {
-
-            lessonsResult =
-                await env.DB.prepare(`
-                    SELECT
-                        id,
-                        course_id,
-                        program_id,
-                        semester_id,
-                        subject_id,
-                        title,
-                        description,
-                        lesson_number,
-                        content,
-                        sort_order,
-                        is_visible,
-                        created_at,
-                        updated_at
-                    FROM lessons
-                    WHERE is_visible = 1
-                    AND course_id = ?
-                    ORDER BY
-                        sort_order ASC,
-                        id ASC
-                `)
-                    .bind(
-                        Number(courseId)
-                    )
-                    .all();
-
-        } else {
-
-            lessonsResult =
-                await env.DB.prepare(`
-                    SELECT
-                        id,
-                        course_id,
-                        program_id,
-                        semester_id,
-                        subject_id,
-                        title,
-                        description,
-                        lesson_number,
-                        content,
-                        sort_order,
-                        is_visible,
-                        created_at,
-                        updated_at
-                    FROM lessons
-                    WHERE is_visible = 1
-                    ORDER BY
-                        sort_order ASC,
-                        id ASC
-                `)
-                    .all();
-        }
-
-
-        let progressResult;
-
-
-        if (courseId) {
-
-            progressResult =
-                await env.DB.prepare(`
-                    SELECT
-                        lesson_id,
-                        completed
-                    FROM lesson_progress
-                    WHERE user_id = ?
-                    AND course_id = ?
-                `)
-                    .bind(
-                        userId,
-                        Number(courseId)
-                    )
-                    .all();
-
-        } else {
-
-            progressResult =
-                await env.DB.prepare(`
-                    SELECT
-                        lesson_id,
-                        completed
-                    FROM lesson_progress
-                    WHERE user_id = ?
-                `)
-                    .bind(userId)
-                    .all();
-        }
-
-
-        const completedLessonIds =
-            (
-                progressResult.results ||
-                []
-            )
-                .filter(
-                    row =>
-                        Number(
-                            row.completed
-                        ) === 1
-                )
-                .map(
-                    row =>
-                        Number(
-                            row.lesson_id
-                        )
-                );
-
-
-        return json({
-            ok: true,
-            lessons:
-                lessonsResult.results ||
-                [],
-            completedLessonIds
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Lessons error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to load lessons"
-            },
-            500
-        );
-    }
+async function ensureLessonProgressTable(db) {
+    await run(db, `
+        CREATE TABLE IF NOT EXISTS lesson_progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            lesson_id INTEGER NOT NULL,
+            progress_percent INTEGER NOT NULL DEFAULT 0,
+            is_completed INTEGER NOT NULL DEFAULT 0,
+            completed_at TEXT,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, lesson_id)
+        )
+    `);
+    await run(db, "CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_id ON lesson_progress(user_id)");
 }
 
-
-/*
- * =========================================================
- * SINGLE LESSON + FILES
- * =========================================================
- */
-
-async function handleSingleLesson(
-    request,
-    env,
-    lessonId
-) {
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            auth.status
-        );
-    }
-
-
-    if (!lessonId) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "Invalid lesson ID"
-            },
-            400
-        );
-    }
-
-
-    try {
-
-        const lesson =
-            await env.DB.prepare(`
-                SELECT *
-                FROM lessons
-                WHERE id = ?
-                LIMIT 1
-            `)
-                .bind(lessonId)
-                .first();
-
-
-        if (!lesson) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Lesson not found"
-                },
-                404
-            );
-        }
-
-
-        const isAdmin =
-            isAdminRole(
-                auth.user.role
-            );
-
-
-        if (
-            !isAdmin &&
-            Number(
-                lesson.is_visible
-            ) !== 1
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Lesson not found"
-                },
-                404
-            );
-        }
-
-
-        await ensureLessonFilesTable(
-            env.DB
-        );
-
-
-        const filesResult =
-            await env.DB.prepare(`
-                SELECT
-                    id,
-                    lesson_id,
-                    file_name,
-                    mime_type,
-                    file_size,
-                    file_type,
-                    sort_order,
-                    created_at
-                FROM lesson_files
-                WHERE lesson_id = ?
-                ORDER BY
-                    sort_order ASC,
-                    id ASC
-            `)
-                .bind(lessonId)
-                .all();
-
-
-        const files =
-            (
-                filesResult.results ||
-                []
-            ).map(
-                file => ({
-                    ...file,
-                    url:
-                        `/api/lesson-files/${file.id}`
-                })
-            );
-
-
-        /*
-         * Совместимость со старым frontend:
-         * первый video/audio дополнительно
-         * отдаём как video_url/audio_url.
-         */
-
-        const firstVideo =
-            files.find(
-                file =>
-                    file.file_type ===
-                    "video"
-            );
-
-        const firstAudio =
-            files.find(
-                file =>
-                    file.file_type ===
-                    "audio"
-            );
-
-
-        return json({
-            ok: true,
-            lesson: {
-                ...lesson,
-                files,
-                video_url:
-                    firstVideo
-                        ? firstVideo.url
-                        : null,
-                audio_url:
-                    firstAudio
-                        ? firstAudio.url
-                        : null
-            }
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Single lesson error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to load lesson"
-            },
-            500
-        );
-    }
+async function getLessonProgress(db, userId, lessonId) {
+    await ensureLessonProgressTable(db);
+    return first(db, "SELECT * FROM lesson_progress WHERE user_id = ? AND lesson_id = ? LIMIT 1", [userId, lessonId]);
 }
 
-
-/*
- * =========================================================
- * UPLOAD LESSON FILE TO R2
- * =========================================================
- */
-
-async function handleLessonFileUpload(
-    request,
-    env,
-    lessonId
-) {
-    const auth =
-        await requireAdmin(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            auth.status
-        );
+async function saveLessonProgress(db, userId, lessonId, percentage, completed) {
+    const existing = await getLessonProgress(db, userId, lessonId);
+    if (existing) {
+        await run(db, `
+            UPDATE lesson_progress
+            SET progress_percent = ?, is_completed = ?,
+                completed_at = CASE WHEN ? = 1 THEN COALESCE(completed_at, CURRENT_TIMESTAMP) ELSE NULL END,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND lesson_id = ?
+        `, [percentage, completed, completed, userId, lessonId]);
+    } else {
+        await run(db, `
+            INSERT INTO lesson_progress (user_id, lesson_id, progress_percent, is_completed, completed_at)
+            VALUES (?, ?, ?, ?, CASE WHEN ? = 1 THEN CURRENT_TIMESTAMP ELSE NULL END)
+        `, [userId, lessonId, percentage, completed, completed]);
     }
+    return getLessonProgress(db, userId, lessonId);
+}
 
+async function ensureTributeTables(db) {
+    await run(db, `
+        CREATE TABLE IF NOT EXISTS tribute_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id TEXT NOT NULL UNIQUE,
+            event_type TEXT,
+            payment_status TEXT,
+            user_id INTEGER,
+            program_id INTEGER,
+            payload_json TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+    await run(db, `
+        CREATE TABLE IF NOT EXISTS user_program_access (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            program_id INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active',
+            source TEXT,
+            granted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            expires_at TEXT,
+            UNIQUE(user_id, program_id)
+        )
+    `);
+}
 
-    if (!env.FILES) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "R2 binding FILES is not configured"
-            },
-            500
-        );
-    }
+async function accessByProgram(db, userId) {
+    await ensureTributeTables(db);
+    const rows = await all(db, `
+        SELECT program_id FROM user_program_access
+        WHERE user_id = ? AND status = 'active'
+          AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+    `, [userId]);
+    return new Set(rows.map((row) => Number(row.program_id)));
+}
 
+async function tributeUserId(db, metadata, data, payload) {
+    const direct = positiveIntegerOrNull(metadata.user_id || data.user_id || payload.user_id);
+    if (direct) return direct;
+    const telegramId = positiveIntegerOrNull(metadata.telegram_id || data.telegram_id || payload.telegram_id || data.user?.telegram_id);
+    if (!telegramId) return null;
+    const user = await first(db, "SELECT id FROM users WHERE telegram_id = ? LIMIT 1", [telegramId]);
+    return user ? Number(user.id) : null;
+}
 
-    if (!env.DB) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "Database is not configured"
-            },
-            500
-        );
-    }
+function isValidTributeWebhook(request, rawBody, env) {
+    const secret = env.TRIBUTE_WEBHOOK_SECRET || env.TRIBUTE_WEBHOOK_TOKEN;
+    if (!secret) return true;
+    const supplied = request.headers.get("X-Tribute-Webhook-Secret") || request.headers.get("X-Webhook-Secret") || bearerFromHeader(request.headers.get("Authorization"));
+    return Boolean(supplied) && constantTimeEqual(String(supplied), String(secret));
+}
 
+function isSuccessfulTributeEvent(type, status) {
+    const successStatuses = new Set(["paid", "succeeded", "success", "active", "completed", "complete"]);
+    if (successStatuses.has(status)) return true;
+    return /(payment|invoice|subscription).*(success|succeed|paid|complete|active)/i.test(type);
+}
 
-    if (!lessonId) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "Invalid lesson ID"
-            },
-            400
-        );
-    }
+async function ensureAuthSessionsTable(db) {
+    await run(db, `
+        CREATE TABLE IF NOT EXISTS auth_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT NOT NULL UNIQUE,
+            expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+    await run(db, "CREATE INDEX IF NOT EXISTS idx_auth_sessions_token ON auth_sessions(token)");
+}
 
+async function tableColumns(db, table) {
+    if (tableColumnsCache.has(table)) return tableColumnsCache.get(table);
+    const rows = await all(db, `PRAGMA table_info(${quoteIdentifier(table)})`);
+    const columns = rows.map((row) => row.name);
+    tableColumnsCache.set(table, columns);
+    return columns;
+}
 
-    /*
-     * Проверяем урок.
-     */
+async function all(db, sql, values = []) {
+    const statement = db.prepare(sql);
+    const result = values.length ? await statement.bind(...values).all() : await statement.all();
+    return result.results || [];
+}
 
-    const lesson =
-        await env.DB.prepare(`
-            SELECT id
-            FROM lessons
-            WHERE id = ?
-            LIMIT 1
-        `)
-            .bind(lessonId)
-            .first();
+async function first(db, sql, values = []) {
+    const statement = db.prepare(sql);
+    return values.length ? statement.bind(...values).first() : statement.first();
+}
 
+async function run(db, sql, values = []) {
+    const statement = db.prepare(sql);
+    return values.length ? statement.bind(...values).run() : statement.run();
+}
 
-    if (!lesson) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "Lesson not found"
-            },
-            404
-        );
-    }
+function firstColumn(columns, choices) {
+    return choices.find((column) => columns.includes(column)) || null;
+}
 
+function contentOrder(columns) {
+    const fields = [];
+    const sort = firstColumn(columns, ["sort_order", "position", "order_index", "lesson_number", "number"]);
+    const title = firstColumn(columns, ["title", "name"]);
+    if (sort) fields.push(`${quoteIdentifier(sort)} ASC`);
+    if (title) fields.push(`${quoteIdentifier(title)} ASC`);
+    if (columns.includes("id")) fields.push("id ASC");
+    return fields.join(", ");
+}
 
-    if (!request.body) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "File body is empty"
-            },
-            400
-        );
-    }
+function isHidden(row, columns) {
+    const column = firstColumn(columns, ["is_visible", "visible", "is_published", "published"]);
+    return column ? Number(row[column]) !== 1 : false;
+}
 
+function quoteIdentifier(identifier) {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(identifier)) throw new Error("Unsafe SQL identifier");
+    return `"${identifier}"`;
+}
 
-    /*
-     * admin/index.html будет передавать:
-     *
-     * X-File-Name: encodeURIComponent(file.name)
-     */
+function getBearerToken(request) {
+    const headerToken = bearerFromHeader(request.headers.get("Authorization")) || request.headers.get("X-Session-Token");
+    if (headerToken) return String(headerToken).trim();
+    // Query token is intentionally supported for the HTML video/audio Range requests,
+    // which cannot send an Authorization header. Prefer the header for normal API calls.
+    return new URL(request.url).searchParams.get("token") || null;
+}
 
-    let fileName =
-        request.headers.get(
-            "X-File-Name"
-        ) ||
-        "file";
+function bearerFromHeader(value) {
+    const match = String(value || "").match(/^Bearer\s+(.+)$/i);
+    return match ? match[1].trim() : null;
+}
 
+function corsHeaders(env) {
+    return {
+        "Access-Control-Allow-Origin": env.CORS_ORIGIN || "*",
+        "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type, Range, X-Session-Token, X-Tribute-Webhook-Secret, X-Webhook-Secret",
+        "Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range, Content-Disposition, ETag",
+        "Vary": "Origin"
+    };
+}
 
+function withCors(response, env) {
+    const headers = new Headers(response.headers);
+    for (const [key, value] of Object.entries(corsHeaders(env))) headers.set(key, value);
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+function json(payload, status = 200, env = {}) {
+    return new Response(JSON.stringify(payload), {
+        status,
+        headers: { ...corsHeaders(env), "Content-Type": "application/json; charset=utf-8" }
+    });
+}
+
+function databaseMissing(env) {
+    return json({ ok: false, error: "Database is not configured" }, 500, env);
+}
+
+function authError(auth, env) {
+    return json({ ok: false, error: auth.error }, auth.status, env);
+}
+
+async function readJson(request) {
     try {
-        fileName =
-            decodeURIComponent(
-                fileName
-            );
+        return await request.json();
     } catch {
-        // Оставляем как есть.
-    }
-
-
-    fileName =
-        cleanFileName(
-            fileName
-        );
-
-
-    const mimeType =
-        cleanMimeType(
-            request.headers.get(
-                "Content-Type"
-            )
-        );
-
-
-    const fileType =
-        detectFileType(
-            mimeType,
-            fileName
-        );
-
-
-    const sortOrder =
-        Math.max(
-            0,
-            Number(
-                request.headers.get(
-                    "X-Sort-Order"
-                ) || 0
-            ) || 0
-        );
-
-
-    /*
-     * Уникальный R2 key.
-     */
-
-    const key =
-        [
-            "lessons",
-            String(lessonId),
-            `${crypto.randomUUID()}-${safeKeyFileName(fileName)}`
-        ].join("/");
-
-
-    try {
-
-        /*
-         * ВАЖНО:
-         *
-         * request.body передаём напрямую.
-         * Не преобразуем весь файл в ArrayBuffer.
-         */
-
-        const object =
-            await env.FILES.put(
-                key,
-                request.body,
-                {
-                    httpMetadata: {
-                        contentType:
-                            mimeType
-                    },
-
-                    customMetadata: {
-                        lessonId:
-                            String(
-                                lessonId
-                            ),
-                        originalName:
-                            fileName,
-                        uploadedBy:
-                            String(
-                                auth.user.id
-                            ),
-                        type:
-                            fileType
-                    }
-                }
-            );
-
-
-        await ensureLessonFilesTable(
-            env.DB
-        );
-
-
-        const fileSize =
-            Number(
-                object?.size ||
-                request.headers.get(
-                    "Content-Length"
-                ) ||
-                0
-            );
-
-
-        const result =
-            await env.DB.prepare(`
-                INSERT INTO lesson_files (
-                    lesson_id,
-                    file_name,
-                    file_key,
-                    mime_type,
-                    file_size,
-                    file_type,
-                    sort_order,
-                    created_at
-                )
-                VALUES (
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    CURRENT_TIMESTAMP
-                )
-            `)
-                .bind(
-                    lessonId,
-                    fileName,
-                    key,
-                    mimeType,
-                    fileSize,
-                    fileType,
-                    sortOrder
-                )
-                .run();
-
-
-        const fileId =
-            Number(
-                result.meta.last_row_id
-            );
-
-
-        return json({
-            ok: true,
-
-            file: {
-                id:
-                    fileId,
-                lesson_id:
-                    lessonId,
-                file_name:
-                    fileName,
-                mime_type:
-                    mimeType,
-                file_size:
-                    fileSize,
-                file_type:
-                    fileType,
-                sort_order:
-                    sortOrder,
-                url:
-                    `/api/lesson-files/${fileId}`
-            }
-        });
-
-    } catch (error) {
-
-        console.error(
-            "R2 upload error:",
-            error
-        );
-
-
-        /*
-         * Если R2 успел получить файл,
-         * а D1 упал — пытаемся убрать
-         * оставшийся объект.
-         */
-
-        try {
-            await env.FILES.delete(
-                key
-            );
-        } catch {
-            // ignore
-        }
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Не удалось загрузить файл"
-            },
-            500
-        );
+        throw new Error("Invalid JSON body");
     }
 }
 
-
-/*
- * =========================================================
- * GET LESSON FILE
- * =========================================================
- */
-
-async function handleLessonFileGet(
-    request,
-    env,
-    fileId
-) {
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            auth.status
-        );
-    }
-
-
-    if (!env.FILES) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "R2 is not configured"
-            },
-            500
-        );
-    }
-
-
-    await ensureLessonFilesTable(
-        env.DB
-    );
-
-
-    const file =
-        await env.DB.prepare(`
-            SELECT
-                lf.*,
-                l.is_visible
-            FROM lesson_files lf
-            LEFT JOIN lessons l
-                ON l.id = lf.lesson_id
-            WHERE lf.id = ?
-            LIMIT 1
-        `)
-            .bind(fileId)
-            .first();
-
-
-    if (!file) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "File not found"
-            },
-            404
-        );
-    }
-
-
-    if (
-        !isAdminRole(
-            auth.user.role
-        ) &&
-        Number(
-            file.is_visible
-        ) !== 1
-    ) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "File not found"
-            },
-            404
-        );
-    }
-
-
-    try {
-
-        /*
-         * HEAD нужен для размера и Range.
-         */
-
-        const head =
-            await env.FILES.head(
-                file.file_key
-            );
-
-
-        if (!head) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "R2 object not found"
-                },
-                404
-            );
-        }
-
-
-        const totalSize =
-            Number(
-                head.size || 0
-            );
-
-
-        const rangeHeader =
-            request.headers.get(
-                "Range"
-            );
-
-
-        /*
-         * VIDEO/AUDIO RANGE
-         */
-
-        if (
-            rangeHeader &&
-            totalSize > 0
-        ) {
-            const range =
-                parseByteRange(
-                    rangeHeader,
-                    totalSize
-                );
-
-
-            if (!range) {
-                return new Response(
-                    null,
-                    {
-                        status: 416,
-                        headers: {
-                            ...corsHeaders(),
-                            "Content-Range":
-                                `bytes */${totalSize}`
-                        }
-                    }
-                );
-            }
-
-
-            const object =
-                await env.FILES.get(
-                    file.file_key,
-                    {
-                        range: {
-                            offset:
-                                range.start,
-                            length:
-                                range.length
-                        }
-                    }
-                );
-
-
-            if (!object) {
-                return json(
-                    {
-                        ok: false,
-                        error:
-                            "File not found"
-                    },
-                    404
-                );
-            }
-
-
-            const headers =
-                new Headers(
-                    corsHeaders()
-                );
-
-
-            headers.set(
-                "Content-Type",
-                file.mime_type ||
-                "application/octet-stream"
-            );
-
-            headers.set(
-                "Accept-Ranges",
-                "bytes"
-            );
-
-            headers.set(
-                "Content-Length",
-                String(
-                    range.length
-                )
-            );
-
-            headers.set(
-                "Content-Range",
-                `bytes ${range.start}-${range.end}/${totalSize}`
-            );
-
-            headers.set(
-                "Cache-Control",
-                "private, max-age=3600"
-            );
-
-            headers.set(
-                "Content-Disposition",
-                buildContentDisposition(
-                    file.file_name,
-                    file.file_type
-                )
-            );
-
-
-            return new Response(
-                object.body,
-                {
-                    status: 206,
-                    headers
-                }
-            );
-        }
-
-
-        /*
-         * FULL FILE
-         */
-
-        const object =
-            await env.FILES.get(
-                file.file_key
-            );
-
-
-        if (!object) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "File not found"
-                },
-                404
-            );
-        }
-
-
-        const headers =
-            new Headers(
-                corsHeaders()
-            );
-
-
-        headers.set(
-            "Content-Type",
-            file.mime_type ||
-            "application/octet-stream"
-        );
-
-        headers.set(
-            "Content-Length",
-            String(
-                object.size || 0
-            )
-        );
-
-        headers.set(
-            "Accept-Ranges",
-            "bytes"
-        );
-
-        headers.set(
-            "Cache-Control",
-            "private, max-age=3600"
-        );
-
-        headers.set(
-            "Content-Disposition",
-            buildContentDisposition(
-                file.file_name,
-                file.file_type
-            )
-        );
-
-
-        return new Response(
-            object.body,
-            {
-                status: 200,
-                headers
-            }
-        );
-
-    } catch (error) {
-
-        console.error(
-            "R2 read error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to read file"
-            },
-            500
-        );
-    }
+function normalizeLogin(value) {
+    return String(value || "").trim().toLowerCase();
 }
 
-
-/*
- * =========================================================
- * DELETE LESSON FILE
- * =========================================================
- */
-
-async function handleLessonFileDelete(
-    request,
-    env,
-    fileId
-) {
-    const auth =
-        await requireAdmin(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            auth.status
-        );
-    }
-
-
-    if (!env.FILES) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "R2 is not configured"
-            },
-            500
-        );
-    }
-
-
-    await ensureLessonFilesTable(
-        env.DB
-    );
-
-
-    const file =
-        await env.DB.prepare(`
-            SELECT *
-            FROM lesson_files
-            WHERE id = ?
-            LIMIT 1
-        `)
-            .bind(fileId)
-            .first();
-
-
-    if (!file) {
-        return json(
-            {
-                ok: false,
-                error:
-                    "File not found"
-            },
-            404
-        );
-    }
-
-
-    try {
-
-        await env.FILES.delete(
-            file.file_key
-        );
-
-
-        await env.DB.prepare(`
-            DELETE FROM lesson_files
-            WHERE id = ?
-        `)
-            .bind(fileId)
-            .run();
-
-
-        return json({
-            ok: true,
-            deleted: true,
-            id:
-                fileId
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Delete lesson file error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to delete file"
-            },
-            500
-        );
-    }
+function isValidLogin(login) {
+    return /^[a-z0-9_-]{3,30}$/i.test(login);
 }
 
-
-/*
- * =========================================================
- * ENSURE LESSON FILES TABLE
- * =========================================================
- */
-
-async function ensureLessonFilesTable(
-    db
-) {
-    /*
-     * Если таблицы нет — создаём.
-     */
-
-    await db.prepare(`
-        CREATE TABLE IF NOT EXISTS
-        lesson_files (
-            id INTEGER
-                PRIMARY KEY AUTOINCREMENT,
-
-            lesson_id INTEGER
-                NOT NULL,
-
-            file_name TEXT,
-
-            file_key TEXT,
-
-            mime_type TEXT,
-
-            file_size INTEGER
-                DEFAULT 0,
-
-            file_type TEXT
-                DEFAULT 'file',
-
-            sort_order INTEGER
-                DEFAULT 0,
-
-            created_at TEXT
-                DEFAULT CURRENT_TIMESTAMP
-        )
-    `)
-        .run();
-
-
-    /*
-     * Если lesson_files существовала раньше
-     * с другой структурой, недостающие
-     * колонки добавляем автоматически.
-     */
-
-    let columns =
-        await getTableColumns(
-            db,
-            "lesson_files"
-        );
-
-
-    const additions = [
-        [
-            "file_name",
-            "TEXT"
-        ],
-        [
-            "file_key",
-            "TEXT"
-        ],
-        [
-            "mime_type",
-            "TEXT"
-        ],
-        [
-            "file_size",
-            "INTEGER DEFAULT 0"
-        ],
-        [
-            "file_type",
-            "TEXT DEFAULT 'file'"
-        ],
-        [
-            "sort_order",
-            "INTEGER DEFAULT 0"
-        ],
-        [
-            "created_at",
-            "TEXT"
-        ]
-    ];
-
-
-    for (
-        const [
-            name,
-            definition
-        ]
-        of additions
-    ) {
-
-        if (
-            columns.includes(
-                name
-            )
-        ) {
-            continue;
-        }
-
-
-        await db.prepare(
-            `
-            ALTER TABLE lesson_files
-            ADD COLUMN ${name} ${definition}
-            `
-        )
-            .run();
-    }
-
-
-    columns =
-        await getTableColumns(
-            db,
-            "lesson_files"
-        );
-
-
-    if (
-        columns.includes(
-            "lesson_id"
-        )
-    ) {
-        await db.prepare(`
-            CREATE INDEX IF NOT EXISTS
-            idx_lesson_files_lesson
-            ON lesson_files(lesson_id)
-        `)
-            .run();
-    }
+function cleanText(value) {
+    return typeof value === "string" ? value.trim().slice(0, 20000) : "";
 }
 
-
-/*
- * =========================================================
- * PROGRESS
- * =========================================================
- */
-
-async function handleProgress(
-    request,
-    env
-) {
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
-
-
-    if (!auth.ok) {
-        return json(
-            {
-                ok: false,
-                error:
-                    auth.error
-            },
-            auth.status
-        );
-    }
-
-
-    try {
-
-        const body =
-            await request.json();
-
-
-        const lessonId =
-            Number(
-                body?.lessonId
-            );
-
-
-        const courseId =
-            Number(
-                body?.courseId
-            );
-
-
-        if (!lessonId) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "lessonId is required"
-                },
-                400
-            );
-        }
-
-
-        if (!courseId) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "courseId is required"
-                },
-                400
-            );
-        }
-
-
-        const userId =
-            Number(
-                auth.user.id
-            );
-
-
-        const existing =
-            await env.DB.prepare(`
-                SELECT id
-                FROM lesson_progress
-                WHERE user_id = ?
-                AND course_id = ?
-                AND lesson_id = ?
-                LIMIT 1
-            `)
-                .bind(
-                    userId,
-                    courseId,
-                    lessonId
-                )
-                .first();
-
-
-        if (existing) {
-
-            await env.DB.prepare(`
-                UPDATE lesson_progress
-                SET
-                    completed = 1,
-                    completed_at =
-                        CURRENT_TIMESTAMP,
-                    updated_at =
-                        CURRENT_TIMESTAMP
-                WHERE id = ?
-            `)
-                .bind(
-                    existing.id
-                )
-                .run();
-
-        } else {
-
-            await env.DB.prepare(`
-                INSERT INTO lesson_progress (
-                    user_id,
-                    course_id,
-                    lesson_id,
-                    completed,
-                    completed_at
-                )
-                VALUES (
-                    ?,
-                    ?,
-                    ?,
-                    1,
-                    CURRENT_TIMESTAMP
-                )
-            `)
-                .bind(
-                    userId,
-                    courseId,
-                    lessonId
-                )
-                .run();
-        }
-
-
-        return json({
-            ok: true,
-            completed: true
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Progress error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to save progress"
-            },
-            500
-        );
-    }
+function positiveIntegerOrNull(value) {
+    const number = Number(value);
+    return Number.isSafeInteger(number) && number > 0 ? number : null;
 }
 
-
-/*
- * =========================================================
- * TRIBUTE
- * =========================================================
- */
-
-async function handleTributeWebhook(
-    request,
-    env
-) {
-    try {
-
-        if (
-            !env.TRIBUTE_API_KEY
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Tribute API key is not configured"
-                },
-                500
-            );
-        }
-
-
-        const rawBody =
-            await request.text();
-
-
-        const signature =
-            request.headers.get(
-                "trbt-signature"
-            );
-
-
-        if (!signature) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Tribute signature is missing"
-                },
-                401
-            );
-        }
-
-
-        const valid =
-            await verifyTributeSignature(
-                rawBody,
-                signature,
-                env.TRIBUTE_API_KEY
-            );
-
-
-        if (!valid) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Invalid webhook signature"
-                },
-                401
-            );
-        }
-
-
-        let event;
-
-
-        try {
-            event =
-                JSON.parse(
-                    rawBody
-                );
-        } catch {
-
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Invalid webhook JSON"
-                },
-                400
-            );
-        }
-
-
-        if (
-            event?.name !==
-            "new_digital_product"
-        ) {
-            return json({
-                ok: true,
-                status:
-                    "ignored",
-                event:
-                    event?.name ||
-                    null
-            });
-        }
-
-
-        const payload =
-            event?.payload;
-
-
-        if (!payload) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Tribute payload is missing"
-                },
-                400
-            );
-        }
-
-
-        const productId =
-            payload?.product_id;
-
-        const telegramUserId =
-            payload?.telegram_user_id;
-
-        const purchaseId =
-            payload?.purchase_id ||
-            null;
-
-        const transactionId =
-            payload?.transaction_id ||
-            null;
-
-
-        if (!productId) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Tribute product_id is missing"
-                },
-                400
-            );
-        }
-
-
-        if (!telegramUserId) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Tribute telegram_user_id is missing"
-                },
-                400
-            );
-        }
-
-
-        await ensureTributeTables(
-            env.DB
-        );
-
-
-        const eventId =
-            purchaseId
-                ? `purchase:${purchaseId}`
-                : transactionId
-                    ? `transaction:${transactionId}`
-                    :
-                    `event:${event.created_at || ""}:${productId}:${telegramUserId}`;
-
-
-        const existing =
-            await env.DB.prepare(`
-                SELECT id
-                FROM tribute_webhook_events
-                WHERE event_id = ?
-                LIMIT 1
-            `)
-                .bind(
-                    eventId
-                )
-                .first();
-
-
-        if (existing) {
-            return json({
-                ok: true,
-                status:
-                    "already_processed",
-                event_id:
-                    eventId
-            });
-        }
-
-
-        await env.DB.prepare(`
-            INSERT INTO tribute_webhook_events (
-                event_id,
-                event_name,
-                product_id,
-                telegram_user_id,
-                purchase_id,
-                transaction_id,
-                created_at
-            )
-            VALUES (
-                ?, ?, ?, ?, ?, ?,
-                CURRENT_TIMESTAMP
-            )
-        `)
-            .bind(
-                eventId,
-                event.name,
-                String(
-                    productId
-                ),
-                String(
-                    telegramUserId
-                ),
-                purchaseId
-                    ? String(
-                        purchaseId
-                    )
-                    : null,
-                transactionId
-                    ? String(
-                        transactionId
-                    )
-                    : null
-            )
-            .run();
-
-
-        const mapping =
-            await env.DB.prepare(`
-                SELECT
-                    tribute_product_id,
-                    program_id
-                FROM tribute_product_programs
-                WHERE tribute_product_id = ?
-                LIMIT 1
-            `)
-                .bind(
-                    String(
-                        productId
-                    )
-                )
-                .first();
-
-
-        if (!mapping) {
-            return json({
-                ok: true,
-                status:
-                    "received",
-                access:
-                    "not_mapped",
-                product_id:
-                    productId,
-                telegram_user_id:
-                    telegramUserId,
-                event_id:
-                    eventId
-            });
-        }
-
-
-        const user =
-            await env.DB.prepare(`
-                SELECT id
-                FROM users
-                WHERE telegram_id = ?
-                LIMIT 1
-            `)
-                .bind(
-                    Number(
-                        telegramUserId
-                    )
-                )
-                .first();
-
-
-        if (!user) {
-            return json({
-                ok: true,
-                status:
-                    "received",
-                access:
-                    "user_not_found",
-                telegram_user_id:
-                    telegramUserId,
-                event_id:
-                    eventId
-            });
-        }
-
-
-        const granted =
-            await grantProgramCourses(
-                env.DB,
-                user.id,
-                mapping.program_id
-            );
-
-
-        return json({
-            ok: true,
-            status:
-                "processed",
-            access:
-                granted
-                    ? "granted"
-                    : "no_courses",
-            product_id:
-                productId,
-            telegram_user_id:
-                telegramUserId,
-            program_id:
-                mapping.program_id,
-            purchase_id:
-                purchaseId,
-            event_id:
-                eventId
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Tribute webhook error:",
-            error
-        );
-
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Failed to process Tribute webhook"
-            },
-            500
-        );
-    }
+function nonNegativeNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 0 ? Math.floor(number) : 0;
 }
 
-
-/*
- * =========================================================
- * GRANT PROGRAM COURSES
- * =========================================================
- */
-
-async function grantProgramCourses(
-    db,
-    userId,
-    programId
-) {
-    try {
-
-        const courses =
-            await db.prepare(`
-                SELECT id
-                FROM courses
-                WHERE program_id = ?
-            `)
-                .bind(
-                    Number(
-                        programId
-                    )
-                )
-                .all();
-
-
-        const rows =
-            courses.results ||
-            [];
-
-
-        if (!rows.length) {
-            return false;
-        }
-
-
-        const columns =
-            await getTableColumns(
-                db,
-                "user_courses"
-            );
-
-
-        if (
-            !columns.includes(
-                "user_id"
-            ) ||
-            !columns.includes(
-                "course_id"
-            )
-        ) {
-            return false;
-        }
-
-
-        for (
-            const course
-            of rows
-        ) {
-
-            const existing =
-                await db.prepare(`
-                    SELECT *
-                    FROM user_courses
-                    WHERE user_id = ?
-                    AND course_id = ?
-                    LIMIT 1
-                `)
-                    .bind(
-                        userId,
-                        course.id
-                    )
-                    .first();
-
-
-            if (existing) {
-                continue;
-            }
-
-
-            await db.prepare(`
-                INSERT INTO user_courses (
-                    user_id,
-                    course_id
-                )
-                VALUES (?, ?)
-            `)
-                .bind(
-                    userId,
-                    course.id
-                )
-                .run();
-        }
-
-
-        return true;
-
-    } catch (error) {
-
-        console.error(
-            "Grant courses error:",
-            error
-        );
-
-
-        return false;
-    }
+function clampProgress(value) {
+    return Math.max(0, Math.min(100, nonNegativeNumber(value)));
 }
 
-
-/*
- * =========================================================
- * TRIBUTE TABLES
- * =========================================================
- */
-
-async function ensureTributeTables(
-    db
-) {
-    await db.prepare(`
-        CREATE TABLE IF NOT EXISTS
-        tribute_product_programs (
-            tribute_product_id
-                TEXT PRIMARY KEY,
-
-            program_id
-                TEXT NOT NULL
-        )
-    `)
-        .run();
-
-
-    await db.prepare(`
-        CREATE TABLE IF NOT EXISTS
-        tribute_webhook_events (
-            id INTEGER
-                PRIMARY KEY AUTOINCREMENT,
-
-            event_id TEXT
-                NOT NULL UNIQUE,
-
-            event_name TEXT
-                NOT NULL,
-
-            product_id TEXT,
-
-            telegram_user_id TEXT,
-
-            purchase_id TEXT,
-
-            transaction_id TEXT,
-
-            created_at TEXT
-                NOT NULL
-        )
-    `)
-        .run();
-
-
-    await db.prepare(`
-        CREATE INDEX IF NOT EXISTS
-        idx_tribute_events_event_id
-        ON tribute_webhook_events(
-            event_id
-        )
-    `)
-        .run();
+function safeFileName(name) {
+    const normalized = String(name).replace(/[\\/:*?"<>|\u0000-\u001F]/g, "_").trim();
+    return (normalized || "file").slice(0, 180);
 }
 
-
-/*
- * =========================================================
- * FILE HELPERS
- * =========================================================
- */
-
-function cleanFileName(
-    value
-) {
-    let name =
-        String(
-            value ||
-            "file"
-        )
-            .trim()
-            .replace(
-                /[\r\n]/g,
-                ""
-            );
-
-
-    if (!name) {
-        name =
-            "file";
-    }
-
-
-    return name.slice(
-        0,
-        240
-    );
+function contentDisposition(contentType, fileName) {
+    const disposition = /^(image\/|audio\/|video\/|application\/pdf$)/i.test(contentType) ? "inline" : "attachment";
+    return `${disposition}; filename*=UTF-8''${encodeURIComponent(fileName)}`;
 }
 
-
-function safeKeyFileName(
-    value
-) {
-    const name =
-        cleanFileName(
-            value
-        );
-
-
-    const safe =
-        name
-            .replace(
-                /[^a-zA-Z0-9._-]+/g,
-                "-"
-            )
-            .replace(
-                /-+/g,
-                "-"
-            )
-            .replace(
-                /^[-.]+|[-.]+$/g,
-                ""
-            );
-
-
-    return (
-        safe ||
-        "file"
-    ).slice(
-        0,
-        120
-    );
-}
-
-
-function cleanMimeType(
-    value
-) {
-    const type =
-        String(
-            value ||
-            "application/octet-stream"
-        )
-            .split(";")[0]
-            .trim()
-            .toLowerCase();
-
-
-    return (
-        type ||
-        "application/octet-stream"
-    ).slice(
-        0,
-        150
-    );
-}
-
-
-function detectFileType(
-    mimeType,
-    fileName
-) {
-    const mime =
-        String(
-            mimeType || ""
-        ).toLowerCase();
-
-
-    const name =
-        String(
-            fileName || ""
-        ).toLowerCase();
-
-
-    if (
-        mime.startsWith(
-            "image/"
-        )
-    ) {
-        return "image";
-    }
-
-
-    if (
-        mime.startsWith(
-            "video/"
-        )
-    ) {
-        return "video";
-    }
-
-
-    if (
-        mime.startsWith(
-            "audio/"
-        )
-    ) {
-        return "audio";
-    }
-
-
-    if (
-        mime ===
-        "application/pdf" ||
-        name.endsWith(
-            ".pdf"
-        )
-    ) {
-        return "pdf";
-    }
-
-
-    return "file";
-}
-
-
-function buildContentDisposition(
-    fileName,
-    fileType
-) {
-    const inlineTypes =
-        [
-            "image",
-            "video",
-            "audio",
-            "pdf"
-        ];
-
-
-    const mode =
-        inlineTypes.includes(
-            fileType
-        )
-            ? "inline"
-            : "attachment";
-
-
-    const encoded =
-        encodeURIComponent(
-            fileName ||
-            "file"
-        );
-
-
-    return (
-        `${mode}; filename*=UTF-8''${encoded}`
-    );
-}
-
-
-function parseByteRange(
-    header,
-    total
-) {
-    const match =
-        String(
-            header || ""
-        ).match(
-            /^bytes=(\d*)-(\d*)$/
-        );
-
-
-    if (!match) {
-        return null;
-    }
-
-
+function parseRange(header, size) {
+    if (!header) return null;
+    const match = String(header).trim().match(/^bytes=(\d*)-(\d*)$/i);
+    if (!match || size < 1) return { invalid: true };
+    const [, startText, endText] = match;
     let start;
     let end;
-
-
-    if (
-        match[1] === "" &&
-        match[2] !== ""
-    ) {
-        const suffix =
-            Number(
-                match[2]
-            );
-
-
-        if (
-            !suffix ||
-            suffix < 1
-        ) {
-            return null;
-        }
-
-
-        start =
-            Math.max(
-                total - suffix,
-                0
-            );
-
-        end =
-            total - 1;
-
+    if (!startText) {
+        const suffixLength = Number(endText);
+        if (!Number.isSafeInteger(suffixLength) || suffixLength < 1) return { invalid: true };
+        start = Math.max(0, size - suffixLength);
+        end = size - 1;
     } else {
-
-        start =
-            Number(
-                match[1]
-            );
-
-
-        end =
-            match[2] !== ""
-                ? Number(
-                    match[2]
-                )
-                : total - 1;
+        start = Number(startText);
+        end = endText ? Number(endText) : size - 1;
+        if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || start >= size) {
+            return { invalid: true };
+        }
+        end = Math.min(end, size - 1);
     }
-
-
-    if (
-        !Number.isFinite(start) ||
-        !Number.isFinite(end) ||
-        start < 0 ||
-        end < start ||
-        start >= total
-    ) {
-        return null;
-    }
-
-
-    end =
-        Math.min(
-            end,
-            total - 1
-        );
-
-
-    return {
-        start,
-        end,
-        length:
-            end - start + 1
-    };
+    return { start, end, length: end - start + 1 };
 }
 
-
-function isAdminRole(
-    role
-) {
-    return [
-        "owner",
-        "superadmin",
-        "admin"
-    ].includes(
-        String(
-            role || ""
-        ).toLowerCase()
-    );
+function publicUser(user) {
+    if (!user) return null;
+    const { password_hash, ...publicData } = user;
+    return publicData;
 }
 
-
-/*
- * =========================================================
- * PASSWORD HASH
- * =========================================================
- */
-
-async function hashPassword(
-    password
-) {
-    const salt =
-        new Uint8Array(
-            16
-        );
-
-
-    crypto.getRandomValues(
-        salt
-    );
-
-
-    const key =
-        await crypto.subtle.importKey(
-            "raw",
-            new TextEncoder()
-                .encode(
-                    password
-                ),
-            {
-                name:
-                    "PBKDF2"
-            },
-            false,
-            [
-                "deriveBits"
-            ]
-        );
-
-
-    const bits =
-        await crypto.subtle.deriveBits(
-            {
-                name:
-                    "PBKDF2",
-
-                salt,
-
-                iterations:
-                    PASSWORD_ITERATIONS,
-
-                hash:
-                    "SHA-256"
-            },
-            key,
-            256
-        );
-
-
-    return [
-        "pbkdf2",
-        "sha256",
-        PASSWORD_ITERATIONS,
-        bytesToBase64(
-            salt
-        ),
-        bytesToBase64(
-            new Uint8Array(
-                bits
-            )
-        )
-    ].join("$");
+function isAdmin(user) {
+    return ADMIN_ROLES.has(String(user?.role || "").toLowerCase());
 }
 
+async function hashPassword(password) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const hash = await derivePasswordHash(password, salt, PASSWORD_ITERATIONS);
+    return `pbkdf2$${PASSWORD_ITERATIONS}$${bytesToBase64(salt)}$${bytesToBase64(hash)}`;
+}
 
-/*
- * =========================================================
- * PASSWORD VERIFY
- * =========================================================
- */
-
-async function verifyPassword(
-    password,
-    stored
-) {
+async function verifyPassword(password, stored) {
     try {
-
-        const parts =
-            String(
-                stored
-            ).split("$");
-
-
-        if (
-            parts.length !== 5 ||
-            parts[0] !==
-            "pbkdf2" ||
-            parts[1] !==
-            "sha256"
-        ) {
+        const parts = String(stored).split(/[$:.]/);
+        let iterations = PASSWORD_ITERATIONS;
+        let saltText;
+        let hashText;
+        if (parts[0] === "pbkdf2") {
+            iterations = Number(parts[1]);
+            saltText = parts[2];
+            hashText = parts[3];
+        } else if (parts.length === 3 && /^\d+$/.test(parts[0])) {
+            iterations = Number(parts[0]);
+            saltText = parts[1];
+            hashText = parts[2];
+        } else if (parts.length === 2) {
+            saltText = parts[0];
+            hashText = parts[1];
+        } else {
             return false;
         }
-
-
-        const iterations =
-            Number(
-                parts[2]
-            );
-
-
-        const salt =
-            base64ToBytes(
-                parts[3]
-            );
-
-
-        const expected =
-            base64ToBytes(
-                parts[4]
-            );
-
-
-        const key =
-            await crypto.subtle.importKey(
-                "raw",
-                new TextEncoder()
-                    .encode(
-                        password
-                    ),
-                {
-                    name:
-                        "PBKDF2"
-                },
-                false,
-                [
-                    "deriveBits"
-                ]
-            );
-
-
-        const bits =
-            await crypto.subtle.deriveBits(
-                {
-                    name:
-                        "PBKDF2",
-
-                    salt,
-
-                    iterations,
-
-                    hash:
-                        "SHA-256"
-                },
-                key,
-                expected.length *
-                8
-            );
-
-
-        return timingSafeBytesEqual(
-            new Uint8Array(
-                bits
-            ),
-            expected
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Password verification error:",
-            error
-        );
-
-
+        if (!Number.isSafeInteger(iterations) || iterations < 10000 || iterations > 1000000) return false;
+        const expected = base64ToBytes(hashText);
+        const actual = await derivePasswordHash(password, base64ToBytes(saltText), iterations);
+        return constantTimeBytesEqual(actual, expected);
+    } catch {
         return false;
     }
 }
 
-
-/*
- * =========================================================
- * TECHNICAL TELEGRAM ID
- * =========================================================
- */
-
-async function generateTechnicalTelegramId(
-    db
-) {
-    for (
-        let attempt = 0;
-        attempt < 10;
-        attempt++
-    ) {
-
-        const random =
-            new Uint32Array(
-                1
-            );
-
-
-        crypto.getRandomValues(
-            random
-        );
-
-
-        const id =
-            -(
-                1000000000 +
-                Number(
-                    random[0] %
-                    2000000000
-                )
-            );
-
-
-        const existing =
-            await db.prepare(`
-                SELECT id
-                FROM users
-                WHERE telegram_id = ?
-                LIMIT 1
-            `)
-                .bind(id)
-                .first();
-
-
-        if (!existing) {
-            return id;
-        }
-    }
-
-
-    return -Date.now();
+async function derivePasswordHash(password, salt, iterations) {
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations, hash: "SHA-256" }, key, 256);
+    return new Uint8Array(bits);
 }
 
-
-/*
- * =========================================================
- * TABLE COLUMNS
- * =========================================================
- */
-
-async function getTableColumns(
-    db,
-    tableName
-) {
-    const result =
-        await db.prepare(
-            `PRAGMA table_info(${tableName})`
-        )
-            .all();
-
-
-    return (
-        result.results ||
-        []
-    ).map(
-        row =>
-            String(
-                row.name
-            )
-    );
+function bytesToBase64(bytes) {
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-
-/*
- * =========================================================
- * AUTH HEADER
- * =========================================================
- */
-
-function getBearerToken(
-    request
-) {
-    const header =
-        request.headers.get(
-            "Authorization"
-        );
-
-
-    if (!header) {
-        return null;
-    }
-
-
-    if (
-        !header.startsWith(
-            "Bearer "
-        )
-    ) {
-        return null;
-    }
-
-
-    return (
-        header
-            .slice(7)
-            .trim() ||
-        null
-    );
+function base64ToBytes(value) {
+    const normalized = String(value).replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+    const binary = atob(padded);
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
 
-
-/*
- * =========================================================
- * RANDOM TOKEN
- * =========================================================
- */
-
-function randomToken() {
-    const bytes =
-        new Uint8Array(
-            32
-        );
-
-
-    crypto.getRandomValues(
-        bytes
-    );
-
-
-    return bytesToBase64Url(
-        bytes
-    );
+function constantTimeBytesEqual(a, b) {
+    if (a.length !== b.length) return false;
+    let diff = 0;
+    for (let index = 0; index < a.length; index += 1) diff |= a[index] ^ b[index];
+    return diff === 0;
 }
 
-
-/*
- * =========================================================
- * BASE64
- * =========================================================
- */
-
-function bytesToBase64(
-    bytes
-) {
-    let binary =
-        "";
-
-
-    for (
-        let i = 0;
-        i < bytes.length;
-        i++
-    ) {
-        binary +=
-            String.fromCharCode(
-                bytes[i]
-            );
-    }
-
-
-    return btoa(
-        binary
-    );
-}
-
-
-function base64ToBytes(
-    value
-) {
-    const binary =
-        atob(
-            value
-        );
-
-
-    const bytes =
-        new Uint8Array(
-            binary.length
-        );
-
-
-    for (
-        let i = 0;
-        i < binary.length;
-        i++
-    ) {
-        bytes[i] =
-            binary.charCodeAt(
-                i
-            );
-    }
-
-
-    return bytes;
-}
-
-
-function bytesToBase64Url(
-    bytes
-) {
-    return bytesToBase64(
-        bytes
-    )
-        .replace(
-            /\+/g,
-            "-"
-        )
-        .replace(
-            /\//g,
-            "_"
-        )
-        .replace(
-            /=+$/g,
-            ""
-        );
-}
-
-
-/*
- * =========================================================
- * TIMING SAFE
- * =========================================================
- */
-
-function timingSafeBytesEqual(
-    a,
-    b
-) {
-    if (
-        a.length !==
-        b.length
-    ) {
-        return false;
-    }
-
-
-    let result =
-        0;
-
-
-    for (
-        let i = 0;
-        i < a.length;
-        i++
-    ) {
-        result |=
-            a[i] ^
-            b[i];
-    }
-
-
-    return (
-        result === 0
-    );
-}
-
-
-/*
- * =========================================================
- * TRIBUTE SIGNATURE
- * =========================================================
- */
-
-async function verifyTributeSignature(
-    rawBody,
-    receivedSignature,
-    apiKey
-) {
-    try {
-
-        const encoder =
-            new TextEncoder();
-
-
-        const key =
-            await crypto.subtle.importKey(
-                "raw",
-                encoder.encode(
-                    apiKey
-                ),
-                {
-                    name:
-                        "HMAC",
-                    hash:
-                        "SHA-256"
-                },
-                false,
-                [
-                    "sign"
-                ]
-            );
-
-
-        const signatureBuffer =
-            await crypto.subtle.sign(
-                "HMAC",
-                key,
-                encoder.encode(
-                    rawBody
-                )
-            );
-
-
-        const expected =
-            bytesToHex(
-                new Uint8Array(
-                    signatureBuffer
-                )
-            );
-
-
-        return timingSafeStringEqual(
-            expected
-                .toLowerCase(),
-
-            String(
-                receivedSignature
-            )
-                .trim()
-                .toLowerCase()
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Tribute signature error:",
-            error
-        );
-
-
-        return false;
-    }
-}
-
-
-/*
- * =========================================================
- * HEX
- * =========================================================
- */
-
-function bytesToHex(
-    bytes
-) {
-    return Array.from(
-        bytes
-    )
-        .map(
-            byte =>
-                byte
-                    .toString(16)
-                    .padStart(
-                        2,
-                        "0"
-                    )
-        )
-        .join("");
-}
-
-
-/*
- * =========================================================
- * STRING TIMING SAFE
- * =========================================================
- */
-
-function timingSafeStringEqual(
-    a,
-    b
-) {
-    if (
-        a.length !==
-        b.length
-    ) {
-        return false;
-    }
-
-
-    let result =
-        0;
-
-
-    for (
-        let i = 0;
-        i < a.length;
-        i++
-    ) {
-        result |=
-            a.charCodeAt(i) ^
-            b.charCodeAt(i);
-    }
-
-
-    return (
-        result === 0
-    );
-}
-
-
-/*
- * =========================================================
- * LOGIN
- * =========================================================
- */
-
-function normalizeLogin(
-    value
-) {
-    return String(
-        value || ""
-    )
-        .trim()
-        .toLowerCase();
-}
-
-
-function isValidLogin(
-    login
-) {
-    return /^[a-zA-Z0-9_-]{3,30}$/
-        .test(
-            login
-        );
-}
-
-
-/*
- * =========================================================
- * TEXT
- * =========================================================
- */
-
-function cleanText(
-    value
-) {
-    const text =
-        String(
-            value || ""
-        )
-            .trim();
-
-
-    return text
-        ? text.slice(
-            0,
-            200
-        )
-        : null;
-}
-
-
-/*
- * =========================================================
- * JSON
- * =========================================================
- */
-
-function json(
-    data,
-    status = 200
-) {
-    return new Response(
-        JSON.stringify(
-            data
-        ),
-        {
-            status,
-
-            headers: {
-                ...corsHeaders(),
-
-                "Content-Type":
-                    "application/json; charset=utf-8"
-            }
-        }
-    );
-}
-
-
-/*
- * =========================================================
- * CORS
- * =========================================================
- */
-
-function corsHeaders() {
-    return {
-        "Access-Control-Allow-Origin":
-            "*",
-
-        "Access-Control-Allow-Methods":
-            "GET, POST, PUT, DELETE, OPTIONS",
-
-        "Access-Control-Allow-Headers":
-            "Content-Type, Authorization, X-File-Name, X-Sort-Order, Range",
-
-        "Access-Control-Expose-Headers":
-            "Content-Length, Content-Range, Accept-Ranges, Content-Disposition"
-    };
+function constantTimeEqual(a, b) {
+    return constantTimeBytesEqual(new TextEncoder().encode(a), new TextEncoder().encode(b));
 }
