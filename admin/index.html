@@ -1,9 +1,826 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="ru">
 <head>
-    <title>RAUDA ILM Admin</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>RAUDA ILM — Админ-панель</title>
+  <style>
+    :root {
+      --bg: #101211;
+      --panel: #171b18;
+      --line: #303932;
+      --text: #f4f6f1;
+      --muted: #aab4aa;
+      --green: #8dcf6c;
+      --red: #ff8f89;
+      --yellow: #f3cc77;
+      --shadow: 0 20px 48px rgba(0, 0, 0, .28);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 78% -8%, rgba(111, 170, 80, .2), transparent 31rem),
+        radial-gradient(circle at 5% 100%, rgba(61, 111, 79, .16), transparent 29rem),
+        var(--bg);
+      font: 15px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .shell { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 26px 0 52px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(23, 27, 24, .88);
+      box-shadow: var(--shadow);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+    .brand-mark {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      flex: 0 0 auto;
+      place-items: center;
+      color: #10200e;
+      border-radius: 13px;
+      background: var(--green);
+      font-weight: 900;
+      letter-spacing: -.06em;
+    }
+
+    .brand h1 { margin: 0; font-size: 16px; letter-spacing: .035em; }
+    .brand p { margin: 1px 0 0; color: var(--muted); font-size: 12px; }
+
+    .user-actions { display: flex; align-items: center; gap: 10px; }
+    #user-name { color: var(--muted); font-size: 13px; text-align: right; }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(23, 27, 24, .94);
+      box-shadow: var(--shadow);
+    }
+
+    .login-card { width: min(440px, 100%); margin: 9vh auto 0; padding: 29px; }
+    .login-card h2, .workspace-head h2 { margin: 0; font-size: 25px; letter-spacing: -.03em; }
+    .login-card p { margin: 8px 0 24px; color: var(--muted); }
+
+    .workspace { display: grid; gap: 18px; }
+
+    .workspace-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 3px 3px 0;
+    }
+
+    .workspace-head p { margin: 5px 0 0; color: var(--muted); }
+
+    .pill {
+      padding: 7px 10px;
+      color: #bbed9e;
+      border: 1px solid rgba(141, 207, 108, .35);
+      border-radius: 999px;
+      background: rgba(91, 149, 65, .14);
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .editor {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(290px, .75fr);
+      overflow: hidden;
+    }
+
+    .editor > section { padding: 24px; }
+    .editor > section + section { border-left: 1px solid var(--line); background: rgba(8, 11, 9, .19); }
+
+    h3 { margin: 0; font-size: 17px; letter-spacing: -.018em; }
+    .section-copy { margin: 5px 0 20px; color: var(--muted); font-size: 13px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field { display: grid; gap: 7px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+
+    label { color: #dce4da; font-size: 13px; font-weight: 650; }
+    .hint { color: var(--muted); font-size: 12px; }
+
+    input:not([type="checkbox"]), textarea, select {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 11px;
+      color: var(--text);
+      outline: none;
+      border: 1px solid #3a463b;
+      border-radius: 10px;
+      background: #111511;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(141, 207, 108, .13);
+    }
+
+    textarea { min-height: 122px; resize: vertical; }
+
+    .switch-row { display: flex; align-items: center; gap: 9px; min-height: 42px; color: var(--muted); }
+    .switch-row input { width: 17px; height: 17px; accent-color: var(--green); }
+
+    .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+
+    .button {
+      min-height: 42px;
+      padding: 9px 14px;
+      color: var(--text);
+      border: 1px solid #3c4940;
+      border-radius: 10px;
+      background: #252d27;
+      font-weight: 700;
+    }
+
+    .button.primary { color: #142210; border-color: var(--green); background: var(--green); }
+    .button.ghost { background: transparent; }
+    .button:disabled { cursor: wait; opacity: .55; }
+
+    .upload-box {
+      display: grid;
+      gap: 12px;
+      padding: 15px;
+      border: 1px dashed #536755;
+      border-radius: 14px;
+      background: rgba(40, 54, 42, .24);
+    }
+
+    input[type="file"] { width: 100%; color: var(--muted); }
+
+    input[type="file"]::file-selector-button {
+      margin-right: 10px;
+      padding: 8px 10px;
+      color: var(--text);
+      border: 1px solid #465348;
+      border-radius: 8px;
+      background: #283128;
+      cursor: pointer;
+    }
+
+    .file-list { display: grid; gap: 8px; }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 11px;
+      border: 1px solid #344136;
+      border-radius: 10px;
+      background: #151a16;
+    }
+
+    .file-main { min-width: 0; }
+    .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; }
+    .file-meta { margin-top: 2px; color: var(--muted); font-size: 12px; }
+
+    .side-stack { display: grid; gap: 15px; }
+
+    .note {
+      padding: 15px;
+      border: 1px solid #374339;
+      border-radius: 14px;
+      background: rgba(34, 43, 35, .57);
+    }
+
+    .note h4 { margin: 0 0 6px; font-size: 14px; }
+    .note p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .lesson-id {
+      display: none;
+      padding: 14px;
+      border: 1px solid rgba(141, 207, 108, .38);
+      border-radius: 14px;
+      background: rgba(87, 138, 63, .12);
+    }
+
+    .lesson-id.visible { display: block; }
+    .lesson-id strong { display: block; margin-bottom: 2px; color: #bceca4; font-size: 13px; }
+    .lesson-id span { color: var(--muted); font-size: 13px; word-break: break-word; }
+
+    .status {
+      display: none;
+      margin-top: 15px;
+      padding: 11px 12px;
+      border: 1px solid #445047;
+      border-radius: 10px;
+      background: #202821;
+      font-size: 13px;
+    }
+
+    .status.visible { display: block; }
+    .status.success { color: #c2edae; border-color: rgba(141, 207, 108, .42); background: rgba(87, 138, 63, .13); }
+    .status.error { color: #ffc0bd; border-color: rgba(255, 143, 137, .38); background: rgba(161, 61, 56, .13); }
+    .status.loading { color: var(--yellow); }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 20px, 1120px); padding-top: 10px; }
+      .topbar { padding: 13px; border-radius: 14px; }
+      .editor { grid-template-columns: 1fr; }
+      .editor > section + section { border-top: 1px solid var(--line); border-left: 0; }
+      .editor > section { padding: 19px; }
+      .workspace-head { align-items: start; flex-direction: column; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      #user-name { display: none; }
+      .login-card { margin-top: 30px; padding: 22px; }
+    }
+  </style>
 </head>
 <body>
-    <h1>RAUDA ILM — Админ-панель</h1>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">RI</div>
+        <div>
+          <h1>RAUDA ILM</h1>
+          <p>Администрирование обучения</p>
+        </div>
+      </div>
+
+      <div class="user-actions">
+        <span id="user-name"></span>
+        <button id="logout-button" class="button ghost hidden" type="button">Выйти</button>
+      </div>
+    </header>
+
+    <section id="login-view" class="card login-card">
+      <h2>Вход в админку</h2>
+      <p>Используй учётную запись с ролью владельца или администратора.</p>
+
+      <form id="login-form">
+        <div class="field">
+          <label for="login">Логин</label>
+          <input id="login" name="login" autocomplete="username" required>
+        </div>
+
+        <div class="field" style="margin-top:14px">
+          <label for="password">Пароль</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+
+        <div class="buttons">
+          <button id="login-button" class="button primary" type="submit">Войти</button>
+        </div>
+      </form>
+
+      <div id="login-status" class="status" role="status"></div>
+    </section>
+
+    <section id="workspace" class="workspace hidden">
+      <div class="workspace-head">
+        <div>
+          <h2>Новый урок</h2>
+          <p>Сначала создаётся урок, затем выбранные материалы загружаются в R2.</p>
+        </div>
+
+        <span class="pill">R2 FILES подключён</span>
+      </div>
+
+      <form id="lesson-form" class="card editor">
+        <section>
+          <h3>Содержание урока</h3>
+          <p class="section-copy">Поля с идентификаторами можно не заполнять, если они пока не нужны.</p>
+
+          <div class="form-grid">
+            <div class="field full">
+              <label for="title">Название урока</label>
+              <input id="title" name="title" maxlength="250" placeholder="Например: Урок 1. Введение" required>
+            </div>
+
+            <div class="field">
+              <label for="program-id">Программа</label>
+              <select id="program-id" name="program_id">
+                <option value="">Не выбрана</option>
+              </select>
+              <span class="hint">Можно выбрать из списка или указать ID ниже.</span>
+            </div>
+
+            <div class="field">
+              <label for="program-id-manual">ID программы</label>
+              <input id="program-id-manual" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
+            </div>
+
+            <div class="field">
+              <label for="course-id">Курс</label>
+              <select id="course-id" name="course_id">
+                <option value="">Не выбран</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="course-id-manual">ID курса</label>
+              <input id="course-id-manual" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
+            </div>
+
+            <div class="field">
+              <label for="semester-id">ID семестра</label>
+              <input id="semester-id" name="semester_id" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
+            </div>
+
+            <div class="field">
+              <label for="subject-id">ID предмета</label>
+              <input id="subject-id" name="subject_id" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
+            </div>
+
+            <div class="field">
+              <label for="lesson-number">Номер урока</label>
+              <input id="lesson-number" name="lesson_number" type="number" min="0" value="0" inputmode="numeric">
+            </div>
+
+            <div class="field">
+              <label for="sort-order">Порядок показа</label>
+              <input id="sort-order" name="sort_order" type="number" min="0" value="0" inputmode="numeric">
+            </div>
+
+            <div class="field full">
+              <label for="description">Краткое описание</label>
+              <textarea id="description" name="description" maxlength="20000" placeholder="Что будет в уроке"></textarea>
+            </div>
+
+            <div class="field full">
+              <label for="content">Текст урока</label>
+              <textarea id="content" name="content" maxlength="20000" placeholder="Основной текст урока"></textarea>
+            </div>
+
+            <label class="switch-row field full">
+              <input id="is-visible" name="is_visible" type="checkbox" checked>
+              Показывать урок ученикам после создания
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <div class="side-stack">
+            <div>
+              <h3>Материалы</h3>
+              <p class="section-copy">Фото, видео, аудио, PDF и документы можно выбрать сразу несколько.</p>
+
+              <div class="upload-box">
+                <input id="files" name="files" type="file" multiple>
+
+                <div class="field">
+                  <label for="caption">Подпись к материалам</label>
+                  <input id="caption" name="caption" maxlength="500" placeholder="Необязательно">
+                </div>
+
+                <div class="field">
+                  <label for="file-order">Порядок материалов</label>
+                  <input id="file-order" name="file_order" type="number" min="0" value="0" inputmode="numeric">
+                </div>
+              </div>
+
+              <div id="selected-files" class="file-list" style="margin-top:10px"></div>
+            </div>
+
+            <div id="created-lesson" class="lesson-id">
+              <strong>Урок создан</strong>
+              <span id="created-lesson-text"></span>
+            </div>
+
+            <div class="note">
+              <h4>Как это работает</h4>
+              <p>Сначала создаётся урок и получается его ID. Затем каждый материал отправляется в защищённое хранилище R2 и прикрепляется к этому уроку.</p>
+            </div>
+
+            <div class="buttons">
+              <button id="save-button" class="button primary" type="submit">Создать урок и загрузить</button>
+              <button id="new-lesson-button" class="button ghost" type="button">Новый урок</button>
+            </div>
+
+            <div id="lesson-status" class="status" role="status"></div>
+          </div>
+        </section>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const TOKEN_KEY = "rauda_ilm_admin_token";
+    const ADMIN_ROLES = new Set(["owner", "superadmin", "admin"]);
+    const state = { user: null, lesson: null, programs: [], courses: [] };
+
+    const $ = (selector) => document.querySelector(selector);
+    const loginView = $("#login-view");
+    const workspace = $("#workspace");
+    const loginStatus = $("#login-status");
+    const lessonStatus = $("#lesson-status");
+    const logoutButton = $("#logout-button");
+    const userName = $("#user-name");
+    const programSelect = $("#program-id");
+    const courseSelect = $("#course-id");
+    const selectedFiles = $("#selected-files");
+    const createdLesson = $("#created-lesson");
+    const createdLessonText = $("#created-lesson-text");
+
+    function token() {
+      return localStorage.getItem(TOKEN_KEY) || "";
+    }
+
+    function setStatus(element, message = "", type = "") {
+      element.textContent = message;
+      element.className = "status" + (message ? " visible" : "") + (type ? " " + type : "");
+    }
+
+    function asPositiveInteger(value) {
+      const number = Number(value);
+      return Number.isInteger(number) && number > 0 ? number : null;
+    }
+
+    function numberOrZero(value) {
+      const number = Number(value);
+      return Number.isFinite(number) && number >= 0 ? Math.floor(number) : 0;
+    }
+
+    function humanBytes(bytes) {
+      if (!Number.isFinite(bytes)) return "";
+
+      const units = ["Б", "КБ", "МБ", "ГБ"];
+      let value = bytes;
+      let index = 0;
+
+      while (value >= 1024 && index < units.length - 1) {
+        value /= 1024;
+        index += 1;
+      }
+
+      return `${value >= 10 || index === 0 ? value.toFixed(0) : value.toFixed(1)} ${units[index]}`;
+    }
+
+    async function api(path, options = {}) {
+      const headers = new Headers(options.headers || {});
+
+      if (token()) {
+        headers.set("Authorization", `Bearer ${token()}`);
+      }
+
+      const response = await fetch(path, { ...options, headers });
+      const payload = await response.json().catch(() => ({
+        ok: false,
+        error: "Сервер вернул неверный ответ"
+      }));
+
+      if (!response.ok || payload.ok === false) {
+        const error = new Error(payload.error || `Ошибка ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
+
+      return payload;
+    }
+
+    function showLogin(message = "") {
+      state.user = null;
+      state.lesson = null;
+      localStorage.removeItem(TOKEN_KEY);
+
+      loginView.classList.remove("hidden");
+      workspace.classList.add("hidden");
+      logoutButton.classList.add("hidden");
+      userName.textContent = "";
+
+      if (message) {
+        setStatus(loginStatus, message, "error");
+      }
+    }
+
+    function showWorkspace(user) {
+      state.user = user;
+
+      loginView.classList.add("hidden");
+      workspace.classList.remove("hidden");
+      logoutButton.classList.remove("hidden");
+
+      userName.textContent = `${user.first_name || user.login || "Пользователь"} · ${user.role}`;
+      setStatus(loginStatus);
+    }
+
+    function resetLessonForm() {
+      $("#lesson-form").reset();
+      $("#is-visible").checked = true;
+      $("#lesson-number").value = "0";
+      $("#sort-order").value = "0";
+      $("#file-order").value = "0";
+
+      state.lesson = null;
+      createdLesson.classList.remove("visible");
+      createdLessonText.textContent = "";
+
+      setStatus(lessonStatus);
+      renderSelectedFiles();
+    }
+
+    function setOptions(select, rows, placeholder) {
+      const previous = select.value;
+      select.replaceChildren();
+
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = placeholder;
+      select.append(empty);
+
+      for (const row of rows) {
+        const option = document.createElement("option");
+        option.value = String(row.id);
+        option.textContent = row.title || row.name || `#${row.id}`;
+        select.append(option);
+      }
+
+      select.value = previous;
+    }
+
+    async function loadPrograms() {
+      const result = await api("/api/programs");
+      state.programs = result.programs || [];
+      setOptions(programSelect, state.programs, "Не выбрана");
+    }
+
+    async function loadCourses() {
+      const programId =
+        asPositiveInteger($("#program-id-manual").value) ||
+        asPositiveInteger(programSelect.value);
+
+      const suffix = programId ? `?program_id=${programId}` : "";
+      const result = await api(`/api/courses${suffix}`);
+
+      state.courses = result.courses || [];
+      setOptions(courseSelect, state.courses, "Не выбран");
+    }
+
+    function renderSelectedFiles() {
+      const files = [...$("#files").files];
+      selectedFiles.replaceChildren();
+
+      if (!files.length) {
+        const empty = document.createElement("p");
+        empty.className = "hint";
+        empty.textContent = "Материалы пока не выбраны.";
+        selectedFiles.append(empty);
+        return;
+      }
+
+      for (const file of files) {
+        const item = document.createElement("div");
+        item.className = "file-item";
+
+        const main = document.createElement("div");
+        main.className = "file-main";
+
+        const name = document.createElement("div");
+        name.className = "file-name";
+        name.textContent = file.name;
+
+        const meta = document.createElement("div");
+        meta.className = "file-meta";
+        meta.textContent = `${file.type || "файл"} · ${humanBytes(file.size)}`;
+
+        main.append(name, meta);
+        item.append(main);
+        selectedFiles.append(item);
+      }
+    }
+
+    function lessonPayload() {
+      const selectedProgram = asPositiveInteger(programSelect.value);
+      const manualProgram = asPositiveInteger($("#program-id-manual").value);
+      const selectedCourse = asPositiveInteger(courseSelect.value);
+      const manualCourse = asPositiveInteger($("#course-id-manual").value);
+
+      return {
+        title: $("#title").value.trim(),
+        description: $("#description").value.trim(),
+        content: $("#content").value.trim(),
+        program_id: manualProgram || selectedProgram || null,
+        course_id: manualCourse || selectedCourse || null,
+        semester_id: asPositiveInteger($("#semester-id").value),
+        subject_id: asPositiveInteger($("#subject-id").value),
+        lesson_number: numberOrZero($("#lesson-number").value),
+        sort_order: numberOrZero($("#sort-order").value),
+        is_visible: $("#is-visible").checked
+      };
+    }
+
+    async function createLesson() {
+      const payload = lessonPayload();
+
+      if (!payload.title) {
+        throw new Error("Введите название урока");
+      }
+
+      const result = await api("/api/admin/lessons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      state.lesson = result.lesson;
+      createdLessonText.textContent = `ID урока: ${result.lesson.id}. Теперь загружаем материалы.`;
+      createdLesson.classList.add("visible");
+
+      return result.lesson;
+    }
+
+    async function uploadFiles(lesson) {
+      const files = [...$("#files").files];
+
+      if (!files.length) {
+        return 0;
+      }
+
+      const caption = $("#caption").value.trim();
+      const baseOrder = numberOrZero($("#file-order").value);
+      let uploaded = 0;
+
+      for (const [index, file] of files.entries()) {
+        setStatus(
+          lessonStatus,
+          `Загрузка ${index + 1} из ${files.length}: ${file.name}`,
+          "loading"
+        );
+
+        const form = new FormData();
+        form.append("file", file);
+        form.append("caption", caption);
+        form.append("sort_order", String(baseOrder + index));
+
+        await api(`/api/admin/lessons/${lesson.id}/files`, {
+          method: "POST",
+          body: form
+        });
+
+        uploaded += 1;
+      }
+
+      return uploaded;
+    }
+
+    async function initialise() {
+      renderSelectedFiles();
+
+      if (!token()) {
+        return;
+      }
+
+      try {
+        const result = await api("/api/auth/me");
+
+        if (!ADMIN_ROLES.has(String(result.user?.role || "").toLowerCase())) {
+          showLogin("У этой учётной записи нет прав администратора.");
+          return;
+        }
+
+        showWorkspace(result.user);
+        await Promise.all([loadPrograms(), loadCourses()]);
+      } catch {
+        showLogin("Сессия истекла. Войдите снова.");
+      }
+    }
+
+    $("#login-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const button = $("#login-button");
+      button.disabled = true;
+
+      setStatus(loginStatus, "Выполняется вход…", "loading");
+
+      try {
+        const result = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            login: $("#login").value.trim(),
+            password: $("#password").value
+          })
+        }).then(async (response) => {
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok || payload.ok === false) {
+            throw new Error(payload.error || "Не удалось войти");
+          }
+
+          return payload;
+        });
+
+        if (!ADMIN_ROLES.has(String(result.user?.role || "").toLowerCase())) {
+          throw new Error("У этой учётной записи нет прав администратора.");
+        }
+
+        localStorage.setItem(TOKEN_KEY, result.token);
+
+        showWorkspace(result.user);
+        await Promise.all([loadPrograms(), loadCourses()]);
+      } catch (error) {
+        setStatus(loginStatus, error.message || "Не удалось войти", "error");
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $("#lesson-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const button = $("#save-button");
+      button.disabled = true;
+
+      setStatus(lessonStatus, "Создаём урок…", "loading");
+
+      try {
+        const lesson = state.lesson || await createLesson();
+        const uploaded = await uploadFiles(lesson);
+
+        setStatus(
+          lessonStatus,
+          uploaded
+            ? `Урок создан. Загружено материалов: ${uploaded}.`
+            : "Урок создан. Материалы можно добавить позже.",
+          "success"
+        );
+
+        $("#files").value = "";
+        renderSelectedFiles();
+      } catch (error) {
+        if (error.status === 401) {
+          showLogin("Сессия истекла. Войдите снова.");
+        }
+
+        setStatus(
+          lessonStatus,
+          error.message || "Не удалось сохранить урок",
+          "error"
+        );
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $("#files").addEventListener("change", renderSelectedFiles);
+
+    programSelect.addEventListener("change", () => {
+      $("#program-id-manual").value = "";
+
+      loadCourses().catch((error) => {
+        setStatus(lessonStatus, error.message, "error");
+      });
+    });
+
+    $("#program-id-manual").addEventListener("change", () => {
+      if ($("#program-id-manual").value) {
+        programSelect.value = "";
+      }
+
+      loadCourses().catch((error) => {
+        setStatus(lessonStatus, error.message, "error");
+      });
+    });
+
+    courseSelect.addEventListener("change", () => {
+      if (courseSelect.value) {
+        $("#course-id-manual").value = "";
+      }
+    });
+
+    $("#course-id-manual").addEventListener("change", () => {
+      if ($("#course-id-manual").value) {
+        courseSelect.value = "";
+      }
+    });
+
+    $("#new-lesson-button").addEventListener("click", resetLessonForm);
+
+    logoutButton.addEventListener("click", async () => {
+      try {
+        await api("/api/auth/logout", { method: "POST" });
+      } catch {}
+
+      showLogin();
+    });
+
+    initialise();
+  </script>
 </body>
 </html>
