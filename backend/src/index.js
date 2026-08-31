@@ -162,7 +162,20 @@ export default {
             );
         }
 
+        /*
+ * =====================================================
+ * ADMIN CREATE LESSON
+ *
+ * POST /api/admin/lessons
+ * =====================================================
+ */
 
+if (
+    url.pathname === "/api/admin/lessons" &&
+    request.method === "POST"
+) {
+    return handleAdminCreateLesson(request, env);
+}
         /*
          * =====================================================
          * LESSONS LIST
