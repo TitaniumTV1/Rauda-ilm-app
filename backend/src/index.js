@@ -2116,6 +2116,105 @@ function bearerFromHeader(value) {
     return match ? match[1].trim() : null;
 }
 
+async function ensureVerificationInfrastructure(
+    db
+) {
+    await run(
+        db,
+        `
+        CREATE TABLE IF NOT EXISTS auth_challenges (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            user_id INTEGER NOT NULL,
+
+            type TEXT NOT NULL
+                CHECK (
+                    type IN (
+                        'email_link',
+                        'telegram_link'
+                    )
+                ),
+
+            target TEXT,
+
+            code_hash TEXT NOT NULL,
+
+            attempts_left INTEGER NOT NULL DEFAULT 5,
+
+            expires_at TEXT NOT NULL,
+
+            consumed_at TEXT,
+
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (user_id)
+                REFERENCES users(id)
+                ON DELETE CASCADE
+        )
+        `
+    );
+
+    await run(
+        db,
+        `
+        CREATE INDEX IF NOT EXISTS
+        idx_auth_challenges_user_type
+        ON auth_challenges(
+            user_id,
+            type,
+            created_at
+        )
+        `
+    );
+
+    const columns =
+        await all(
+            db,
+            `PRAGMA table_info(users)`
+        );
+
+    const names =
+        new Set(
+            columns.map(
+                column => column.name
+            )
+        );
+
+    if (!names.has("email")) {
+        await run(
+            db,
+            `
+            ALTER TABLE users
+            ADD COLUMN email TEXT
+            `
+        );
+    }
+
+    if (
+        !names.has(
+            "email_verified_at"
+        )
+    ) {
+        await run(
+            db,
+            `
+            ALTER TABLE users
+            ADD COLUMN email_verified_at TEXT
+            `
+        );
+    }
+
+    await run(
+        db,
+        `
+        CREATE UNIQUE INDEX IF NOT EXISTS
+        idx_users_email_unique
+        ON users(email)
+        WHERE email IS NOT NULL
+          AND email != ''
+        `
+    );
+}
 async function ensureRecoveryInfrastructure(
     db
 ) {
