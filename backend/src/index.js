@@ -48,6 +48,821 @@ export default {
             if (url.pathname === "/api/auth/login" && request.method === "POST") {
                 return handleLogin(request, env);
             }
+            if (
+    url.pathname === "/api/auth/email/send-code" &&
+    request.method === "POST"
+) {
+    return handleEmailSendCode(request, env);
+}
+
+if (
+    url.pathname === "/api/auth/email/login" &&
+    request.method === "POST"
+) {
+    return handleEmailLogin(request, env);
+}
+
+if (
+    url.pathname === "/api/auth/email/register" &&
+    request.method === "POST"
+) {
+    return handleEmailRegister(request, env);
+}
+            async function handleEmailSendCode(request, env) {
+    if (!env.DB) return databaseMissing(env);
+
+    try {
+        const body = await readJson(request);
+
+        const email = String(body?.email || "")
+            .trim()
+            .toLowerCase();
+
+        const purpose =
+            body?.purpose === "register"
+                ? "register"
+                : "login";
+
+        if (!isValidEmail(email)) {
+            return json(
+                {
+                    ok: false,
+                    error: "Введите правильный адрес электронной почты"
+                },
+                400,
+                env
+            );
+        }
+
+        await ensureEmailAuthSchema(env.DB);
+
+        const existingUser = await first(
+            env.DB,
+            `
+            SELECT id
+            FROM users
+            WHERE LOWER(email) = ?
+            LIMIT 1
+            `,
+            [email]
+        );
+
+        if (purpose === "register" && existingUser) {
+            return json(
+                {
+                    ok: false,
+                    error: "Аккаунт с этой почтой уже существует"
+                },
+                409,
+                env
+            );
+        }
+
+        if (purpose === "login" && !existingUser) {
+            return json(
+                {
+                    ok: false,
+                    error: "Аккаунт с такой почтой не найден"
+                },
+                404,
+                env
+            );
+        }
+
+        const recentCode = await first(
+            env.DB,
+            `
+            SELECT created_at
+            FROM email_auth_codes
+            WHERE email = ?
+              AND purpose = ?
+            ORDER BY id DESC
+            LIMIT 1
+            `,
+            [email, purpose]
+        );
+
+        const now = Math.floor(Date.now() / 1000);
+
+        if (
+            recentCode &&
+            now - Number(recentCode.created_at) < 60
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error: "Подождите 60 секунд перед повторной отправкой"
+                },
+                429,
+                env
+            );
+        }
+
+        const code = String(
+            Math.floor(100000 + Math.random() * 900000)
+        );
+
+        const codeHash = await hashEmailCode(
+            email,
+            purpose,
+            code,
+            env
+        );
+
+        const expiresAt = now + 5 * 60;
+
+        await run(
+            env.DB,
+            `
+            INSERT INTO email_auth_codes (
+                email,
+                code_hash,
+                purpose,
+                expires_at,
+                used_at,
+                attempts,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, NULL, 0, ?)
+            `,
+            [
+                email,
+                codeHash,
+                purpose,
+                expiresAt,
+                now
+            ]
+        );
+
+        if (!env.RESEND_API_KEY) {
+            return json(
+                {
+                    ok: false,
+                    error: "RESEND_API_KEY не настроен"
+                },
+                500,
+                env
+            );
+        }
+
+        const resendResponse = await fetch(
+            "https://api.resend.com/emails",
+            {
+                method: "POST",
+                headers: {
+                    Authorization:
+                        `Bearer ${env.RESEND_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    from:
+                        env.EMAIL_FROM ||
+                        "RAUDA ILM <onboarding@resend.dev>",
+                    to: [email],
+                    subject: "Код подтверждения RAUDA ILM",
+                    html: `
+                        <div style="
+                            font-family:Arial,sans-serif;
+                            max-width:480px;
+                            margin:auto;
+                            padding:32px;
+                        ">
+                            <h2>RAUDA ILM</h2>
+
+                            <p>
+                                Ваш код подтверждения:
+                            </p>
+
+                            <div style="
+                                font-size:32px;
+                                font-weight:700;
+                                letter-spacing:8px;
+                                margin:24px 0;
+                            ">
+                                ${code}
+                            </div>
+
+                            <p>
+                                Код действует 5 минут.
+                            </p>
+
+                            <p style="
+                                color:#777;
+                                font-size:13px;
+                            ">
+                                Если вы не запрашивали этот код,
+                                просто проигнорируйте письмо.
+                            </p>
+                        </div>
+                    `
+                })
+            }
+        );
+
+        if (!resendResponse.ok) {
+            const resendError =
+                await resendResponse.text();
+
+            console.error(
+                "Resend error:",
+                resendError
+            );
+
+            return json(
+                {
+                    ok: false,
+                    error: "Не удалось отправить код на почту"
+                },
+                502,
+                env
+            );
+        }
+
+        return json(
+            {
+                ok: true,
+                message: "Код отправлен на почту"
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Email code error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error: "Не удалось отправить код"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleEmailLogin(request, env) {
+    if (!env.DB) return databaseMissing(env);
+
+    try {
+        await ensureAuthSessionsTable(env.DB);
+        await ensureEmailAuthSchema(env.DB);
+
+        const body = await readJson(request);
+
+        const email = String(body?.email || "")
+            .trim()
+            .toLowerCase();
+
+        const code = String(body?.code || "")
+            .trim();
+
+        if (!isValidEmail(email)) {
+            return json(
+                {
+                    ok: false,
+                    error: "Некорректная почта"
+                },
+                400,
+                env
+            );
+        }
+
+        if (!/^\d{6}$/.test(code)) {
+            return json(
+                {
+                    ok: false,
+                    error: "Введите 6-значный код"
+                },
+                400,
+                env
+            );
+        }
+
+        const verification =
+            await verifyEmailCode(
+                env.DB,
+                email,
+                "login",
+                code,
+                env
+            );
+
+        if (!verification.ok) {
+            return json(
+                {
+                    ok: false,
+                    error: verification.error
+                },
+                verification.status || 400,
+                env
+            );
+        }
+
+        const user = await first(
+            env.DB,
+            `
+            SELECT *
+            FROM users
+            WHERE LOWER(email) = ?
+            LIMIT 1
+            `,
+            [email]
+        );
+
+        if (!user) {
+            return json(
+                {
+                    ok: false,
+                    error: "Аккаунт не найден"
+                },
+                404,
+                env
+            );
+        }
+
+        if (user.status !== "active") {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        user.blocked_reason ||
+                        "Ваш аккаунт заблокирован"
+                },
+                403,
+                env
+            );
+        }
+
+        await run(
+            env.DB,
+            `
+            UPDATE users
+            SET email_verified_at = COALESCE(
+                email_verified_at,
+                CURRENT_TIMESTAMP
+            ),
+            updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [user.id]
+        );
+
+        const session = await createSession(
+            env.DB,
+            user.id
+        );
+
+        const freshUser = await getUserById(
+            env.DB,
+            user.id
+        );
+
+        return json(
+            {
+                ok: true,
+                user: freshUser,
+                token: session.token,
+                expires_at: session.expiresAt
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Email login error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error: "Не удалось выполнить вход"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleEmailRegister(request, env) {
+    if (!env.DB) return databaseMissing(env);
+
+    try {
+        await ensureAuthSessionsTable(env.DB);
+        await ensureEmailAuthSchema(env.DB);
+
+        const body = await readJson(request);
+
+        const email = String(body?.email || "")
+            .trim()
+            .toLowerCase();
+
+        const code = String(body?.code || "")
+            .trim();
+
+        const login = normalizeLogin(
+            body?.login
+        );
+
+        const firstName = cleanText(
+            body?.first_name
+        );
+
+        const lastName = cleanText(
+            body?.last_name
+        );
+
+        if (!isValidEmail(email)) {
+            return json(
+                {
+                    ok: false,
+                    error: "Некорректная почта"
+                },
+                400,
+                env
+            );
+        }
+
+        if (!/^\d{6}$/.test(code)) {
+            return json(
+                {
+                    ok: false,
+                    error: "Введите 6-значный код"
+                },
+                400,
+                env
+            );
+        }
+
+        if (!login || !isValidLogin(login)) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Логин должен содержать 3–30 символов"
+                },
+                400,
+                env
+            );
+        }
+
+        const existingEmail = await first(
+            env.DB,
+            `
+            SELECT id
+            FROM users
+            WHERE LOWER(email) = ?
+            LIMIT 1
+            `,
+            [email]
+        );
+
+        if (existingEmail) {
+            return json(
+                {
+                    ok: false,
+                    error: "Эта почта уже зарегистрирована"
+                },
+                409,
+                env
+            );
+        }
+
+        const existingLogin = await first(
+            env.DB,
+            `
+            SELECT id
+            FROM users
+            WHERE login = ?
+            LIMIT 1
+            `,
+            [login]
+        );
+
+        if (existingLogin) {
+            return json(
+                {
+                    ok: false,
+                    error: "Этот логин уже занят"
+                },
+                409,
+                env
+            );
+        }
+
+        const verification =
+            await verifyEmailCode(
+                env.DB,
+                email,
+                "register",
+                code,
+                env
+            );
+
+        if (!verification.ok) {
+            return json(
+                {
+                    ok: false,
+                    error: verification.error
+                },
+                verification.status || 400,
+                env
+            );
+        }
+
+        const technicalTelegramId =
+            await generateTechnicalTelegramId(
+                env.DB
+            );
+
+        const result = await run(
+            env.DB,
+            `
+            INSERT INTO users (
+                telegram_id,
+                username,
+                first_name,
+                last_name,
+                role,
+                status,
+                login,
+                email,
+                email_verified_at
+            )
+            VALUES (
+                ?,
+                NULL,
+                ?,
+                ?,
+                'student',
+                'active',
+                ?,
+                ?,
+                CURRENT_TIMESTAMP
+            )
+            `,
+            [
+                technicalTelegramId,
+                firstName || null,
+                lastName || null,
+                login,
+                email
+            ]
+        );
+
+        const user = await getUserById(
+            env.DB,
+            Number(result.meta.last_row_id)
+        );
+
+        const session = await createSession(
+            env.DB,
+            user.id
+        );
+
+        return json(
+            {
+                ok: true,
+                user,
+                token: session.token,
+                expires_at: session.expiresAt
+            },
+            201,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Email register error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось зарегистрировать пользователя"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function verifyEmailCode(
+    db,
+    email,
+    purpose,
+    code,
+    env
+) {
+    const row = await first(
+        db,
+        `
+        SELECT *
+        FROM email_auth_codes
+        WHERE email = ?
+          AND purpose = ?
+          AND used_at IS NULL
+        ORDER BY id DESC
+        LIMIT 1
+        `,
+        [
+            email,
+            purpose
+        ]
+    );
+
+    if (!row) {
+        return {
+            ok: false,
+            status: 400,
+            error: "Сначала запросите код"
+        };
+    }
+
+    const now =
+        Math.floor(Date.now() / 1000);
+
+    if (Number(row.expires_at) < now) {
+        return {
+            ok: false,
+            status: 400,
+            error: "Срок действия кода истёк"
+        };
+    }
+
+    if (Number(row.attempts || 0) >= 5) {
+        return {
+            ok: false,
+            status: 429,
+            error:
+                "Слишком много попыток. Запросите новый код"
+        };
+    }
+
+    const expectedHash =
+        await hashEmailCode(
+            email,
+            purpose,
+            code,
+            env
+        );
+
+    if (expectedHash !== row.code_hash) {
+        await run(
+            db,
+            `
+            UPDATE email_auth_codes
+            SET attempts = attempts + 1
+            WHERE id = ?
+            `,
+            [row.id]
+        );
+
+        return {
+            ok: false,
+            status: 401,
+            error: "Неверный код"
+        };
+    }
+
+    await run(
+        db,
+        `
+        UPDATE email_auth_codes
+        SET used_at = ?
+        WHERE id = ?
+        `,
+        [
+            now,
+            row.id
+        ]
+    );
+
+    return {
+        ok: true
+    };
+}
+
+
+async function hashEmailCode(
+    email,
+    purpose,
+    code,
+    env
+) {
+    const secret =
+        env.EMAIL_AUTH_SECRET ||
+        env.CHECKOUT_CLAIM_SECRET ||
+        "rauda-ilm-email-auth";
+
+    const value =
+        `${email}:${purpose}:${code}:${secret}`;
+
+    const digest =
+        await crypto.subtle.digest(
+            "SHA-256",
+            new TextEncoder().encode(value)
+        );
+
+    return Array.from(
+        new Uint8Array(digest)
+    )
+        .map(
+            byte =>
+                byte
+                    .toString(16)
+                    .padStart(2, "0")
+        )
+        .join("");
+}
+
+
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        String(email || "")
+    );
+}
+
+
+async function ensureEmailAuthSchema(db) {
+    const columns =
+        await all(
+            db,
+            `PRAGMA table_info(users)`
+        );
+
+    const names = new Set(
+        (columns || []).map(
+            column => column.name
+        )
+    );
+
+    if (!names.has("email")) {
+        await run(
+            db,
+            `
+            ALTER TABLE users
+            ADD COLUMN email TEXT
+            `
+        );
+    }
+
+    if (!names.has("email_verified_at")) {
+        await run(
+            db,
+            `
+            ALTER TABLE users
+            ADD COLUMN email_verified_at TEXT
+            `
+        );
+    }
+
+    await run(
+        db,
+        `
+        CREATE TABLE IF NOT EXISTS email_auth_codes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL,
+            code_hash TEXT NOT NULL,
+            purpose TEXT NOT NULL,
+            expires_at INTEGER NOT NULL,
+            used_at INTEGER,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER NOT NULL
+        )
+        `
+    );
+
+    await run(
+        db,
+        `
+        CREATE INDEX IF NOT EXISTS
+        idx_email_auth_codes_email
+        ON email_auth_codes(email)
+        `
+    );
+
+    await run(
+        db,
+        `
+        CREATE UNIQUE INDEX IF NOT EXISTS
+        idx_users_email_unique
+        ON users(LOWER(email))
+        WHERE email IS NOT NULL
+          AND email != ''
+        `
+    );
+}
             if (url.pathname === "/api/auth/telegram" && request.method === "POST") {
                 return handleTelegramAuth(request, env);
             }
