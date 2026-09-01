@@ -246,27 +246,6 @@ async function handleTelegramAuth(request, env) {
                 env
             );
         }
-
-        const telegramUser =
-            verification.user || {};
-
-        const telegramId =
-            Number(telegramUser.id);
-
-        if (
-            !Number.isSafeInteger(telegramId) ||
-            telegramId <= 0
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error: "Invalid Telegram user ID"
-                },
-                401,
-                env
-            );
-        }
-
         let user = await first(
             env.DB,
             `
