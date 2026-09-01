@@ -540,23 +540,6 @@ async function handleProfileUpdate(
         );
     }
 }
-                    env
-                );
-            }
-
-        } catch {}
-
-        return json(
-            {
-                ok: false,
-                error:
-                    "Не удалось привязать логин"
-            },
-            500,
-            env
-        );
-    }
-}
 async function handleLinkLogin(request, env) {
     const auth =
         await requireUser(request, env);
