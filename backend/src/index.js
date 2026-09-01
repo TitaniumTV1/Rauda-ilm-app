@@ -1222,6 +1222,20 @@ async function ensureEmailAuthSchema(db) {
             if (  url.pathname === "/api/auth/profile" && request.method === "PATCH") {
                 return handleProfileUpdate(request, env);
             }
+            if (
+                url.pathname === "/api/auth/avatar" &&
+                request.method === "GET"
+            ) {
+                return handleAvatarGet(request, env);
+            }
+
+            if (
+                url.pathname === "/api/auth/avatar" &&
+                request.method === "POST"
+            ) {
+                return handleAvatarUpload(request, env);
+            }
+
 
             if (  url.pathname === "/api/auth/link-login" && request.method === "PATCH") {
                 return handleLinkLogin(request, env);
@@ -1334,6 +1348,7 @@ async function handleLogin(request, env) {
 
     try {
         await ensureAuthSessionsTable(env.DB);
+        await ensureAvatarInfrastructure(env.DB);
         const body = await readJson(request);
         const login = normalizeLogin(body?.login);
         const password = String(body?.password || "");
@@ -1344,7 +1359,7 @@ async function handleLogin(request, env) {
         const user = await first(env.DB, `
             SELECT id, telegram_id, username, first_name, last_name, phone,
                    role, status, blocked_reason, blocked_at, created_at, updated_at,
-                   login, email, email_verified_at, password_hash
+                   login, email, email_verified_at, avatar_key, avatar_source, password_hash
             FROM users WHERE login = ? LIMIT 1
         `, [login]);
 
@@ -1525,6 +1540,22 @@ if (
          * Только после проверки блокировки
          * создаём сессию.
          */
+        /* RAUDA MINIAPP AVATAR */
+
+        await syncTelegramAvatar(
+            env,
+            user.id,
+            telegramId,
+            telegramUser.photo_url || null
+        );
+
+        user =
+            await getUserById(
+                env.DB,
+                user.id
+            );
+
+
         const session =
             await createSession(
                 env.DB,
@@ -1725,6 +1756,22 @@ async function handleTelegramWidgetAuth(request, env) {
                 env
             );
         }
+        /* RAUDA WIDGET AVATAR */
+
+        await syncTelegramAvatar(
+            env,
+            user.id,
+            telegramId,
+            telegramUser.photo_url || null
+        );
+
+        user =
+            await getUserById(
+                env.DB,
+                user.id
+            );
+
+
 
 
         const session =
@@ -2043,6 +2090,620 @@ async function handleMe(request, env) {
     if (!auth.ok) return authError(auth, env);
     return json({ ok: true, user: auth.user }, 200, env);
 }
+
+async function ensureAvatarInfrastructure(db) {
+
+    const columns =
+        await all(
+            db,
+            `PRAGMA table_info(users)`
+        );
+
+    const names =
+        new Set(
+            columns.map(
+                column => column.name
+            )
+        );
+
+
+    if (!names.has("avatar_key")) {
+
+        await run(
+            db,
+            `
+            ALTER TABLE users
+            ADD COLUMN avatar_key TEXT
+            `
+        );
+    }
+
+
+    if (!names.has("avatar_source")) {
+
+        await run(
+            db,
+            `
+            ALTER TABLE users
+            ADD COLUMN avatar_source TEXT
+            `
+        );
+    }
+}
+
+
+async function handleAvatarGet(
+    request,
+    env
+) {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+
+    if (!env.FILES) {
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Хранилище изображений не подключено"
+            },
+            503,
+            env
+        );
+    }
+
+
+    await ensureAvatarInfrastructure(
+        env.DB
+    );
+
+
+    const row =
+        await first(
+            env.DB,
+            `
+            SELECT avatar_key
+            FROM users
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [auth.user.id]
+        );
+
+
+    if (!row?.avatar_key) {
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Аватар не установлен"
+            },
+            404,
+            env
+        );
+    }
+
+
+    const object =
+        await env.FILES.get(
+            row.avatar_key
+        );
+
+
+    if (!object) {
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Файл аватара не найден"
+            },
+            404,
+            env
+        );
+    }
+
+
+    return new Response(
+        object.body,
+        {
+            status: 200,
+
+            headers: {
+                "Content-Type":
+                    object.httpMetadata
+                        ?.contentType ||
+                    "image/jpeg",
+
+                "Cache-Control":
+                    "private, no-cache"
+            }
+        }
+    );
+}
+
+
+async function handleAvatarUpload(
+    request,
+    env
+) {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+
+    /*
+     * Telegram-пользователь получает
+     * фотографию непосредственно
+     * из своего Telegram-профиля.
+     */
+
+    const telegramId =
+        Number(
+            auth.user.telegram_id
+        );
+
+
+    if (
+        Number.isSafeInteger(
+            telegramId
+        ) &&
+        telegramId > 0
+    ) {
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Для Telegram-аккаунта используется фото профиля Telegram"
+            },
+            403,
+            env
+        );
+    }
+
+
+    if (!env.FILES) {
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Хранилище изображений не подключено"
+            },
+            503,
+            env
+        );
+    }
+
+
+    await ensureAvatarInfrastructure(
+        env.DB
+    );
+
+
+    const form =
+        await request.formData();
+
+
+    const uploaded =
+        form.get("avatar");
+
+
+    if (
+        !uploaded ||
+        typeof uploaded.arrayBuffer !==
+            "function"
+    ) {
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Выберите изображение"
+            },
+            400,
+            env
+        );
+    }
+
+
+    const allowed =
+        new Set([
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ]);
+
+
+    const contentType =
+        String(
+            uploaded.type || ""
+        ).toLowerCase();
+
+
+    if (!allowed.has(contentType)) {
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Разрешены JPG, PNG и WEBP"
+            },
+            400,
+            env
+        );
+    }
+
+
+    if (
+        Number(uploaded.size) >
+        5 * 1024 * 1024
+    ) {
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Размер изображения не должен превышать 5 МБ"
+            },
+            400,
+            env
+        );
+    }
+
+
+    const bytes =
+        await uploaded.arrayBuffer();
+
+
+    const key =
+        `avatars/${auth.user.id}/custom`;
+
+
+    await env.FILES.put(
+        key,
+        bytes,
+        {
+            httpMetadata: {
+                contentType
+            }
+        }
+    );
+
+
+    await run(
+        env.DB,
+        `
+        UPDATE users
+        SET
+            avatar_key = ?,
+            avatar_source = 'custom',
+            updated_at =
+                CURRENT_TIMESTAMP
+        WHERE id = ?
+        `,
+        [
+            key,
+            auth.user.id
+        ]
+    );
+
+
+    const user =
+        await getUserById(
+            env.DB,
+            auth.user.id
+        );
+
+
+    return json(
+        {
+            ok: true,
+            user
+        },
+        200,
+        env
+    );
+}
+
+
+async function fetchTelegramAvatar(
+    env,
+    telegramId,
+    photoUrl
+) {
+
+    /*
+     * Сначала используем photo_url,
+     * если Telegram уже передал его.
+     */
+
+    if (photoUrl) {
+
+        try {
+
+            const url =
+                new URL(
+                    String(photoUrl)
+                );
+
+
+            if (
+                url.protocol ===
+                "https:"
+            ) {
+
+                const response =
+                    await fetch(
+                        url.toString()
+                    );
+
+
+                if (response.ok) {
+                    return response;
+                }
+            }
+
+        } catch {}
+    }
+
+
+    /*
+     * Для Mini App photo_url может
+     * отсутствовать. Тогда получаем
+     * фотографию через Bot API.
+     */
+
+    if (
+        !env.TELEGRAM_BOT_TOKEN
+    ) {
+        return null;
+    }
+
+
+    try {
+
+        const photosResponse =
+            await fetch(
+                "https://api.telegram.org/bot" +
+                env.TELEGRAM_BOT_TOKEN +
+                "/getUserProfilePhotos?" +
+                "user_id=" +
+                encodeURIComponent(
+                    telegramId
+                ) +
+                "&limit=1"
+            );
+
+
+        if (!photosResponse.ok) {
+            return null;
+        }
+
+
+        const photosData =
+            await photosResponse.json();
+
+
+        const photos =
+            photosData?.result?.photos;
+
+
+        if (
+            !Array.isArray(photos) ||
+            !photos.length ||
+            !Array.isArray(photos[0]) ||
+            !photos[0].length
+        ) {
+            return null;
+        }
+
+
+        const variants =
+            photos[0];
+
+
+        const largest =
+            variants[
+                variants.length - 1
+            ];
+
+
+        if (!largest?.file_id) {
+            return null;
+        }
+
+
+        const fileResponse =
+            await fetch(
+                "https://api.telegram.org/bot" +
+                env.TELEGRAM_BOT_TOKEN +
+                "/getFile?file_id=" +
+                encodeURIComponent(
+                    largest.file_id
+                )
+            );
+
+
+        if (!fileResponse.ok) {
+            return null;
+        }
+
+
+        const fileData =
+            await fileResponse.json();
+
+
+        const filePath =
+            fileData?.result?.file_path;
+
+
+        if (!filePath) {
+            return null;
+        }
+
+
+        return fetch(
+            "https://api.telegram.org/file/bot" +
+            env.TELEGRAM_BOT_TOKEN +
+            "/" +
+            filePath
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Telegram avatar fetch error:",
+            error
+        );
+
+        return null;
+    }
+}
+
+
+async function syncTelegramAvatar(
+    env,
+    userId,
+    telegramId,
+    photoUrl
+) {
+
+    try {
+
+        if (
+            !env.DB ||
+            !env.FILES
+        ) {
+            return;
+        }
+
+
+        await ensureAvatarInfrastructure(
+            env.DB
+        );
+
+
+        const response =
+            await fetchTelegramAvatar(
+                env,
+                telegramId,
+                photoUrl
+            );
+
+
+        if (
+            !response ||
+            !response.ok
+        ) {
+            return;
+        }
+
+
+        const contentType =
+            String(
+                response.headers.get(
+                    "content-type"
+                ) ||
+                "image/jpeg"
+            )
+            .split(";")[0]
+            .trim()
+            .toLowerCase();
+
+
+        if (
+            !contentType.startsWith(
+                "image/"
+            )
+        ) {
+            return;
+        }
+
+
+        const bytes =
+            await response.arrayBuffer();
+
+
+        if (
+            bytes.byteLength >
+            5 * 1024 * 1024
+        ) {
+            return;
+        }
+
+
+        const key =
+            `avatars/${userId}/telegram`;
+
+
+        await env.FILES.put(
+            key,
+            bytes,
+            {
+                httpMetadata: {
+                    contentType
+                }
+            }
+        );
+
+
+        await run(
+            env.DB,
+            `
+            UPDATE users
+            SET
+                avatar_key = ?,
+                avatar_source =
+                    'telegram',
+                updated_at =
+                    CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [
+                key,
+                userId
+            ]
+        );
+
+    } catch (error) {
+
+        /*
+         * Ошибка фотографии не должна
+         * мешать самому входу.
+         */
+
+        console.error(
+            "Telegram avatar sync error:",
+            error
+        );
+    }
+}
+
 async function handleProfileUpdate(
     request,
     env
@@ -3250,9 +3911,10 @@ async function createSession(db, userId) {
 }
 
 async function getUserById(db, userId) {
+    await ensureAvatarInfrastructure(db);
     const user = await first(db, `
         SELECT id, telegram_id, username, first_name, last_name, phone, role, status,
-               blocked_reason, blocked_at, created_at, updated_at, login, email, email_verified_at
+               blocked_reason, blocked_at, created_at, updated_at, login, email, email_verified_at, avatar_key, avatar_source
         FROM users WHERE id = ? LIMIT 1
     `, [userId]);
     return publicUser(user);

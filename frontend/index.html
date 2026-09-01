@@ -4489,6 +4489,78 @@ body {
 
 </style>
 
+
+<style id="rauda-user-avatar-v1">
+
+#profileAvatar {
+    overflow: hidden !important;
+}
+
+#profileAvatar img {
+    width: 100% !important;
+    height: 100% !important;
+
+    display: block !important;
+
+    object-fit: cover !important;
+
+    border-radius: inherit !important;
+}
+
+.rauda-avatar-controls {
+    display: none;
+
+    justify-content: center;
+
+    margin:
+        -5px 0 17px;
+}
+
+.rauda-avatar-change {
+    min-height: 36px;
+
+    padding: 8px 13px;
+
+    border:
+        1px solid #d8c9a8;
+
+    border-radius:
+        9px;
+
+    background:
+        #f6f1e6 !important;
+
+    color:
+        #183d2c !important;
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+
+    box-shadow:
+        none !important;
+
+    transform:
+        none !important;
+}
+
+.rauda-avatar-change:hover {
+    background:
+        #f1e5c8 !important;
+}
+
+.rauda-avatar-change:active {
+    transform:
+        none !important;
+
+    box-shadow:
+        none !important;
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
@@ -10147,6 +10219,477 @@ function setRegisterMethod(method) {
 
         buildTelegramConfirmation();
     }
+
+})();
+
+</script>
+
+
+<script id="rauda-user-avatar-v1-script">
+
+(function () {
+
+    let avatarObjectUrl =
+        null;
+
+    let avatarLoadedKey =
+        null;
+
+
+    function buildAvatarControls() {
+
+        const avatar =
+            document.getElementById(
+                "profileAvatar"
+            );
+
+
+        if (
+            !avatar ||
+            document.getElementById(
+                "profileAvatarControls"
+            )
+        ) {
+            return;
+        }
+
+
+        const controls =
+            document.createElement(
+                "div"
+            );
+
+
+        controls.id =
+            "profileAvatarControls";
+
+        controls.className =
+            "rauda-avatar-controls";
+
+
+        controls.innerHTML = `
+
+            <input
+                id="profileAvatarFile"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+            >
+
+            <button
+                id="profileAvatarButton"
+                type="button"
+                class="rauda-avatar-change"
+            >
+                \u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0444\u043e\u0442\u043e
+            </button>
+        `;
+
+
+        avatar.insertAdjacentElement(
+            "afterend",
+            controls
+        );
+
+
+        const button =
+            document.getElementById(
+                "profileAvatarButton"
+            );
+
+
+        const input =
+            document.getElementById(
+                "profileAvatarFile"
+            );
+
+
+        button?.addEventListener(
+            "click",
+            function () {
+                input?.click();
+            }
+        );
+
+
+        input?.addEventListener(
+            "change",
+            async function () {
+
+                const file =
+                    input.files?.[0];
+
+
+                if (!file) {
+                    return;
+                }
+
+
+                if (
+                    file.size >
+                    5 * 1024 * 1024
+                ) {
+
+                    alert(
+                        "\u0424\u043e\u0442\u043e \u043d\u0435 \u0434\u043e\u043b\u0436\u043d\u043e \u0431\u044b\u0442\u044c \u0431\u043e\u043b\u044c\u0448\u0435 5 \u041c\u0411"
+                    );
+
+                    input.value = "";
+                    return;
+                }
+
+
+                const allowed =
+                    [
+                        "image/jpeg",
+                        "image/png",
+                        "image/webp"
+                    ];
+
+
+                if (
+                    !allowed.includes(
+                        file.type
+                    )
+                ) {
+
+                    alert(
+                        "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 JPG, PNG \u0438\u043b\u0438 WEBP"
+                    );
+
+                    input.value = "";
+                    return;
+                }
+
+
+                button.disabled =
+                    true;
+
+                button.textContent =
+                    "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026";
+
+
+                try {
+
+                    const form =
+                        new FormData();
+
+
+                    form.append(
+                        "avatar",
+                        file
+                    );
+
+
+                    const response =
+                        await fetch(
+                            API +
+                            "/auth/avatar",
+                            {
+                                method:
+                                    "POST",
+
+                                headers: {
+                                    "Authorization":
+                                        "Bearer " +
+                                        getToken()
+                                },
+
+                                body:
+                                    form
+                            }
+                        );
+
+
+                    let data = {};
+
+                    try {
+                        data =
+                            await response.json();
+                    } catch {}
+
+
+                    if (
+                        !response.ok ||
+                        !data.ok
+                    ) {
+
+                        alert(
+                            data?.error ||
+                            "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0444\u043e\u0442\u043e"
+                        );
+
+                        return;
+                    }
+
+
+                    currentUser =
+                        data.user;
+
+
+                    avatarLoadedKey =
+                        null;
+
+
+                    if (
+                        typeof updateProfile ===
+                        "function"
+                    ) {
+
+                        updateProfile();
+                    }
+
+
+                    await renderRaudaAvatar();
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Avatar upload:",
+                        error
+                    );
+
+
+                    alert(
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0444\u043e\u0442\u043e"
+                    );
+
+                } finally {
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        "\u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0444\u043e\u0442\u043e";
+
+                    input.value =
+                        "";
+                }
+            }
+        );
+    }
+
+
+    async function renderRaudaAvatar() {
+
+        buildAvatarControls();
+
+
+        if (
+            typeof currentUser ===
+                "undefined" ||
+            !currentUser
+        ) {
+            return;
+        }
+
+
+        const avatar =
+            document.getElementById(
+                "profileAvatar"
+            );
+
+
+        const controls =
+            document.getElementById(
+                "profileAvatarControls"
+            );
+
+
+        if (!avatar) {
+            return;
+        }
+
+
+        const telegramId =
+            Number(
+                currentUser.telegram_id
+            );
+
+
+        const telegramAccount =
+            Number.isSafeInteger(
+                telegramId
+            ) &&
+            telegramId > 0;
+
+
+        /*
+         * Своя загрузка доступна
+         * только обычному аккаунту.
+         */
+
+        if (controls) {
+
+            controls.style.display =
+                telegramAccount
+                    ? "none"
+                    : "flex";
+        }
+
+
+        const key =
+            currentUser.avatar_key;
+
+
+        if (!key) {
+
+            avatarLoadedKey =
+                null;
+
+            return;
+        }
+
+
+        if (
+            avatarLoadedKey === key &&
+            avatar.querySelector("img")
+        ) {
+            return;
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    API +
+                    "/auth/avatar",
+                    {
+                        headers: {
+                            "Authorization":
+                                "Bearer " +
+                                getToken()
+                        }
+                    }
+                );
+
+
+            if (!response.ok) {
+                return;
+            }
+
+
+            const blob =
+                await response.blob();
+
+
+            if (avatarObjectUrl) {
+
+                URL.revokeObjectURL(
+                    avatarObjectUrl
+                );
+            }
+
+
+            avatarObjectUrl =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const image =
+                document.createElement(
+                    "img"
+                );
+
+
+            image.src =
+                avatarObjectUrl;
+
+            image.alt =
+                "\u0410\u0432\u0430\u0442\u0430\u0440";
+
+
+            avatar.innerHTML =
+                "";
+
+            avatar.appendChild(
+                image
+            );
+
+
+            avatarLoadedKey =
+                key;
+
+
+        } catch (error) {
+
+            console.error(
+                "Avatar load:",
+                error
+            );
+        }
+    }
+
+
+    /*
+     * Подключаемся к существующему
+     * updateProfile, не переписывая его.
+     */
+
+    if (
+        typeof window.updateProfile ===
+        "function"
+    ) {
+
+        const originalUpdateProfile =
+            window.updateProfile;
+
+
+        window.updateProfile =
+            function () {
+
+                const result =
+                    originalUpdateProfile.apply(
+                        this,
+                        arguments
+                    );
+
+
+                setTimeout(
+                    renderRaudaAvatar,
+                    0
+                );
+
+
+                return result;
+            };
+    }
+
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                buildAvatarControls();
+
+                setTimeout(
+                    renderRaudaAvatar,
+                    0
+                );
+            }
+        );
+
+    } else {
+
+        buildAvatarControls();
+
+        setTimeout(
+            renderRaudaAvatar,
+            0
+        );
+    }
+
+
+    window.renderRaudaAvatar =
+        renderRaudaAvatar;
 
 })();
 

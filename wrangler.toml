@@ -25,3 +25,7 @@ database_id = "11acb8cd-6a32-4daa-8d58-dc031853084c"
 [assets]
 directory = "./frontend"
 binding = "ASSETS"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "rauda-ilm-media"
