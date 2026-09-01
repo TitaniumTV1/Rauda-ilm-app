@@ -1714,6 +1714,106 @@ function updateSettings() {
                 : "none";
     }
 }
+
+    async function linkLogin() {
+    if (!currentUser) {
+        return;
+    }
+
+    const login =
+        document
+            .getElementById("linkLoginInput")
+            .value
+            .trim();
+
+    const password =
+        document
+            .getElementById("linkPasswordInput")
+            .value;
+
+    const passwordConfirm =
+        document
+            .getElementById(
+                "linkPasswordConfirmInput"
+            )
+            .value;
+
+    if (!login) {
+        alert("Введите логин");
+        return;
+    }
+
+    if (password.length < 8) {
+        alert(
+            "Пароль должен содержать минимум 8 символов"
+        );
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        alert("Пароли не совпадают");
+        return;
+    }
+
+    try {
+        const result =
+            await api(
+                "/auth/link-login",
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        login,
+                        password,
+                        password_confirm:
+                            passwordConfirm
+                    })
+                }
+            );
+
+        if (
+            !result.data ||
+            !result.data.ok
+        ) {
+            alert(
+                result.data?.error ||
+                "Не удалось привязать логин"
+            );
+            return;
+        }
+
+        currentUser =
+            result.data.user;
+
+        updateProfile();
+        updateSettings();
+
+        document
+            .getElementById(
+                "linkPasswordInput"
+            )
+            .value = "";
+
+        document
+            .getElementById(
+                "linkPasswordConfirmInput"
+            )
+            .value = "";
+
+        alert(
+            "Логин успешно привязан"
+        );
+
+    } catch (error) {
+        console.error(
+            "Link login error:",
+            error
+        );
+
+        alert(
+            "Не удалось привязать логин"
+        );
+    }
+}
     
 async function saveProfile() {
 
