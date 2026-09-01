@@ -1659,32 +1659,37 @@
     }
 
 
-    async function completeLesson(
-        lessonId
-    ) {
+    async function completeLesson(lessonId) {
 
-        const result =
-            await api(
-                "/progress",
-                {
-                    method: "POST",
-                    body: JSON.stringify({
-    lesson_id: lessonId
-})
-                }
-            );
+    const id = Number(lessonId);
 
-        if (!result.data.ok) {
-            alert(
-                result.data.error ||
-                "Не удалось сохранить прогресс"
-            );
-            return;
-        }
-
-        loadLessons();
-
+    if (!Number.isInteger(id) || id <= 0) {
+        alert("Ошибка: у урока отсутствует ID");
+        return;
     }
+
+    const result = await api(
+        "/progress",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                lesson_id: id,
+                completed: true,
+                progress_percent: 100
+            })
+        }
+    );
+
+    if (!result.data.ok) {
+        alert(
+            result.data.error ||
+            "Не удалось сохранить прогресс"
+        );
+        return;
+    }
+
+    await loadLessons();
+}
 
 
     /*
