@@ -2,6 +2,9 @@ import { verifyTelegramInitData } from "./telegram.js";
 
 const SESSION_DAYS = 30;
 const PASSWORD_ITERATIONS = 100000;
+const VERIFICATION_CODE_TTL_MINUTES = 5;
+const VERIFICATION_RESEND_SECONDS = 60;
+const VERIFICATION_MAX_ATTEMPTS = 5;
 const ADMIN_ROLES = new Set(["owner", "superadmin", "admin"]);
 const tableColumnsCache = new Map();
 
@@ -2110,7 +2113,91 @@ function getBearerToken(request) {
     // which cannot send an Authorization header. Prefer the header for normal API calls.
     return new URL(request.url).searchParams.get("token") || null;
 }
+function generateVerificationCode() {
+    const limit =
+        Math.floor(
+            0x100000000 / 1000000
+        ) * 1000000;
 
+    const values =
+        new Uint32Array(1);
+
+    let number;
+
+    do {
+        crypto.getRandomValues(values);
+        number = values[0];
+    } while (number >= limit);
+
+    return String(
+        number % 1000000
+    ).padStart(6, "0");
+}
+
+async function hashVerificationCode(
+    code,
+    userId,
+    type,
+    target,
+    env
+) {
+    const secret =
+        String(
+            env.VERIFICATION_CODE_SECRET ||
+            ""
+        );
+
+    if (!secret) {
+        throw new Error(
+            "VERIFICATION_CODE_SECRET is not configured"
+        );
+    }
+
+    const key =
+        await crypto.subtle.importKey(
+            "raw",
+            new TextEncoder().encode(
+                secret
+            ),
+            {
+                name: "HMAC",
+                hash: "SHA-256"
+            },
+            false,
+            ["sign"]
+        );
+
+    const message =
+        [
+            String(userId),
+            String(type),
+            String(target || ""),
+            String(code)
+        ].join(":");
+
+    const signature =
+        await crypto.subtle.sign(
+            "HMAC",
+            key,
+            new TextEncoder().encode(
+                message
+            )
+        );
+
+    return Array
+        .from(
+            new Uint8Array(
+                signature
+            )
+        )
+        .map(
+            byte =>
+                byte
+                    .toString(16)
+                    .padStart(2, "0")
+        )
+        .join("");
+}
 function bearerFromHeader(value) {
     const match = String(value || "").match(/^Bearer\s+(.+)$/i);
     return match ? match[1].trim() : null;
