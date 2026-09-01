@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html><html lang="ru">
+<!DOCTYPE html><html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>RAUDA ILM</title>
@@ -2783,6 +2783,339 @@ a:focus:not(:focus-visible),
 }
 
 </style>
+
+<style id="rauda-side-menu-v3">
+.menu-overlay{
+    display:block !important;
+    position:fixed !important;
+    inset:0 !important;
+    background:rgba(7,12,9,.58) !important;
+    backdrop-filter:blur(5px) !important;
+    -webkit-backdrop-filter:blur(5px) !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+    transition:opacity .24s ease !important;
+    z-index:1000 !important;
+}
+
+.menu-overlay.active{
+    opacity:1 !important;
+    pointer-events:auto !important;
+}
+
+.side-menu{
+    position:fixed !important;
+    top:0 !important;
+    left:0 !important;
+    right:auto !important;
+
+    width:min(88vw,360px) !important;
+    height:100vh !important;
+    height:100dvh !important;
+
+    padding:18px 16px 20px !important;
+
+    background:
+        radial-gradient(circle at 15% 0%,
+            rgba(198,164,95,.12),
+            transparent 30%),
+        linear-gradient(
+            180deg,
+            #1d2822 0%,
+            #17201b 100%
+        ) !important;
+
+    border-right:
+        1px solid rgba(255,255,255,.07) !important;
+
+    border-radius:
+        0 24px 24px 0 !important;
+
+    box-shadow:
+        18px 0 46px rgba(0,0,0,.30) !important;
+
+    transform:
+        translateX(-104%) !important;
+
+    transition:
+        transform .28s cubic-bezier(.2,.8,.2,1) !important;
+
+    z-index:1001 !important;
+    overflow-y:auto !important;
+}
+
+.side-menu.active{
+    left:0 !important;
+    right:auto !important;
+    transform:translateX(0) !important;
+}
+
+.rauda-menu-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.rauda-menu-title{
+    color:#f6f2e8;
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:.3px;
+}
+
+.rauda-menu-close{
+    width:40px !important;
+    height:40px !important;
+    position:static !important;
+
+    display:grid !important;
+    place-items:center !important;
+
+    padding:0 !important;
+    margin:0 !important;
+
+    border:1px solid rgba(255,255,255,.07) !important;
+    border-radius:12px !important;
+
+    background:rgba(255,255,255,.04) !important;
+    color:#f4f1e9 !important;
+
+    font-size:22px !important;
+    line-height:1 !important;
+
+    box-shadow:none !important;
+    transform:none !important;
+    -webkit-tap-highlight-color:transparent !important;
+}
+
+.rauda-menu-close:active{
+    background:rgba(255,255,255,.08) !important;
+    transform:none !important;
+    box-shadow:none !important;
+}
+
+.rauda-menu-profile{
+    width:100% !important;
+
+    display:flex !important;
+    align-items:center !important;
+    gap:13px !important;
+
+    padding:14px !important;
+    margin:0 0 18px !important;
+
+    border:
+        1px solid rgba(198,164,95,.16) !important;
+
+    border-radius:20px !important;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(47,111,73,.34),
+            rgba(198,164,95,.09)
+        ) !important;
+
+    text-align:left !important;
+    color:#fff !important;
+
+    box-shadow:none !important;
+    transform:none !important;
+
+    -webkit-tap-highlight-color:
+        transparent !important;
+}
+
+.rauda-menu-profile:active{
+    background:
+        linear-gradient(
+            135deg,
+            rgba(55,128,84,.38),
+            rgba(198,164,95,.12)
+        ) !important;
+
+    transform:none !important;
+    box-shadow:none !important;
+}
+
+.rauda-menu-logo{
+    width:58px;
+    height:58px;
+
+    flex:0 0 58px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    overflow:hidden;
+
+    border-radius:17px;
+
+    background:#f7f1e4;
+
+    border:
+        1px solid rgba(198,164,95,.38);
+}
+
+.rauda-menu-logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.rauda-menu-profile-info{
+    min-width:0;
+}
+
+.rauda-menu-name{
+    color:#f7f4ec;
+
+    font-size:16px;
+    font-weight:750;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.rauda-menu-profile-link{
+    margin-top:4px;
+
+    color:#55c77d;
+
+    font-size:13px;
+    font-weight:650;
+}
+
+.rauda-menu-items{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.side-menu .rauda-menu-item{
+    width:100% !important;
+    min-height:54px !important;
+
+    display:flex !important;
+    align-items:center !important;
+    gap:14px !important;
+
+    margin:0 !important;
+    padding:0 13px !important;
+
+    border:0 !important;
+    border-radius:15px !important;
+
+    background:transparent !important;
+
+    color:#eeeae2 !important;
+
+    font-size:16px !important;
+    font-weight:620 !important;
+
+    text-align:left !important;
+
+    box-shadow:none !important;
+    transform:none !important;
+
+    -webkit-tap-highlight-color:
+        transparent !important;
+
+    transition:
+        background .18s ease,
+        color .18s ease !important;
+}
+
+.side-menu .rauda-menu-item:hover{
+    background:
+        rgba(255,255,255,.045) !important;
+}
+
+.side-menu .rauda-menu-item:active{
+    background:
+        rgba(255,255,255,.07) !important;
+
+    transform:none !important;
+    box-shadow:none !important;
+}
+
+.side-menu .rauda-menu-item.active{
+    color:#4dcc7b !important;
+
+    background:
+        rgba(63,175,105,.12) !important;
+}
+
+.rauda-menu-icon{
+    width:27px;
+    height:27px;
+
+    flex:0 0 27px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:inherit;
+}
+
+.rauda-menu-icon svg{
+    width:25px;
+    height:25px;
+
+    fill:none;
+    stroke:currentColor;
+
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.rauda-menu-divider{
+    height:1px;
+    margin:17px 5px;
+
+    background:
+        rgba(255,255,255,.07);
+}
+
+.rauda-menu-bottom{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+
+    padding-bottom:
+        env(safe-area-inset-bottom);
+}
+
+.side-menu .rauda-menu-item.logout{
+    color:#c9b889 !important;
+}
+
+.side-menu button,
+.side-menu a{
+    outline:none !important;
+    -webkit-tap-highlight-color:
+        transparent !important;
+}
+
+.side-menu button:focus:not(:focus-visible){
+    outline:none !important;
+    box-shadow:none !important;
+}
+
+@media(max-width:420px){
+    .side-menu{
+        width:min(91vw,350px) !important;
+    }
+}
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
@@ -5741,7 +6074,224 @@ function setRegisterMethod(method) {
 }
 
 
-</script><!-- Telegram Mini App SDK --><script src="https://telegram.org/js/telegram-web-app.js"></script></body>
+</script><!-- Telegram Mini App SDK --><script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script id="rauda-side-menu-v3-script">
+(function () {
+
+    function icon(path) {
+        return `
+            <span class="rauda-menu-icon">
+                <svg viewBox="0 0 24 24">
+                    ${path}
+                </svg>
+            </span>
+        `;
+    }
+
+    function buildRaudaMenu() {
+
+        const menu =
+            document.getElementById("sideMenu");
+
+        if (!menu) return;
+
+        menu.innerHTML = `
+
+            <div class="rauda-menu-head">
+
+                <div class="rauda-menu-title">
+                    RAUDA ILM
+                </div>
+
+                <button
+                    type="button"
+                    class="rauda-menu-close"
+                    onclick="closeMenu()"
+                    aria-label="Закрыть"
+                >
+                    ×
+                </button>
+
+            </div>
+
+            <button
+                class="rauda-menu-profile"
+                type="button"
+                onclick="openProfile()"
+            >
+
+                <span class="rauda-menu-logo">
+                    <img
+                        src="/logo.png"
+                        alt="RAUDA ILM"
+                    >
+                </span>
+
+                <span class="rauda-menu-profile-info">
+
+                    <span
+                        class="rauda-menu-name"
+                        id="raudaMenuName"
+                    >
+                        Пользователь
+                    </span>
+
+                    <span
+                        class="rauda-menu-profile-link"
+                    >
+                        Перейти в профиль
+                    </span>
+
+                </span>
+
+            </button>
+
+            <div class="rauda-menu-items">
+
+                <button
+                    type="button"
+                    class="rauda-menu-item active"
+                    onclick="openLessons()"
+                >
+                    ${icon(`
+                        <path d="M4 5a2 2 0 0 1 2-2h4v18H6a2 2 0 0 1-2-2V5Z"/>
+                        <path d="M10 3h4a2 2 0 0 1 2 2v14a2 2 0 0 0 2 2h2"/>
+                    `)}
+                    <span>Мои уроки</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="rauda-menu-item"
+                    onclick="openSchedule()"
+                >
+                    ${icon(`
+                        <rect x="3" y="5" width="18" height="16" rx="2"/>
+                        <path d="M8 3v4M16 3v4M3 10h18"/>
+                    `)}
+                    <span>Расписание</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="rauda-menu-item"
+                    onclick="openExams()"
+                >
+                    ${icon(`
+                        <rect x="5" y="3" width="14" height="18" rx="2"/>
+                        <path d="M9 8h6M9 12h6M9 16h4"/>
+                    `)}
+                    <span>Экзамены</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="rauda-menu-item"
+                    onclick="openScience()"
+                >
+                    ${icon(`
+                        <path d="M9 3h6"/>
+                        <path d="M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3"/>
+                        <path d="M8 15h8"/>
+                    `)}
+                    <span>Научные материалы</span>
+                </button>
+
+            </div>
+
+            <div class="rauda-menu-divider"></div>
+
+            <div class="rauda-menu-bottom">
+
+                <button
+                    type="button"
+                    class="rauda-menu-item"
+                    onclick="openSettings()"
+                >
+                    ${icon(`
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.5 19.3a1.7 1.7 0 0 0-1.9.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.1 15a1.7 1.7 0 0 0-.6-1A1.7 1.7 0 0 0 2.4 13.6H2v-4h.4A1.7 1.7 0 0 0 4 8.5a1.7 1.7 0 0 0-.34-1.9l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.4 4.1a1.7 1.7 0 0 0 1-.6A1.7 1.7 0 0 0 9.8 2.4V2h4v.4A1.7 1.7 0 0 0 15 4a1.7 1.7 0 0 0 1.9-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8.4a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.4v4h-.4A1.7 1.7 0 0 0 19.4 15Z"/>
+                    `)}
+                    <span>Настройки</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="rauda-menu-item logout"
+                    onclick="logout()"
+                >
+                    ${icon(`
+                        <path d="M10 17l5-5-5-5"/>
+                        <path d="M15 12H3"/>
+                        <path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/>
+                    `)}
+                    <span>Выйти</span>
+                </button>
+
+            </div>
+        `;
+
+        updateRaudaMenuName();
+    }
+
+    function updateRaudaMenuName() {
+
+        const el =
+            document.getElementById(
+                "raudaMenuName"
+            );
+
+        if (!el) return;
+
+        try {
+
+            const u =
+                window.currentUser ||
+                currentUser ||
+                null;
+
+            if (!u) return;
+
+            const full =
+                [
+                    u.first_name,
+                    u.last_name
+                ]
+                .filter(Boolean)
+                .join(" ")
+                .trim();
+
+            el.textContent =
+                full ||
+                u.login ||
+                u.username ||
+                "Пользователь";
+
+        } catch (_) {}
+    }
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            buildRaudaMenu();
+
+            setTimeout(
+                updateRaudaMenuName,
+                700
+            );
+
+            setTimeout(
+                updateRaudaMenuName,
+                1800
+            );
+        }
+    );
+
+})();
+</script>
+
+</body>
 </html>
 
 
