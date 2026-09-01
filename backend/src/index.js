@@ -54,7 +54,90 @@ export default {
 ) {
     return handleEmailSendCode(request, env);
 }
+if (!env.BREVO_API_KEY) {
+    return json(
+        {
+            ok: false,
+            error: "BREVO_API_KEY не настроен"
+        },
+        500,
+        env
+    );
+}
 
+const brevoResponse = await fetch(
+    "https://api.brevo.com/v3/smtp/email",
+    {
+        method: "POST",
+        headers: {
+            "api-key": env.BREVO_API_KEY,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify({
+            sender: {
+                name: "RAUDA ILM",
+                email: env.EMAIL_FROM
+            },
+            to: [
+                {
+                    email
+                }
+            ],
+            subject: "Код подтверждения RAUDA ILM",
+            htmlContent: `
+                <div style="
+                    font-family:Arial,sans-serif;
+                    max-width:480px;
+                    margin:auto;
+                    padding:32px;
+                ">
+                    <h2>RAUDA ILM</h2>
+
+                    <p>Ваш код подтверждения:</p>
+
+                    <div style="
+                        font-size:32px;
+                        font-weight:700;
+                        letter-spacing:8px;
+                        margin:24px 0;
+                    ">
+                        ${code}
+                    </div>
+
+                    <p>Код действует 5 минут.</p>
+
+                    <p style="
+                        color:#777;
+                        font-size:13px;
+                    ">
+                        Если вы не запрашивали этот код,
+                        просто проигнорируйте письмо.
+                    </p>
+                </div>
+            `
+        })
+    }
+);
+
+if (!brevoResponse.ok) {
+    const brevoError =
+        await brevoResponse.text();
+
+    console.error(
+        "Brevo error:",
+        brevoError
+    );
+
+    return json(
+        {
+            ok: false,
+            error: "Не удалось отправить код на почту"
+        },
+        502,
+        env
+    );
+}
 if (
     url.pathname === "/api/auth/email/login" &&
     request.method === "POST"
