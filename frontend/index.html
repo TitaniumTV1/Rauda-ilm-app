@@ -746,6 +746,114 @@
 
 </section>
 
+    <!-- SETTINGS -->
+
+<section
+    id="settingsScreen"
+    class="screen"
+>
+
+    <button
+        class="back-button"
+        onclick="showScreen('homeScreen')"
+    >
+        ← Назад
+    </button>
+
+    <div class="card">
+
+        <h2>
+            Настройки
+        </h2>
+
+        <div class="profile-row">
+            <span>ID аккаунта</span>
+            <span id="settingsUserId">—</span>
+        </div>
+
+        <div class="profile-row">
+            <span>Telegram ID</span>
+            <span id="settingsTelegramId">—</span>
+        </div>
+
+        <div class="profile-row">
+            <span>Логин</span>
+            <span id="settingsLogin">Не привязан</span>
+        </div>
+
+        <div
+            id="linkLoginBlock"
+            style="margin-top:20px"
+        >
+
+            <h3>
+                Привязать логин
+            </h3>
+
+            <p
+                class="muted"
+                style="margin-bottom:14px"
+            >
+                Логин и пароль позволят войти в аккаунт,
+                даже если доступ к Telegram будет потерян.
+            </p>
+
+            <label>
+                Логин
+            </label>
+
+            <input
+                id="linkLoginInput"
+                class="input"
+                type="text"
+                placeholder="Введите логин"
+                maxlength="30"
+            >
+
+            <label>
+                Пароль
+            </label>
+
+            <input
+                id="linkPasswordInput"
+                class="input"
+                type="password"
+                placeholder="Минимум 8 символов"
+            >
+
+            <label>
+                Повторите пароль
+            </label>
+
+            <input
+                id="linkPasswordConfirmInput"
+                class="input"
+                type="password"
+                placeholder="Повторите пароль"
+            >
+
+            <button
+                class="primary-button"
+                onclick="linkLogin()"
+            >
+                Привязать логин
+            </button>
+
+        </div>
+
+        <div
+            id="linkedLoginBlock"
+            style="display:none; margin-top:20px"
+        >
+            <p>
+                Логин для резервного входа настроен.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+    
     <!-- LESSONS -->
 
     <section
