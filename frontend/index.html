@@ -4457,6 +4457,38 @@ body {
 
 </style>
 
+
+<style id="rauda-side-menu-smooth">
+
+.side-menu {
+    will-change: transform;
+
+    transition:
+        transform .46s cubic-bezier(.22, 1, .36, 1),
+        box-shadow .35s ease !important;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.side-menu:not(.active) {
+    transform:
+        translate3d(-110%, 0, 0) !important;
+}
+
+.side-menu.active {
+    transform:
+        translate3d(0, 0, 0) !important;
+}
+
+.menu-overlay {
+    transition:
+        opacity .36s ease,
+        visibility .36s ease !important;
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
