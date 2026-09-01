@@ -237,39 +237,35 @@ if (
                     subject: "Код подтверждения RAUDA ILM",
                     htmlContent: `
                         <div style="
-                            font-family:Arial,sans-serif;
                             max-width:480px;
                             margin:auto;
                             padding:32px;
+                            font-family:Arial,sans-serif;
                         ">
-                            <div style="
-                                font-size:22px;
-                                font-weight:800;
-                                margin-bottom:24px;
-                            ">
-                                RAUDA ILM
-                            </div>
+                            <h2>RAUDA ILM</h2>
 
                             <p>Ваш код подтверждения:</p>
 
                             <div style="
+                                margin:24px 0;
                                 font-size:32px;
                                 font-weight:800;
                                 letter-spacing:7px;
-                                margin:24px 0;
                             ">
                                 ${code}
                             </div>
 
-                            <p>Код действует 5 минут.</p>
+                            <p>
+                                Код действует 5 минут.
+                            </p>
 
                             <p style="
+                                margin-top:28px;
                                 color:#777;
                                 font-size:13px;
-                                margin-top:28px;
                             ">
                                 Если вы не запрашивали этот код,
-                                просто проигнорируйте письмо.
+                                проигнорируйте письмо.
                             </p>
                         </div>
                     `
@@ -278,11 +274,12 @@ if (
         );
 
         if (!brevoResponse.ok) {
+
             const brevoError =
                 await brevoResponse.text();
 
             console.error(
-                "Brevo send error:",
+                "Brevo email error:",
                 brevoResponse.status,
                 brevoError
             );
@@ -290,7 +287,8 @@ if (
             return json(
                 {
                     ok: false,
-                    error: "Не удалось отправить код на почту"
+                    error:
+                        "Не удалось отправить код. Проверьте настройки Brevo."
                 },
                 502,
                 env
@@ -316,6 +314,157 @@ if (
             {
                 ok: false,
                 error: "Не удалось отправить код"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+
+async function handleEmailLink(request, env) {
+    if (!env.DB) return databaseMissing(env);
+
+    const auth =
+        await requireUser(request, env);
+
+    if (!auth.ok) {
+        return authError(auth, env);
+    }
+
+    try {
+        await ensureEmailAuthSchema(env.DB);
+
+        const body =
+            await readJson(request);
+
+        const email =
+            String(body?.email || "")
+                .trim()
+                .toLowerCase();
+
+        const code =
+            String(body?.code || "")
+                .trim();
+
+        if (!isValidEmail(email)) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите корректную электронную почту"
+                },
+                400,
+                env
+            );
+        }
+
+        if (!/^\d{6}$/.test(code)) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите 6-значный код"
+                },
+                400,
+                env
+            );
+        }
+
+        const existing =
+            await first(
+                env.DB,
+                `
+                SELECT id
+                FROM users
+                WHERE LOWER(email) = ?
+                  AND id != ?
+                LIMIT 1
+                `,
+                [
+                    email,
+                    auth.user.id
+                ]
+            );
+
+        if (existing) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Эта почта уже привязана к другому аккаунту"
+                },
+                409,
+                env
+            );
+        }
+
+        const verification =
+            await verifyEmailCode(
+                env.DB,
+                email,
+                "register",
+                code,
+                env
+            );
+
+        if (!verification.ok) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        verification.error
+                },
+                verification.status || 400,
+                env
+            );
+        }
+
+        await run(
+            env.DB,
+            `
+            UPDATE users
+            SET
+                email = ?,
+                email_verified_at =
+                    CURRENT_TIMESTAMP,
+                updated_at =
+                    CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [
+                email,
+                auth.user.id
+            ]
+        );
+
+        const user =
+            await getUserById(
+                env.DB,
+                auth.user.id
+            );
+
+        return json(
+            {
+                ok: true,
+                user
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Email link error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось привязать почту"
             },
             500,
             env
@@ -882,6 +1031,13 @@ async function ensureEmailAuthSchema(db) {
         `
     );
 }
+            if (
+                url.pathname === "/api/auth/email/link" &&
+                request.method === "POST"
+            ) {
+                return handleEmailLink(request, env);
+            }
+
             if (url.pathname === "/api/auth/telegram" && request.method === "POST") {
                 return handleTelegramAuth(request, env);
             }
@@ -985,7 +1141,7 @@ async function handleRegister(request, env) {
         const result = await run(env.DB, `
             INSERT INTO users (
                 telegram_id, username, first_name, last_name, phone,
-                role, status, login, password_hash
+                role, status, login, email, email_verified_at, password_hash
             ) VALUES (?, NULL, ?, ?, ?, 'student', 'active', ?, ?)
         `, [technicalTelegramId, firstName || null, lastName || null, phone || null, login, passwordHash]);
 
@@ -1013,7 +1169,7 @@ async function handleLogin(request, env) {
         const user = await first(env.DB, `
             SELECT id, telegram_id, username, first_name, last_name, phone,
                    role, status, blocked_reason, blocked_at, created_at, updated_at,
-                   login, password_hash
+                   login, email, email_verified_at, password_hash
             FROM users WHERE login = ? LIMIT 1
         `, [login]);
 
@@ -2443,7 +2599,7 @@ async function createSession(db, userId) {
 async function getUserById(db, userId) {
     const user = await first(db, `
         SELECT id, telegram_id, username, first_name, last_name, phone, role, status,
-               blocked_reason, blocked_at, created_at, updated_at, login
+               blocked_reason, blocked_at, created_at, updated_at, login, email, email_verified_at
         FROM users WHERE id = ? LIMIT 1
     `, [userId]);
     return publicUser(user);

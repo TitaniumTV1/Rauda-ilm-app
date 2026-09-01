@@ -645,6 +645,91 @@ button:disabled {
     }
 }
 
+
+
+/* RAUDA CALM BUTTON STATES */
+
+.primary-button,
+.secondary-button,
+.admin-link,
+.menu-button,
+.menu-item,
+.menu-close,
+.back-button,
+.auth-switch button {
+    transform: none !important;
+    transition:
+        background-color .12s ease,
+        border-color .12s ease,
+        box-shadow .12s ease,
+        opacity .12s ease !important;
+}
+
+.primary-button:hover {
+    transform: none !important;
+}
+
+.primary-button:active {
+    transform: none !important;
+    background: #0f1728;
+    box-shadow:
+        inset 0 2px 4px rgba(0,0,0,.16) !important;
+}
+
+.secondary-button:hover,
+.admin-link:hover {
+    transform: none !important;
+}
+
+.secondary-button:active,
+.admin-link:active {
+    transform: none !important;
+    background: #e7ebf1;
+    border-color: #cbd2dc;
+    box-shadow:
+        inset 0 2px 4px rgba(23,32,51,.08) !important;
+}
+
+.menu-button:active,
+.menu-item:active,
+.menu-close:active,
+.back-button:active,
+.auth-switch button:active {
+    transform: none !important;
+    opacity: .72;
+}
+
+.email-status {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.email-status.show {
+    display: block;
+}
+
+.email-status.success {
+    color: #126c3b;
+    background: #edf9f2;
+    border: 1px solid #cdebd9;
+}
+
+.email-status.error {
+    color: #a3261d;
+    background: #fff1f0;
+    border: 1px solid #f0d0cd;
+}
+
+.email-status.loading {
+    color: #58647a;
+    background: #f1f4f8;
+    border: 1px solid #dde3eb;
+}
+
 </style>
 
 </head><body><div id="authApp" class="auth-screen"><div class="auth-card">
@@ -725,6 +810,11 @@ button:disabled {
 >
     Войти по почте
 </button>
+
+<div
+    id="emailLoginStatus"
+    class="email-status"
+></div>
         <a class="admin-link" href="/admin/">
             ⚙ Войти в админ-панель
         </a>
@@ -820,6 +910,11 @@ button:disabled {
 >
     Зарегистрироваться по почте
 </button>
+
+<div
+    id="emailRegisterStatus"
+    class="email-status"
+></div>
         <div class="auth-switch">
             Уже есть аккаунт?
             <button onclick="showLogin()">
@@ -1049,6 +1144,63 @@ button:disabled {
         <div class="profile-row">
             <span>Логин</span>
             <span id="settingsLogin">Не привязан</span>
+        </div>
+        <div class="profile-row">
+            <span>Почта</span>
+            <span id="settingsEmail">Не привязана</span>
+        </div>
+
+
+
+        <div
+            id="linkEmailBlock"
+            style="margin-top:20px"
+        >
+            <div style="
+                font-weight:750;
+                margin-bottom:10px;
+            ">
+                Привязать почту
+            </div>
+
+            <input
+                id="linkEmailInput"
+                class="input"
+                type="email"
+                placeholder="Электронная почта"
+                autocomplete="email"
+            >
+
+            <button
+                type="button"
+                class="secondary-button"
+                onclick="sendLinkEmailCode()"
+            >
+                Получить код
+            </button>
+
+            <input
+                id="linkEmailCode"
+                class="input"
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                placeholder="6-значный код"
+                style="margin-top:10px"
+            >
+
+            <button
+                type="button"
+                class="primary-button"
+                onclick="linkEmail()"
+            >
+                Привязать почту
+            </button>
+
+            <div
+                id="linkEmailStatus"
+                class="email-status"
+            ></div>
         </div>
 
         <div
@@ -1956,6 +2108,29 @@ function updateSettings() {
             login || "Не привязан";
     }
 
+    const emailElement =
+        document.getElementById(
+            "settingsEmail"
+        );
+
+    if (emailElement) {
+        emailElement.textContent =
+            currentUser.email ||
+            "Не привязана";
+    }
+
+    const emailLinkBlock =
+        document.getElementById(
+            "linkEmailBlock"
+        );
+
+    if (emailLinkBlock) {
+        emailLinkBlock.style.display =
+            currentUser.email
+                ? "none"
+                : "block";
+    }
+
     const linkBlock =
         document.getElementById(
             "linkLoginBlock"
@@ -2852,6 +3027,354 @@ async function emailRegister() {
 
     openApp();
 }
+
+
+function setEmailStatus(
+    id,
+    message,
+    type = "loading"
+) {
+    const element =
+        document.getElementById(id);
+
+    if (!element) return;
+
+    if (!message) {
+        element.className =
+            "email-status";
+        element.textContent = "";
+        return;
+    }
+
+    element.className =
+        "email-status show " + type;
+
+    element.textContent =
+        message;
+}
+
+
+async function sendLinkEmailCode() {
+    const email =
+        document
+            .getElementById(
+                "linkEmailInput"
+            )
+            ?.value
+            .trim();
+
+    if (!email) {
+        setEmailStatus(
+            "linkEmailStatus",
+            "Введите электронную почту",
+            "error"
+        );
+        return;
+    }
+
+    setEmailStatus(
+        "linkEmailStatus",
+        "Отправляем код…",
+        "loading"
+    );
+
+    const result =
+        await emailAuthRequest(
+            "/auth/email/send-code",
+            {
+                email,
+                purpose: "register"
+            }
+        );
+
+    if (!result.ok) {
+        setEmailStatus(
+            "linkEmailStatus",
+            result.data?.error ||
+                "Не удалось отправить код",
+            "error"
+        );
+        return;
+    }
+
+    setEmailStatus(
+        "linkEmailStatus",
+        "Код отправлен на почту",
+        "success"
+    );
+}
+
+
+async function linkEmail() {
+    const email =
+        document
+            .getElementById(
+                "linkEmailInput"
+            )
+            ?.value
+            .trim();
+
+    const code =
+        document
+            .getElementById(
+                "linkEmailCode"
+            )
+            ?.value
+            .trim();
+
+    if (!email || !code) {
+        setEmailStatus(
+            "linkEmailStatus",
+            "Введите почту и код",
+            "error"
+        );
+        return;
+    }
+
+    setEmailStatus(
+        "linkEmailStatus",
+        "Проверяем код…",
+        "loading"
+    );
+
+    try {
+        const response =
+            await fetch(
+                API + "/auth/email/link",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                        "Authorization":
+                            "Bearer " + getToken()
+                    },
+                    body: JSON.stringify({
+                        email,
+                        code
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            setEmailStatus(
+                "linkEmailStatus",
+                data?.error ||
+                    "Не удалось привязать почту",
+                "error"
+            );
+            return;
+        }
+
+        currentUser =
+            data.user;
+
+        updateSettings();
+
+        setEmailStatus(
+            "linkEmailStatus",
+            "Почта успешно привязана",
+            "success"
+        );
+
+    } catch (error) {
+        setEmailStatus(
+            "linkEmailStatus",
+            "Нет соединения с сервером",
+            "error"
+        );
+    }
+}
+
+
+/*
+ * Более понятная email-регистрация.
+ * Сообщение показывается прямо под кнопкой.
+ */
+async function emailRegister() {
+    hideError();
+
+    const email =
+        document
+            .getElementById(
+                "registerEmail"
+            )
+            ?.value
+            .trim();
+
+    const code =
+        document
+            .getElementById(
+                "registerEmailCode"
+            )
+            ?.value
+            .trim();
+
+    const login =
+        document
+            .getElementById(
+                "registerLogin"
+            )
+            ?.value
+            .trim();
+
+    const firstName =
+        document
+            .getElementById(
+                "registerFirstName"
+            )
+            ?.value
+            .trim();
+
+    const lastName =
+        document
+            .getElementById(
+                "registerLastName"
+            )
+            ?.value
+            .trim();
+
+    if (!login) {
+        setEmailStatus(
+            "emailRegisterStatus",
+            "Введите логин",
+            "error"
+        );
+        return;
+    }
+
+    if (!email) {
+        setEmailStatus(
+            "emailRegisterStatus",
+            "Введите электронную почту",
+            "error"
+        );
+        return;
+    }
+
+    if (!code) {
+        setEmailStatus(
+            "emailRegisterStatus",
+            "Сначала получите и введите код",
+            "error"
+        );
+        return;
+    }
+
+    setEmailStatus(
+        "emailRegisterStatus",
+        "Создаём аккаунт…",
+        "loading"
+    );
+
+    const result =
+        await emailAuthRequest(
+            "/auth/email/register",
+            {
+                email,
+                code,
+                login,
+                first_name:
+                    firstName || "",
+                last_name:
+                    lastName || ""
+            }
+        );
+
+    if (!result.ok) {
+        setEmailStatus(
+            "emailRegisterStatus",
+            result.data?.error ||
+                "Не удалось зарегистрироваться",
+            "error"
+        );
+        return;
+    }
+
+    saveToken(
+        result.data.token
+    );
+
+    currentUser =
+        result.data.user;
+
+    setEmailStatus(
+        "emailRegisterStatus",
+        "Аккаунт создан",
+        "success"
+    );
+
+    openApp();
+}
+
+
+async function emailLogin() {
+    hideError();
+
+    const email =
+        document
+            .getElementById(
+                "emailLoginEmail"
+            )
+            ?.value
+            .trim();
+
+    const code =
+        document
+            .getElementById(
+                "emailLoginCode"
+            )
+            ?.value
+            .trim();
+
+    if (!email || !code) {
+        setEmailStatus(
+            "emailLoginStatus",
+            "Введите почту и код",
+            "error"
+        );
+        return;
+    }
+
+    setEmailStatus(
+        "emailLoginStatus",
+        "Выполняется вход…",
+        "loading"
+    );
+
+    const result =
+        await emailAuthRequest(
+            "/auth/email/login",
+            {
+                email,
+                code
+            }
+        );
+
+    if (!result.ok) {
+        setEmailStatus(
+            "emailLoginStatus",
+            result.data?.error ||
+                "Не удалось войти",
+            "error"
+        );
+        return;
+    }
+
+    saveToken(
+        result.data.token
+    );
+
+    currentUser =
+        result.data.user;
+
+    openApp();
+}
+
+
 </script><!-- Telegram Mini App SDK --><script src="https://telegram.org/js/telegram-web-app.js"></script></body>
 </html>
 
