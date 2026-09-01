@@ -540,222 +540,11 @@ async function handleProfileUpdate(
         );
     }
 }
-async function handleLinkLogin(
-    request,
-    env
-) {
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
+                    env
+                );
+            }
 
-    if (!auth.ok) {
-        return authError(
-            auth,
-            env
-        );
-    }
-
-    try {
-
-        /*
-         * Привязка предназначена
-         * для аккаунта Telegram.
-         */
-        const telegramId =
-            Number(
-                auth.user.telegram_id
-            );
-
-        if (
-            !Number.isSafeInteger(telegramId) ||
-            telegramId <= 0
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Привязка логина доступна для аккаунта Telegram"
-                },
-                400,
-                env
-            );
-        }
-
-
-        /*
-         * Если логин уже привязан,
-         * второй раз не создаём.
-         */
-        if (auth.user.login) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "К этому аккаунту уже привязан логин"
-                },
-                409,
-                env
-            );
-        }
-
-
-        const body =
-            await readJson(
-                request
-            );
-
-        const login =
-            normalizeLogin(
-                body?.login
-            );
-
-        const password =
-            String(
-                body?.password || ""
-            );
-
-        const passwordConfirm =
-            String(
-                body?.password_confirm || ""
-            );
-
-
-        if (!login) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Введите логин"
-                },
-                400,
-                env
-            );
-        }
-
-
-        if (!isValidLogin(login)) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Логин должен содержать 3–30 символов: буквы, цифры, _ или -"
-                },
-                400,
-                env
-            );
-        }
-
-
-        if (password.length < 8) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Пароль должен содержать минимум 8 символов"
-                },
-                400,
-                env
-            );
-        }
-
-
-        if (
-            password !==
-            passwordConfirm
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Пароли не совпадают"
-                },
-                400,
-                env
-            );
-        }
-
-
-        /*
-         * Проверяем, что логин
-         * не занят другим пользователем.
-         */
-        const existing =
-            await first(
-                env.DB,
-                `
-                SELECT id
-                FROM users
-                WHERE login = ?
-                  AND id != ?
-                LIMIT 1
-                `,
-                [
-                    login,
-                    auth.user.id
-                ]
-            );
-
-        if (existing) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Этот логин уже занят"
-                },
-                409,
-                env
-            );
-        }
-
-
-        const passwordHash =
-            await hashPassword(
-                password
-            );
-
-
-        await run(
-            env.DB,
-            `
-            UPDATE users
-            SET
-                login = ?,
-                password_hash = ?,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-            `,
-            [
-                login,
-                passwordHash,
-                auth.user.id
-            ]
-        );
-
-
-        const user =
-            await getUserById(
-                env.DB,
-                auth.user.id
-            );
-
-
-        return json(
-            {
-                ok: true,
-                user
-            },
-            200,
-            env
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Link login error:",
-            error
-        );
+        } catch {}
 
         return json(
             {
@@ -782,14 +571,10 @@ async function handleLinkLogin(request, env) {
         );
 
         const telegramId =
-            Number(
-                auth.user.telegram_id
-            );
+            Number(auth.user.telegram_id);
 
         if (
-            !Number.isSafeInteger(
-                telegramId
-            ) ||
+            !Number.isSafeInteger(telegramId) ||
             telegramId <= 0
         ) {
             return json(
@@ -819,27 +604,21 @@ async function handleLinkLogin(request, env) {
             await readJson(request);
 
         const login =
-            normalizeLogin(
-                body?.login
-            );
+            normalizeLogin(body?.login);
 
         const password =
-            String(
-                body?.password || ""
-            );
+            String(body?.password || "");
 
         const passwordConfirm =
             String(
-                body?.password_confirm ||
-                ""
+                body?.password_confirm || ""
             );
 
         if (!login) {
             return json(
                 {
                     ok: false,
-                    error:
-                        "Введите логин"
+                    error: "Введите логин"
                 },
                 400,
                 env
@@ -870,10 +649,7 @@ async function handleLinkLogin(request, env) {
             );
         }
 
-        if (
-            password !==
-            passwordConfirm
-        ) {
+        if (password !== passwordConfirm) {
             return json(
                 {
                     ok: false,
@@ -914,9 +690,7 @@ async function handleLinkLogin(request, env) {
         }
 
         const passwordHash =
-            await hashPassword(
-                password
-            );
+            await hashPassword(password);
 
         await run(
             env.DB,
@@ -956,52 +730,6 @@ async function handleLinkLogin(request, env) {
             error
         );
 
-        /*
-         * Дополнительная защита
-         * при одновременной попытке
-         * занять один логин.
-         */
-        try {
-            const body =
-                await request
-                    .clone()
-                    .json();
-
-            const login =
-                normalizeLogin(
-                    body?.login
-                );
-
-            const existing =
-                await first(
-                    env.DB,
-                    `
-                    SELECT id
-                    FROM users
-                    WHERE login = ?
-                    LIMIT 1
-                    `,
-                    [login]
-                );
-
-            if (
-                existing &&
-                Number(existing.id) !==
-                    Number(auth.user.id)
-            ) {
-                return json(
-                    {
-                        ok: false,
-                        error:
-                            "Этот логин уже занят"
-                    },
-                    409,
-                    env
-                );
-            }
-
-        } catch {}
-
         return json(
             {
                 ok: false,
@@ -1013,7 +741,6 @@ async function handleLinkLogin(request, env) {
         );
     }
 }
-
 
 async function handleAdminUserSearch(
     request,
