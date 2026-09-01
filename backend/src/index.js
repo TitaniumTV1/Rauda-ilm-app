@@ -55,6 +55,9 @@ export default {
                 return handleProfileUpdate(request, env);
             }
 
+            if (  url.pathname === "/api/auth/link-login" && request.method === "PATCH") {
+                return handleLinkLogin(request, env);
+            }
             if (url.pathname === "/api/auth/logout" && request.method === "POST") {
                 return handleLogout(request, env);
             }
@@ -537,7 +540,1014 @@ async function handleProfileUpdate(
         );
     }
 }
+async function handleLinkLogin(
+    request,
+    env
+) {
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
 
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        /*
+         * Привязка предназначена
+         * для аккаунта Telegram.
+         */
+        const telegramId =
+            Number(
+                auth.user.telegram_id
+            );
+
+        if (
+            !Number.isSafeInteger(telegramId) ||
+            telegramId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Привязка логина доступна для аккаунта Telegram"
+                },
+                400,
+                env
+            );
+        }
+
+
+        /*
+         * Если логин уже привязан,
+         * второй раз не создаём.
+         */
+        if (auth.user.login) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "К этому аккаунту уже привязан логин"
+                },
+                409,
+                env
+            );
+        }
+
+
+        const body =
+            await readJson(
+                request
+            );
+
+        const login =
+            normalizeLogin(
+                body?.login
+            );
+
+        const password =
+            String(
+                body?.password || ""
+            );
+
+        const passwordConfirm =
+            String(
+                body?.password_confirm || ""
+            );
+
+
+        if (!login) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите логин"
+                },
+                400,
+                env
+            );
+        }
+
+
+        if (!isValidLogin(login)) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Логин должен содержать 3–30 символов: буквы, цифры, _ или -"
+                },
+                400,
+                env
+            );
+        }
+
+
+        if (password.length < 8) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Пароль должен содержать минимум 8 символов"
+                },
+                400,
+                env
+            );
+        }
+
+
+        if (
+            password !==
+            passwordConfirm
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Пароли не совпадают"
+                },
+                400,
+                env
+            );
+        }
+
+
+        /*
+         * Проверяем, что логин
+         * не занят другим пользователем.
+         */
+        const existing =
+            await first(
+                env.DB,
+                `
+                SELECT id
+                FROM users
+                WHERE login = ?
+                  AND id != ?
+                LIMIT 1
+                `,
+                [
+                    login,
+                    auth.user.id
+                ]
+            );
+
+        if (existing) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Этот логин уже занят"
+                },
+                409,
+                env
+            );
+        }
+
+
+        const passwordHash =
+            await hashPassword(
+                password
+            );
+
+
+        await run(
+            env.DB,
+            `
+            UPDATE users
+            SET
+                login = ?,
+                password_hash = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [
+                login,
+                passwordHash,
+                auth.user.id
+            ]
+        );
+
+
+        const user =
+            await getUserById(
+                env.DB,
+                auth.user.id
+            );
+
+
+        return json(
+            {
+                ok: true,
+                user
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Link login error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось привязать логин"
+            },
+            500,
+            env
+        );
+    }
+}
+async function handleLinkLogin(request, env) {
+    const auth =
+        await requireUser(request, env);
+
+    if (!auth.ok) {
+        return authError(auth, env);
+    }
+
+    try {
+        await ensureRecoveryInfrastructure(
+            env.DB
+        );
+
+        const telegramId =
+            Number(
+                auth.user.telegram_id
+            );
+
+        if (
+            !Number.isSafeInteger(
+                telegramId
+            ) ||
+            telegramId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Этот аккаунт не является Telegram-аккаунтом"
+                },
+                400,
+                env
+            );
+        }
+
+        if (auth.user.login) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Логин уже привязан к этому аккаунту"
+                },
+                409,
+                env
+            );
+        }
+
+        const body =
+            await readJson(request);
+
+        const login =
+            normalizeLogin(
+                body?.login
+            );
+
+        const password =
+            String(
+                body?.password || ""
+            );
+
+        const passwordConfirm =
+            String(
+                body?.password_confirm ||
+                ""
+            );
+
+        if (!login) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите логин"
+                },
+                400,
+                env
+            );
+        }
+
+        if (!isValidLogin(login)) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Логин должен содержать 3–30 символов: буквы, цифры, _ или -"
+                },
+                400,
+                env
+            );
+        }
+
+        if (password.length < 8) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Пароль должен содержать минимум 8 символов"
+                },
+                400,
+                env
+            );
+        }
+
+        if (
+            password !==
+            passwordConfirm
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Пароли не совпадают"
+                },
+                400,
+                env
+            );
+        }
+
+        const existing =
+            await first(
+                env.DB,
+                `
+                SELECT id
+                FROM users
+                WHERE login = ?
+                  AND id != ?
+                LIMIT 1
+                `,
+                [
+                    login,
+                    auth.user.id
+                ]
+            );
+
+        if (existing) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Этот логин уже занят"
+                },
+                409,
+                env
+            );
+        }
+
+        const passwordHash =
+            await hashPassword(
+                password
+            );
+
+        await run(
+            env.DB,
+            `
+            UPDATE users
+            SET
+                login = ?,
+                password_hash = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [
+                login,
+                passwordHash,
+                auth.user.id
+            ]
+        );
+
+        const user =
+            await getUserById(
+                env.DB,
+                auth.user.id
+            );
+
+        return json(
+            {
+                ok: true,
+                user
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Link login error:",
+            error
+        );
+
+        /*
+         * Дополнительная защита
+         * при одновременной попытке
+         * занять один логин.
+         */
+        try {
+            const body =
+                await request
+                    .clone()
+                    .json();
+
+            const login =
+                normalizeLogin(
+                    body?.login
+                );
+
+            const existing =
+                await first(
+                    env.DB,
+                    `
+                    SELECT id
+                    FROM users
+                    WHERE login = ?
+                    LIMIT 1
+                    `,
+                    [login]
+                );
+
+            if (
+                existing &&
+                Number(existing.id) !==
+                    Number(auth.user.id)
+            ) {
+                return json(
+                    {
+                        ok: false,
+                        error:
+                            "Этот логин уже занят"
+                    },
+                    409,
+                    env
+                );
+            }
+
+        } catch {}
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось привязать логин"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleAdminUserSearch(
+    request,
+    env
+) {
+    const auth =
+        await requireAccountRecoveryAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+        await ensureRecoveryInfrastructure(
+            env.DB
+        );
+
+        const url =
+            new URL(request.url);
+
+        const query =
+            cleanText(
+                url.searchParams.get("q")
+            )
+                .slice(0, 100);
+
+        if (!query) {
+            return json(
+                {
+                    ok: true,
+                    users: []
+                },
+                200,
+                env
+            );
+        }
+
+        const numeric =
+            Number(query);
+
+        const isNumber =
+            Number.isSafeInteger(
+                numeric
+            );
+
+        const like =
+            `%${query}%`;
+
+        const users =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    id,
+                    telegram_id,
+                    username,
+                    first_name,
+                    last_name,
+                    role,
+                    status,
+                    blocked_reason,
+                    created_at,
+                    updated_at,
+                    login
+                FROM users
+                WHERE
+                    ${
+                        isNumber
+                            ? "id = ? OR telegram_id = ? OR"
+                            : ""
+                    }
+                    COALESCE(login, '') LIKE ?
+                    OR COALESCE(username, '') LIKE ?
+                    OR COALESCE(first_name, '') LIKE ?
+                    OR COALESCE(last_name, '') LIKE ?
+                    OR CAST(telegram_id AS TEXT) LIKE ?
+                ORDER BY id DESC
+                LIMIT 50
+                `,
+                isNumber
+                    ? [
+                        numeric,
+                        numeric,
+                        like,
+                        like,
+                        like,
+                        like,
+                        like
+                    ]
+                    : [
+                        like,
+                        like,
+                        like,
+                        like,
+                        like
+                    ]
+            );
+
+        return json(
+            {
+                ok: true,
+                users
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "User search error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось найти пользователей"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleAdminRecoverTelegram(
+    request,
+    env,
+    targetUserId
+) {
+    const auth =
+        await requireAccountRecoveryAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+        await ensureRecoveryInfrastructure(
+            env.DB
+        );
+
+        if (
+            !Number.isSafeInteger(
+                targetUserId
+            ) ||
+            targetUserId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Неверный ID пользователя"
+                },
+                400,
+                env
+            );
+        }
+
+        const body =
+            await readJson(request);
+
+        const newTelegramId =
+            Number(
+                body?.new_telegram_id
+            );
+
+        const reason =
+            cleanText(
+                body?.reason
+            );
+
+        const confirmed =
+            body?.confirmed === true;
+
+        if (!confirmed) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Сначала подтвердите личность пользователя"
+                },
+                400,
+                env
+            );
+        }
+
+        if (
+            reason.length < 5
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Укажите причину восстановления"
+                },
+                400,
+                env
+            );
+        }
+
+        if (
+            !Number.isSafeInteger(
+                newTelegramId
+            ) ||
+            newTelegramId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите корректный новый Telegram ID"
+                },
+                400,
+                env
+            );
+        }
+
+        const target =
+            await first(
+                env.DB,
+                `
+                SELECT *
+                FROM users
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [targetUserId]
+            );
+
+        if (!target) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Пользователь не найден"
+                },
+                404,
+                env
+            );
+        }
+
+        if (
+            Number(
+                target.telegram_id
+            ) ===
+            newTelegramId
+        ) {
+            return json(
+                {
+                    ok: true,
+                    user:
+                        publicUser(
+                            target
+                        ),
+                    already_linked:
+                        true
+                },
+                200,
+                env
+            );
+        }
+
+        /*
+         * Проверяем, не успел ли
+         * новый Telegram создать
+         * отдельный аккаунт RAUDA ILM.
+         */
+        const occupied =
+            await first(
+                env.DB,
+                `
+                SELECT *
+                FROM users
+                WHERE telegram_id = ?
+                LIMIT 1
+                `,
+                [newTelegramId]
+            );
+
+        let detachedUserId =
+            null;
+
+        let technicalTelegramId =
+            null;
+
+        if (
+            occupied &&
+            Number(occupied.id) !==
+                Number(target.id)
+        ) {
+            /*
+             * Автоматически отсоединяем
+             * только пустой Telegram-аккаунт.
+             *
+             * Если там уже есть прогресс,
+             * покупки, логин и т.д. —
+             * ничего не уничтожаем.
+             */
+            if (
+                occupied.login ||
+                String(
+                    occupied.role ||
+                    "student"
+                ) !== "student"
+            ) {
+                return json(
+                    {
+                        ok: false,
+                        error:
+                            "Новый Telegram уже привязан к другому непустому аккаунту",
+                        occupied_user_id:
+                            occupied.id
+                    },
+                    409,
+                    env
+                );
+            }
+
+            const conflicts =
+                await recoveryUserData(
+                    env.DB,
+                    occupied.id
+                );
+
+            if (conflicts.length) {
+                return json(
+                    {
+                        ok: false,
+                        error:
+                            "На новом аккаунте уже есть данные. Автоматическое объединение остановлено, чтобы ничего не потерять.",
+                        occupied_user_id:
+                            occupied.id,
+                        conflicts
+                    },
+                    409,
+                    env
+                );
+            }
+
+            detachedUserId =
+                Number(
+                    occupied.id
+                );
+
+            technicalTelegramId =
+                await generateTechnicalTelegramId(
+                    env.DB
+                );
+        }
+
+        const oldTelegramId =
+            Number(
+                target.telegram_id
+            );
+
+        const statements = [];
+
+        /*
+         * Если новый TG уже создал
+         * пустую учётную запись,
+         * оставляем запись в базе,
+         * но отсоединяем Telegram.
+         */
+        if (detachedUserId) {
+            statements.push(
+                env.DB
+                    .prepare(
+                        `
+                        UPDATE users
+                        SET
+                            telegram_id = ?,
+                            status = 'restricted',
+                            blocked_reason = ?,
+                            blocked_at = CURRENT_TIMESTAMP,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                        `
+                    )
+                    .bind(
+                        technicalTelegramId,
+                        `Аккаунт объединён с #${targetUserId}`,
+                        detachedUserId
+                    )
+            );
+
+            statements.push(
+                env.DB
+                    .prepare(
+                        `
+                        DELETE FROM auth_sessions
+                        WHERE user_id = ?
+                        `
+                    )
+                    .bind(
+                        detachedUserId
+                    )
+            );
+        }
+
+        /*
+         * Главное:
+         * меняем Telegram именно
+         * у СТАРОГО users.id.
+         *
+         * Поэтому весь прогресс
+         * остаётся на месте.
+         */
+        statements.push(
+            env.DB
+                .prepare(
+                    `
+                    UPDATE users
+                    SET
+                        telegram_id = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    `
+                )
+                .bind(
+                    newTelegramId,
+                    targetUserId
+                )
+        );
+
+        /*
+         * Завершаем все старые сессии.
+         */
+        statements.push(
+            env.DB
+                .prepare(
+                    `
+                    DELETE FROM auth_sessions
+                    WHERE user_id = ?
+                    `
+                )
+                .bind(
+                    targetUserId
+                )
+        );
+
+        const auditDetails =
+            JSON.stringify({
+                reason,
+                identity_confirmed:
+                    true,
+                old_telegram_id:
+                    oldTelegramId,
+                new_telegram_id:
+                    newTelegramId,
+                detached_user_id:
+                    detachedUserId
+            });
+
+        statements.push(
+            env.DB
+                .prepare(
+                    `
+                    INSERT INTO audit_logs (
+                        admin_id,
+                        action,
+                        entity_type,
+                        entity_id,
+                        details
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                    `
+                )
+                .bind(
+                    auth.user.id,
+                    "account_recovery_telegram",
+                    "user",
+                    targetUserId,
+                    auditDetails
+                )
+        );
+
+        /*
+         * D1 batch выполняет связанные
+         * изменения одной группой.
+         */
+        await env.DB.batch(
+            statements
+        );
+
+        const user =
+            await getUserById(
+                env.DB,
+                targetUserId
+            );
+
+        return json(
+            {
+                ok: true,
+                user,
+                sessions_revoked:
+                    true,
+                detached_user_id:
+                    detachedUserId
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Telegram recovery error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось восстановить Telegram-доступ"
+            },
+            500,
+            env
+        );
+    }
+}
 async function handleLogout(request, env) {
     if (!env.DB) return databaseMissing(env);
     await ensureAuthSessionsTable(env.DB);
@@ -1209,6 +2219,231 @@ function getBearerToken(request) {
 function bearerFromHeader(value) {
     const match = String(value || "").match(/^Bearer\s+(.+)$/i);
     return match ? match[1].trim() : null;
+}
+
+async function ensureRecoveryInfrastructure(
+    db
+) {
+    /*
+     * Старые базы могли быть созданы
+     * до появления логина/пароля.
+     */
+    const columns =
+        await tableColumns(
+            db,
+            "users"
+        );
+
+    let changed = false;
+
+    if (
+        !columns.includes(
+            "login"
+        )
+    ) {
+        await run(
+            db,
+            `
+            ALTER TABLE users
+            ADD COLUMN login TEXT
+            `
+        );
+
+        changed = true;
+    }
+
+    if (
+        !columns.includes(
+            "password_hash"
+        )
+    ) {
+        await run(
+            db,
+            `
+            ALTER TABLE users
+            ADD COLUMN password_hash TEXT
+            `
+        );
+
+        changed = true;
+    }
+
+    if (changed) {
+        tableColumnsCache.delete(
+            "users"
+        );
+    }
+
+    /*
+     * Даже если два запроса одновременно
+     * пытаются занять одинаковый логин,
+     * база не разрешит дубликат.
+     */
+    await run(
+        db,
+        `
+        CREATE UNIQUE INDEX IF NOT EXISTS
+        idx_users_login_unique
+        ON users(login)
+        WHERE login IS NOT NULL
+          AND login != ''
+        `
+    );
+
+    await run(
+        db,
+        `
+        CREATE TABLE IF NOT EXISTS admin_permissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            admin_id INTEGER NOT NULL,
+            permission TEXT NOT NULL,
+            UNIQUE(admin_id, permission)
+        )
+        `
+    );
+
+    await run(
+        db,
+        `
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            admin_id INTEGER,
+            course_id INTEGER,
+            action TEXT NOT NULL,
+            entity_type TEXT,
+            entity_id INTEGER,
+            details TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        `
+    );
+}
+
+
+async function requireAccountRecoveryAdmin(
+    request,
+    env
+) {
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return auth;
+    }
+
+    const role =
+        String(
+            auth.user.role || ""
+        ).toLowerCase();
+
+    /*
+     * Владелец и суперадмин
+     * имеют право автоматически.
+     */
+    if (
+        role === "owner" ||
+        role === "superadmin"
+    ) {
+        return auth;
+    }
+
+    await ensureRecoveryInfrastructure(
+        env.DB
+    );
+
+    const permission =
+        await first(
+            env.DB,
+            `
+            SELECT id
+            FROM admin_permissions
+            WHERE admin_id = ?
+              AND permission = 'account_recovery'
+            LIMIT 1
+            `,
+            [auth.user.id]
+        );
+
+    if (!permission) {
+        return {
+            ok: false,
+            status: 403,
+            error:
+                "Нет права на восстановление аккаунтов"
+        };
+    }
+
+    return auth;
+}
+
+
+async function recoveryUserData(
+    db,
+    userId
+) {
+    const checks = [
+        ["lesson_progress", "user_id"],
+        ["user_program_access", "user_id"],
+        ["user_courses", "user_id"],
+        ["test_attempts", "user_id"],
+        ["exam_attempts", "user_id"],
+        ["certificates", "user_id"],
+        ["payments", "user_id"],
+        ["user_groups", "user_id"],
+        ["admin_permissions", "admin_id"],
+        ["admin_courses", "admin_id"]
+    ];
+
+    const conflicts = [];
+
+    for (
+        const [
+            table,
+            column
+        ] of checks
+    ) {
+        const columns =
+            await tableColumns(
+                db,
+                table
+            );
+
+        if (
+            !columns.includes(
+                column
+            )
+        ) {
+            continue;
+        }
+
+        const row =
+            await first(
+                db,
+                `
+                SELECT COUNT(*) AS count
+                FROM ${quoteIdentifier(table)}
+                WHERE ${quoteIdentifier(column)} = ?
+                `,
+                [userId]
+            );
+
+        const count =
+            Number(
+                row?.count || 0
+            );
+
+        if (count > 0) {
+            conflicts.push({
+                table,
+                count
+            });
+        }
+    }
+
+    return conflicts;
 }
 
 function corsHeaders(env) {
