@@ -51,6 +51,10 @@ export default {
             if (url.pathname === "/api/auth/me" && request.method === "GET") {
                 return handleMe(request, env);
             }
+            if (  url.pathname === "/api/auth/profile" && request.method === "PATCH") {
+                return handleProfileUpdate(request, env);
+            }
+
             if (url.pathname === "/api/auth/logout" && request.method === "POST") {
                 return handleLogout(request, env);
             }
@@ -224,18 +228,34 @@ async function handleTelegramAuth(request, env) {
                 VALUES (?, ?, ?, ?, 'student', 'active')
             `, [telegramId, telegramUser.username || null, telegramUser.first_name || null, telegramUser.last_name || null]);
             user = await getUserById(env.DB, Number(result.meta.last_row_id));
-        } else {
-            await run(env.DB, `
-                UPDATE users
-                SET username = ?, first_name = ?, last_name = ?, updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-            `, [telegramUser.username || null, telegramUser.first_name || null, telegramUser.last_name || null, user.id]);
-            user = await getUserById(env.DB, user.id);
-        }
+} else {
 
-        if (user.status !== "active") {
-            return json({ ok: false, error: user.blocked_reason || "Ваш аккаунт заблокирован" }, 403, env);
-        }
+    /*
+     * Пользователь уже существует.
+     * Не перезаписываем username,
+     * имя и фамилию из Telegram,
+     * потому что пользователь может
+     * менять их вручную в профиле.
+     */
+
+    await run(
+        env.DB,
+        `
+        UPDATE users
+        SET updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        `,
+        [
+            user.id
+        ]
+    );
+
+    user =
+        await getUserById(
+            env.DB,
+            user.id
+        );
+}
 
         const session = await createSession(env.DB, user.id);
         return json({ ok: true, user, token: session.token, expires_at: session.expiresAt }, 200, env);
@@ -249,6 +269,149 @@ async function handleMe(request, env) {
     const auth = await requireUser(request, env);
     if (!auth.ok) return authError(auth, env);
     return json({ ok: true, user: auth.user }, 200, env);
+}
+async function handleProfileUpdate(
+    request,
+    env
+) {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        const body =
+            await readJson(
+                request
+            );
+
+        let username =
+            cleanText(
+                body?.username
+            ) || "";
+
+        const firstName =
+            cleanText(
+                body?.first_name
+            ) || "";
+
+        const lastName =
+            cleanText(
+                body?.last_name
+            ) || "";
+
+        /*
+         * Ник храним без @
+         */
+        if (
+            username.startsWith("@")
+        ) {
+            username =
+                username.substring(1);
+        }
+
+        /*
+         * Ограничиваем длину
+         */
+        if (
+            username.length > 64 ||
+            firstName.length > 64 ||
+            lastName.length > 64
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Имя, фамилия и ник должны быть не длиннее 64 символов"
+                },
+                400,
+                env
+            );
+        }
+
+        /*
+         * Ник разрешаем:
+         * буквы, цифры,
+         * подчёркивание
+         */
+        if (
+            username &&
+            !/^[a-zA-Z0-9_]+$/.test(
+                username
+            )
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Ник может содержать только латинские буквы, цифры и _"
+                },
+                400,
+                env
+            );
+        }
+
+        await run(
+            env.DB,
+            `
+            UPDATE users
+            SET
+                username = ?,
+                first_name = ?,
+                last_name = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [
+                username || null,
+                firstName || null,
+                lastName || null,
+                auth.user.id
+            ]
+        );
+
+        const user =
+            await getUserById(
+                env.DB,
+                auth.user.id
+            );
+
+        return json(
+            {
+                ok: true,
+                user
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Profile update error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось сохранить профиль"
+            },
+            500,
+            env
+        );
+    }
 }
 
 async function handleLogout(request, env) {
