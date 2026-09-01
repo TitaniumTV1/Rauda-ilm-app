@@ -16,3 +16,6 @@ database_id = "11acb8cd-6a32-4daa-8d58-dc031853084c"
 [assets]
 directory = "./frontend"
 binding = "ASSETS"
+
+EMAIL_PROVIDER = "brevo"
+EMAIL_FROM = "team.rauda.ilm@gmail.com"
