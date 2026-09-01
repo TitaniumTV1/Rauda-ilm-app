@@ -11,7 +11,7 @@ required = ["TELEGRAM_BOT_TOKEN"]
 [[d1_databases]]
 binding = "DB"
 database_name = "rauda-ilm-db"
-database_id = "d82a5615-e88a-49cf-90ab-1ec6c3bbdb3e"
+database_id = "11acb8cd-6a32-4daa-8d58-dc031853084c"
 
 [assets]
 directory = "./frontend"
