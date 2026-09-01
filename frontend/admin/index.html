@@ -769,6 +769,305 @@ th {
 /* RAUDA GOLD GREEN THEME END */
 
 </style>
+
+<style id="rauda-admin-final">
+
+:root {
+    --admin-bg: #18211d;
+    --admin-bg-soft: #1d2822;
+
+    --admin-panel: #232f28;
+    --admin-panel-2: #28352d;
+
+    --admin-border: #39483e;
+
+    --admin-text: #f3f0e7;
+    --admin-muted: #aaa99f;
+
+    --admin-green: #466c55;
+    --admin-green-hover: #517b61;
+
+    --admin-gold: #c5a25d;
+    --admin-gold-soft: #dbc38d;
+}
+
+
+/* ФОН */
+
+html,
+body {
+    background:
+        radial-gradient(
+            circle at 85% -10%,
+            rgba(197,162,93,.08),
+            transparent 430px
+        ),
+        radial-gradient(
+            circle at 0 100%,
+            rgba(60,100,75,.13),
+            transparent 480px
+        ),
+        var(--admin-bg)
+        !important;
+
+    color:
+        var(--admin-text) !important;
+}
+
+
+/* КАРТОЧКИ */
+
+.card,
+.topbar {
+    background:
+        rgba(35,47,40,.96)
+        !important;
+
+    border-color:
+        var(--admin-border)
+        !important;
+
+    box-shadow:
+        0 10px 30px
+        rgba(0,0,0,.12)
+        !important;
+}
+
+.editor > section + section {
+    background:
+        rgba(19,27,23,.18)
+        !important;
+}
+
+
+/* ТЕКСТ */
+
+h1,
+h2,
+h3,
+h4,
+label {
+    color:
+        var(--admin-text)
+        !important;
+}
+
+.brand p,
+.workspace-head p,
+.section-copy,
+.hint,
+#user-name,
+.file-meta {
+    color:
+        var(--admin-muted)
+        !important;
+}
+
+
+/* ПОЛЯ */
+
+input:not([type="checkbox"]),
+textarea,
+select {
+    background:
+        #19231e
+        !important;
+
+    border-color:
+        #425348
+        !important;
+
+    color:
+        var(--admin-text)
+        !important;
+
+    box-shadow:
+        none !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color:
+        var(--admin-gold)
+        !important;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(197,162,93,.10)
+        !important;
+}
+
+
+/* ОСНОВНАЯ КНОПКА */
+
+.button.primary {
+    background:
+        var(--admin-green)
+        !important;
+
+    border-color:
+        #587d65
+        !important;
+
+    color:
+        #ffffff
+        !important;
+
+    box-shadow:
+        none !important;
+}
+
+.button.primary:hover {
+    background:
+        var(--admin-green-hover)
+        !important;
+}
+
+.button.primary:active {
+    background:
+        #3c604b
+        !important;
+}
+
+
+/* ОБЫЧНЫЕ КНОПКИ */
+
+.button {
+    background:
+        #2b3930
+        !important;
+
+    border-color:
+        #46584c
+        !important;
+
+    color:
+        var(--admin-text)
+        !important;
+
+    box-shadow:
+        none !important;
+
+    transform:
+        none !important;
+}
+
+.button:hover {
+    background:
+        #34453a
+        !important;
+}
+
+.button:active {
+    background:
+        #26352c
+        !important;
+
+    transform:
+        none !important;
+}
+
+
+/* ЗОЛОТЫЕ АКЦЕНТЫ */
+
+.brand-mark {
+    background:
+        var(--admin-gold)
+        !important;
+
+    color:
+        #262014
+        !important;
+}
+
+.pill {
+    color:
+        var(--admin-gold-soft)
+        !important;
+
+    border-color:
+        rgba(197,162,93,.35)
+        !important;
+
+    background:
+        rgba(197,162,93,.08)
+        !important;
+}
+
+
+/* UPLOAD */
+
+.upload-box {
+    background:
+        #202c25
+        !important;
+
+    border-color:
+        #53675a
+        !important;
+}
+
+.file-item,
+.note {
+    background:
+        #1d2822
+        !important;
+
+    border-color:
+        #3b4c41
+        !important;
+}
+
+
+/* НАЖАТИЯ — БЕЗ ЧЁРНЫХ КВАДРАТОВ */
+
+* {
+    -webkit-tap-highlight-color:
+        transparent !important;
+}
+
+button,
+.button,
+a {
+    transform:
+        none !important;
+
+    -webkit-tap-highlight-color:
+        transparent !important;
+
+    transition:
+        background-color .20s ease,
+        border-color .20s ease,
+        color .20s ease,
+        opacity .20s ease
+        !important;
+}
+
+button:active,
+.button:active,
+a:active {
+    transform:
+        none !important;
+}
+
+button:focus {
+    outline:
+        none !important;
+}
+
+button:focus-visible {
+    outline:
+        2px solid
+        rgba(197,162,93,.45)
+        !important;
+
+    outline-offset:
+        2px;
+}
+
+</style>
+
 </head>
 <body>
   <main class="shell">

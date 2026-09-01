@@ -2684,13 +2684,55 @@ a:focus-visible {
 
 </style>
 
+
+<style id="rauda-logo-fix">
+
+.auth-emblem {
+    width: 54px !important;
+    height: 54px !important;
+
+    padding: 0 !important;
+
+    border: none !important;
+    border-radius: 14px !important;
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+
+    overflow: hidden !important;
+}
+
+.auth-emblem-image {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    border-radius: 12px;
+
+    background: transparent;
+
+    -webkit-user-drag: none;
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
     <div class="auth-shell">
 
         <div class="auth-brand">
-            <div class="auth-emblem">R</div>
+            <div class="auth-emblem">
+        <img
+            src="/logo.png"
+            alt="RAUDA ILM"
+            class="auth-emblem-image"
+        >
+    </div>
 
             <div>
                 <div class="auth-brand-name">
