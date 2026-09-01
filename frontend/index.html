@@ -443,6 +443,208 @@
             padding-top: 35px;
         }
     }
+
+/* RAUDA UI POLISH */
+
+body {
+    background:
+        radial-gradient(circle at 20% 0%, rgba(23,32,51,.055), transparent 30%),
+        #f5f7fb;
+}
+
+.auth-screen {
+    background:
+        radial-gradient(circle at 50% -10%, rgba(23,32,51,.09), transparent 38%),
+        linear-gradient(180deg, #f7f9fc 0%, #f2f5f9 100%);
+}
+
+.auth-card {
+    max-width: 440px;
+    padding: 30px;
+    border-radius: 24px;
+    border: 1px solid #e4e8ef;
+    box-shadow:
+        0 22px 60px rgba(23,32,51,.10),
+        0 2px 8px rgba(23,32,51,.04);
+}
+
+.auth-logo {
+    letter-spacing: 1px;
+    font-size: 29px;
+}
+
+.auth-subtitle {
+    margin-bottom: 28px;
+}
+
+.input {
+    min-height: 50px;
+    padding: 14px 15px;
+    border-radius: 13px;
+    border: 1px solid #d9dfe8;
+    background: #f8fafc;
+    transition:
+        border-color .16s ease,
+        box-shadow .16s ease,
+        background .16s ease,
+        transform .12s ease;
+}
+
+.input:hover {
+    border-color: #c3cbd7;
+    background: #fff;
+}
+
+.input:focus {
+    border-color: #6f7c91;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(23,32,51,.07);
+}
+
+button,
+.admin-link {
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    transition:
+        transform .11s ease,
+        box-shadow .15s ease,
+        background-color .15s ease,
+        border-color .15s ease,
+        opacity .15s ease;
+}
+
+.primary-button {
+    min-height: 50px;
+    border-radius: 13px;
+    box-shadow: 0 7px 16px rgba(23,32,51,.18);
+}
+
+.primary-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 21px rgba(23,32,51,.22);
+}
+
+.primary-button:active {
+    transform: translateY(2px) scale(.985);
+    box-shadow: 0 2px 6px rgba(23,32,51,.16);
+}
+
+.secondary-button {
+    min-height: 48px;
+    border-color: #d9dfe8;
+    background: #f9fafc;
+    box-shadow: 0 2px 6px rgba(23,32,51,.035);
+}
+
+.secondary-button:hover {
+    background: #f1f4f8;
+    border-color: #c8d0dc;
+    transform: translateY(-1px);
+}
+
+.secondary-button:active {
+    background: #e9edf3;
+    transform: translateY(2px) scale(.985);
+    box-shadow: none;
+}
+
+.admin-link:hover {
+    background: #eef2f7;
+    border-color: #c8d0dc;
+    transform: translateY(-1px);
+}
+
+.admin-link:active {
+    transform: translateY(2px) scale(.985);
+}
+
+.menu-button:hover,
+.menu-item:hover,
+.menu-close:hover {
+    background: #e7ebf1;
+}
+
+.menu-button:active,
+.menu-item:active,
+.menu-close:active,
+.back-button:active,
+.auth-switch button:active {
+    transform: translateY(2px) scale(.97);
+}
+
+.auth-switch button {
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 8px;
+}
+
+.auth-switch button:hover {
+    background: #eef2f6;
+}
+
+button:focus-visible,
+.admin-link:focus-visible {
+    outline: 3px solid rgba(23,32,51,.2);
+    outline-offset: 2px;
+}
+
+button:disabled {
+    opacity: .55;
+    cursor: wait;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+#loginForm > div[style*="text-align:center"],
+#registerForm > div[style*="text-align:center"] {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px !important;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    color: #8a94a5 !important;
+}
+
+#loginForm > div[style*="text-align:center"]::before,
+#loginForm > div[style*="text-align:center"]::after,
+#registerForm > div[style*="text-align:center"]::before,
+#registerForm > div[style*="text-align:center"]::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: #e2e6ec;
+}
+
+.error.show {
+    animation: raudaErrorIn .18s ease;
+}
+
+@keyframes raudaErrorIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 520px) {
+    .auth-screen {
+        padding: 12px;
+        align-items: flex-start;
+    }
+
+    .auth-card {
+        margin-top: 18px;
+        padding: 22px 18px;
+        border-radius: 20px;
+    }
+}
+
 </style>
 
 </head><body><div id="authApp" class="auth-screen"><div class="auth-card">
