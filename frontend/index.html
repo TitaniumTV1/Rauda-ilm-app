@@ -4227,6 +4227,213 @@ a:focus:not(:focus-visible) {
 
 </style>
 
+
+<style id="rauda-telegram-confirm">
+
+.telegram-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100500;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 18px;
+
+    background: rgba(8, 14, 10, .64);
+
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity .2s ease,
+        visibility .2s ease;
+}
+
+.telegram-confirm-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.telegram-confirm-card {
+    width: 100%;
+    max-width: 365px;
+
+    padding: 27px 21px 21px;
+
+    border: 1px solid #e1d5bb;
+    border-radius: 21px;
+
+    background: #fffdf8;
+
+    text-align: center;
+
+    box-shadow:
+        0 28px 70px
+        rgba(8, 22, 13, .25);
+}
+
+.telegram-confirm-icon {
+    width: 68px;
+    height: 68px;
+
+    margin: 0 auto 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 50%;
+
+    background: #183d2c;
+
+    color: #ffffff;
+
+    font-size: 24px;
+    font-weight: 800;
+
+    border: 2px solid #d1b36d;
+}
+
+.telegram-confirm-icon img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.telegram-confirm-title {
+    margin-bottom: 7px;
+
+    color: #183d2c;
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.telegram-confirm-text {
+    color: #777a71;
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.telegram-confirm-user {
+    margin: 17px 0;
+
+    padding: 13px 14px;
+
+    border: 1px solid #e5dcc7;
+    border-radius: 12px;
+
+    background: #f7f2e7;
+}
+
+.telegram-confirm-name {
+    color: #183d2c;
+
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.telegram-confirm-username {
+    margin-top: 3px;
+
+    color: #987c45;
+
+    font-size: 13px;
+}
+
+.telegram-confirm-actions {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 9px;
+}
+
+.telegram-confirm-button {
+    min-height: 43px;
+
+    padding: 10px 13px;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.telegram-confirm-cancel {
+    border: 1px solid #ded5c4;
+
+    background: #f7f2e8 !important;
+
+    color: #5f625c !important;
+}
+
+.telegram-confirm-accept {
+    border: 1px solid #183d2c;
+
+    background: #183d2c !important;
+
+    color: #ffffff !important;
+}
+
+.telegram-confirm-button:hover,
+.telegram-confirm-button:active,
+.telegram-confirm-button:focus {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.telegram-confirm-accept:hover {
+    background: #214d39 !important;
+}
+
+.telegram-confirm-accept:active {
+    background: #123324 !important;
+}
+
+.telegram-confirm-status {
+    display: none;
+
+    margin-top: 12px;
+
+    padding: 9px 11px;
+
+    border-radius: 9px;
+
+    font-size: 12px;
+}
+
+.telegram-confirm-status.show {
+    display: block;
+}
+
+.telegram-confirm-status.error {
+    background: #faeaea;
+    color: #992f2f;
+}
+
+.telegram-confirm-status.loading {
+    background: #f5efdf;
+    color: #715d34;
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
@@ -9324,6 +9531,567 @@ function setRegisterMethod(method) {
         "DOMContentLoaded",
         buildTelegramLogin
     );
+
+})();
+
+</script>
+
+
+<script id="rauda-telegram-confirm-script">
+
+(function () {
+
+    let pendingTelegramAuth =
+        null;
+
+
+    function getTelegramDisplayName(user) {
+
+        if (!user) {
+            return "Telegram";
+        }
+
+        const firstName =
+            String(
+                user.first_name || ""
+            ).trim();
+
+        const lastName =
+            String(
+                user.last_name || ""
+            ).trim();
+
+        return (
+            firstName + " " + lastName
+        ).trim() ||
+            user.username ||
+            "Telegram";
+    }
+
+
+    function updateConfirmUser(user) {
+
+        const name =
+            document.getElementById(
+                "telegramConfirmName"
+            );
+
+        const username =
+            document.getElementById(
+                "telegramConfirmUsername"
+            );
+
+        const avatar =
+            document.getElementById(
+                "telegramConfirmAvatar"
+            );
+
+
+        const displayName =
+            getTelegramDisplayName(user);
+
+
+        if (name) {
+            name.textContent =
+                displayName;
+        }
+
+
+        if (username) {
+
+            username.textContent =
+                user?.username
+                    ? "@" + user.username
+                    : "";
+        }
+
+
+        if (avatar) {
+
+            avatar.innerHTML =
+                "";
+
+            if (user?.photo_url) {
+
+                const image =
+                    document.createElement(
+                        "img"
+                    );
+
+                image.src =
+                    user.photo_url;
+
+                image.alt =
+                    displayName;
+
+                avatar.appendChild(
+                    image
+                );
+
+            } else {
+
+                let initials = "";
+
+                if (user?.first_name) {
+                    initials +=
+                        String(
+                            user.first_name
+                        ).charAt(0);
+                }
+
+                if (user?.last_name) {
+                    initials +=
+                        String(
+                            user.last_name
+                        ).charAt(0);
+                }
+
+                avatar.textContent =
+                    initials.toUpperCase() ||
+                    "TG";
+            }
+        }
+    }
+
+
+    function setConfirmStatus(
+        message,
+        type
+    ) {
+
+        const element =
+            document.getElementById(
+                "telegramConfirmStatus"
+            );
+
+        if (!element) {
+            return;
+        }
+
+
+        if (!message) {
+
+            element.textContent = "";
+
+            element.className =
+                "telegram-confirm-status";
+
+            return;
+        }
+
+
+        element.textContent =
+            message;
+
+        element.className =
+            "telegram-confirm-status show " +
+            (type || "loading");
+    }
+
+
+    function openTelegramConfirmation(
+        type,
+        data,
+        user
+    ) {
+
+        pendingTelegramAuth = {
+            type,
+            data
+        };
+
+
+        updateConfirmUser(
+            user
+        );
+
+
+        setConfirmStatus(
+            "",
+            ""
+        );
+
+
+        document
+            .getElementById(
+                "telegramConfirmOverlay"
+            )
+            ?.classList
+            .add("active");
+    }
+
+
+    window.cancelTelegramConfirmation =
+        function () {
+
+            pendingTelegramAuth =
+                null;
+
+
+            document
+                .getElementById(
+                    "telegramConfirmOverlay"
+                )
+                ?.classList
+                .remove("active");
+        };
+
+
+    window.confirmTelegramLogin =
+        async function () {
+
+            if (!pendingTelegramAuth) {
+                return;
+            }
+
+
+            const pending =
+                pendingTelegramAuth;
+
+
+            setConfirmStatus(
+                "\u0412\u0445\u043e\u0434\u0438\u043c\u2026",
+                "loading"
+            );
+
+
+            try {
+
+                let result;
+
+
+                if (
+                    pending.type ===
+                    "miniapp"
+                ) {
+
+                    result =
+                        await api(
+                            "/auth/telegram",
+                            {
+                                method:
+                                    "POST",
+
+                                body:
+                                    JSON.stringify({
+                                        initData:
+                                            pending.data
+                                    })
+                            }
+                        );
+
+                } else {
+
+                    result =
+                        await api(
+                            "/auth/telegram-widget",
+                            {
+                                method:
+                                    "POST",
+
+                                body:
+                                    JSON.stringify(
+                                        pending.data
+                                    )
+                            }
+                        );
+                }
+
+
+                if (
+                    !result.data ||
+                    !result.data.ok
+                ) {
+
+                    setConfirmStatus(
+                        result.data?.error ||
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0432\u043e\u0439\u0442\u0438 \u0447\u0435\u0440\u0435\u0437 Telegram",
+                        "error"
+                    );
+
+                    return;
+                }
+
+
+                saveToken(
+                    result.data.token
+                );
+
+
+                currentUser =
+                    result.data.user;
+
+
+                pendingTelegramAuth =
+                    null;
+
+
+                document
+                    .getElementById(
+                        "telegramConfirmOverlay"
+                    )
+                    ?.classList
+                    .remove("active");
+
+
+                if (
+                    typeof closeTelegramBrowserLogin ===
+                    "function"
+                ) {
+
+                    closeTelegramBrowserLogin();
+                }
+
+
+                openApp();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Telegram confirm auth:",
+                    error
+                );
+
+
+                setConfirmStatus(
+                    "\u041d\u0435\u0442 \u0441\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u044f \u0441 \u0441\u0435\u0440\u0432\u0435\u0440\u043e\u043c",
+                    "error"
+                );
+            }
+        };
+
+
+    /*
+     * Browser Telegram Login Widget:
+     * сначала подтверждение,
+     * затем запрос на backend.
+     */
+
+    window.telegramBrowserAuthorized =
+        function (user) {
+
+            if (
+                typeof closeTelegramBrowserLogin ===
+                "function"
+            ) {
+
+                closeTelegramBrowserLogin();
+            }
+
+
+            openTelegramConfirmation(
+                "browser",
+                user,
+                user
+            );
+        };
+
+
+    /*
+     * Одна кнопка Telegram:
+     *
+     * Mini App -> подтверждение initData.
+     * Browser  -> официальный Telegram Widget.
+     */
+
+    window.telegramLogin =
+        async function () {
+
+            hideError();
+
+
+            const tg =
+                window.Telegram &&
+                window.Telegram.WebApp
+                    ? window.Telegram.WebApp
+                    : null;
+
+
+            const initData =
+                tg &&
+                typeof tg.initData ===
+                    "string"
+                    ? tg.initData.trim()
+                    : "";
+
+
+            if (initData) {
+
+                const telegramUser =
+                    tg.initDataUnsafe &&
+                    tg.initDataUnsafe.user
+                        ? tg.initDataUnsafe.user
+                        : null;
+
+
+                openTelegramConfirmation(
+                    "miniapp",
+                    initData,
+                    telegramUser
+                );
+
+
+                return;
+            }
+
+
+            if (
+                typeof openTelegramBrowserLogin ===
+                "function"
+            ) {
+
+                openTelegramBrowserLogin();
+
+                return;
+            }
+
+
+            showError(
+                "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u043a\u0440\u044b\u0442\u044c Telegram-\u0432\u0445\u043e\u0434"
+            );
+        };
+
+
+    function buildTelegramConfirmation() {
+
+        if (
+            document.getElementById(
+                "telegramConfirmOverlay"
+            )
+        ) {
+            return;
+        }
+
+
+        const overlay =
+            document.createElement(
+                "div"
+            );
+
+
+        overlay.id =
+            "telegramConfirmOverlay";
+
+
+        overlay.className =
+            "telegram-confirm-overlay";
+
+
+        overlay.innerHTML = `
+
+            <div class="telegram-confirm-card">
+
+                <div
+                    id="telegramConfirmAvatar"
+                    class="telegram-confirm-icon"
+                >
+                    TG
+                </div>
+
+
+                <div
+                    class="telegram-confirm-title"
+                >
+                    \u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0435 \u0432\u0445\u043e\u0434
+                </div>
+
+
+                <div
+                    class="telegram-confirm-text"
+                >
+                    \u0412\u044b \u0445\u043e\u0442\u0438\u0442\u0435 \u0432\u043e\u0439\u0442\u0438 \u0432 RAUDA ILM \u0447\u0435\u0440\u0435\u0437 \u044d\u0442\u043e\u0442 Telegram-\u0430\u043a\u043a\u0430\u0443\u043d\u0442?
+                </div>
+
+
+                <div
+                    class="telegram-confirm-user"
+                >
+
+                    <div
+                        id="telegramConfirmName"
+                        class="telegram-confirm-name"
+                    >
+                        Telegram
+                    </div>
+
+
+                    <div
+                        id="telegramConfirmUsername"
+                        class="telegram-confirm-username"
+                    ></div>
+
+                </div>
+
+
+                <div
+                    class="telegram-confirm-actions"
+                >
+
+                    <button
+                        type="button"
+                        class="telegram-confirm-button telegram-confirm-cancel"
+                        onclick="cancelTelegramConfirmation()"
+                    >
+                        \u041e\u0442\u043c\u0435\u043d\u0430
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="telegram-confirm-button telegram-confirm-accept"
+                        onclick="confirmTelegramLogin()"
+                    >
+                        \u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="telegramConfirmStatus"
+                    class="telegram-confirm-status"
+                ></div>
+
+            </div>
+        `;
+
+
+        overlay.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target ===
+                    overlay
+                ) {
+
+                    cancelTelegramConfirmation();
+                }
+            }
+        );
+
+
+        document.body.appendChild(
+            overlay
+        );
+    }
+
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            buildTelegramConfirmation
+        );
+
+    } else {
+
+        buildTelegramConfirmation();
+    }
 
 })();
 
