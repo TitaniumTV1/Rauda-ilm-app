@@ -3284,6 +3284,437 @@ a:focus:not(:focus-visible) {
 }
 
 </style>
+
+<style id="rauda-password-reset-v1">
+
+.forgot-password-link {
+    width: 100%;
+
+    margin: 10px 0 0;
+    padding: 5px;
+
+    border: 0;
+
+    background: transparent !important;
+
+    color: #8a7245;
+
+    font-size: 13px;
+    font-weight: 650;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    box-shadow: none !important;
+    transform: none !important;
+
+    -webkit-tap-highlight-color:
+        transparent !important;
+}
+
+.forgot-password-link:hover {
+    color: #183d2c;
+}
+
+.forgot-password-link:active {
+    color: #123324;
+
+    background:
+        transparent !important;
+
+    box-shadow:
+        none !important;
+
+    transform:
+        none !important;
+}
+
+
+.password-reset-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 99999;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 18px;
+
+    background:
+        rgba(10, 16, 12, .56);
+
+    backdrop-filter:
+        blur(6px);
+
+    -webkit-backdrop-filter:
+        blur(6px);
+
+    opacity: 0;
+
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity .22s ease,
+        visibility .22s ease;
+}
+
+.password-reset-overlay.active {
+    opacity: 1;
+
+    visibility: visible;
+    pointer-events: auto;
+}
+
+
+.password-reset-card {
+    position: relative;
+
+    width: 100%;
+    max-width: 390px;
+
+    padding: 25px 21px 22px;
+
+    border:
+        1px solid #e2d7bf;
+
+    border-radius:
+        20px;
+
+    background:
+        #fffdf8;
+
+    box-shadow:
+        0 25px 65px
+        rgba(15, 28, 20, .18);
+}
+
+
+.password-reset-close {
+    position: absolute;
+
+    top: 12px;
+    right: 12px;
+
+    width: 36px;
+    height: 36px;
+
+    padding: 0;
+
+    border:
+        1px solid #e4dccb;
+
+    border-radius:
+        10px;
+
+    background:
+        #f6f1e6 !important;
+
+    color:
+        #183d2c;
+
+    font-size:
+        22px;
+
+    line-height: 1;
+
+    box-shadow:
+        none !important;
+
+    transform:
+        none !important;
+
+    -webkit-tap-highlight-color:
+        transparent !important;
+}
+
+
+.password-reset-title {
+    padding-right: 40px;
+
+    color:
+        #183d2c;
+
+    font-size:
+        21px;
+
+    font-weight:
+        800;
+}
+
+
+.password-reset-description {
+    margin:
+        7px 0 20px;
+
+    color:
+        #777a71;
+
+    font-size:
+        13px;
+
+    line-height:
+        1.45;
+}
+
+
+.password-reset-label {
+    display: block;
+
+    margin:
+        11px 0 6px;
+
+    color:
+        #39473f;
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+}
+
+
+.password-reset-code-row {
+    display: grid;
+
+    grid-template-columns:
+        1fr auto;
+
+    gap: 8px;
+
+    align-items:
+        start;
+}
+
+
+.password-reset-code-button {
+    min-height:
+        48px;
+
+    padding:
+        0 13px;
+
+    border:
+        1px solid #d8c9a9;
+
+    border-radius:
+        11px;
+
+    background:
+        #f3ead7 !important;
+
+    color:
+        #183d2c;
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+
+    white-space:
+        nowrap;
+
+    box-shadow:
+        none !important;
+
+    transform:
+        none !important;
+}
+
+
+.password-reset-submit {
+    width: 100%;
+
+    min-height: 46px;
+
+    margin-top:
+        16px;
+
+    border: 0;
+
+    border-radius:
+        11px;
+
+    background:
+        #183d2c !important;
+
+    color:
+        white;
+
+    font-weight:
+        750;
+
+    box-shadow:
+        none !important;
+
+    transform:
+        none !important;
+}
+
+
+.password-reset-submit:active {
+    background:
+        #123324 !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+.password-reset-status {
+    display: none;
+
+    margin-top:
+        12px;
+
+    padding:
+        10px 11px;
+
+    border-radius:
+        9px;
+
+    font-size:
+        12px;
+
+    line-height:
+        1.4;
+}
+
+
+.password-reset-status.show {
+    display: block;
+}
+
+
+.password-reset-status.success {
+    background:
+        #e9f4ec;
+
+    color:
+        #245c38;
+}
+
+
+.password-reset-status.error {
+    background:
+        #faeaea;
+
+    color:
+        #9d2e2e;
+}
+
+
+@media (max-width: 420px) {
+
+    .password-reset-card {
+        padding:
+            23px 17px 19px;
+    }
+
+    .password-reset-code-row {
+        grid-template-columns:
+            1fr;
+    }
+
+    .password-reset-code-button {
+        width:
+            100%;
+    }
+
+}
+
+</style>
+
+
+<style id="rauda-password-visibility">
+
+.password-visibility-wrap {
+    position: relative;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.password-visibility-wrap > input {
+    margin-bottom: 0 !important;
+    padding-right: 50px !important;
+}
+
+.password-visibility-button {
+    position: absolute;
+
+    top: 50%;
+    right: 9px;
+
+    width: 36px;
+    height: 36px;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    display: grid;
+    place-items: center;
+
+    transform: translateY(-50%) !important;
+
+    border: 0 !important;
+    border-radius: 9px !important;
+
+    background: transparent !important;
+
+    color: #777a71 !important;
+
+    box-shadow: none !important;
+    outline: none !important;
+
+    cursor: pointer;
+
+    -webkit-tap-highlight-color:
+        transparent !important;
+}
+
+.password-visibility-button:hover {
+    color: #183d2c !important;
+
+    background:
+        rgba(24,61,44,.06) !important;
+}
+
+.password-visibility-button:active {
+    transform:
+        translateY(-50%) !important;
+
+    background:
+        rgba(24,61,44,.09) !important;
+
+    box-shadow:
+        none !important;
+}
+
+.password-visibility-button svg {
+    width: 21px;
+    height: 21px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    pointer-events: none;
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
@@ -6628,6 +7059,961 @@ function setRegisterMethod(method) {
 })();
 
 </script>
+
+<script id="rauda-password-reset-v1-script">
+
+(function () {
+
+    const T = {
+
+        forgot:
+            "\u0417\u0430\u0431\u044b\u043b\u0438 \u043f\u0430\u0440\u043e\u043b\u044c?",
+
+        title:
+            "\u0412\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u043f\u0430\u0440\u043e\u043b\u044f",
+
+        description:
+            "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u043e\u0447\u0442\u0443, \u043f\u0440\u0438\u0432\u044f\u0437\u0430\u043d\u043d\u0443\u044e \u043a \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0443",
+
+        email:
+            "\u042d\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u0430\u044f \u043f\u043e\u0447\u0442\u0430",
+
+        send:
+            "\u041f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u043a\u043e\u0434",
+
+        code:
+            "\u041a\u043e\u0434 \u0438\u0437 \u043f\u0438\u0441\u044c\u043c\u0430",
+
+        password:
+            "\u041d\u043e\u0432\u044b\u0439 \u043f\u0430\u0440\u043e\u043b\u044c",
+
+        passwordAgain:
+            "\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c",
+
+        save:
+            "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043d\u043e\u0432\u044b\u0439 \u043f\u0430\u0440\u043e\u043b\u044c",
+
+        sent:
+            "\u041a\u043e\u0434 \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d \u043d\u0430 \u043f\u043e\u0447\u0442\u0443",
+
+        success:
+            "\u041f\u0430\u0440\u043e\u043b\u044c \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0438\u0437\u043c\u0435\u043d\u0451\u043d. \u0422\u0435\u043f\u0435\u0440\u044c \u043c\u043e\u0436\u043d\u043e \u0432\u043e\u0439\u0442\u0438.",
+
+        invalidEmail:
+            "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u0443\u044e \u043f\u043e\u0447\u0442\u0443",
+
+        invalidCode:
+            "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 6-\u0437\u043d\u0430\u0447\u043d\u044b\u0439 \u043a\u043e\u0434",
+
+        shortPassword:
+            "\u041f\u0430\u0440\u043e\u043b\u044c \u0434\u043e\u043b\u0436\u0435\u043d \u0441\u043e\u0434\u0435\u0440\u0436\u0430\u0442\u044c \u043c\u0438\u043d\u0438\u043c\u0443\u043c 8 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432",
+
+        mismatch:
+            "\u041f\u0430\u0440\u043e\u043b\u0438 \u043d\u0435 \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u044e\u0442",
+
+        sending:
+            "\u041e\u0442\u043f\u0440\u0430\u0432\u043a\u0430\u2026",
+
+        saving:
+            "\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435\u2026",
+
+        requestError:
+            "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0432\u044b\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u0437\u0430\u043f\u0440\u043e\u0441"
+    };
+
+
+    function status(
+        message,
+        type
+    ) {
+
+        const el =
+            document.getElementById(
+                "passwordResetStatus"
+            );
+
+        if (!el) return;
+
+        el.textContent =
+            message;
+
+        el.className =
+            "password-reset-status show " +
+            (type || "error");
+    }
+
+
+    function clearStatus() {
+
+        const el =
+            document.getElementById(
+                "passwordResetStatus"
+            );
+
+        if (!el) return;
+
+        el.textContent = "";
+
+        el.className =
+            "password-reset-status";
+    }
+
+
+    async function postJson(
+        url,
+        data
+    ) {
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(data)
+                }
+            );
+
+
+        let result = {};
+
+        try {
+            result =
+                await response.json();
+        }
+        catch (_) {}
+
+
+        if (
+            !response.ok ||
+            !result.ok
+        ) {
+
+            throw new Error(
+                result.error ||
+                T.requestError
+            );
+        }
+
+
+        return result;
+    }
+
+
+    window.openPasswordReset =
+        function () {
+
+            clearStatus();
+
+            const overlay =
+                document.getElementById(
+                    "passwordResetOverlay"
+                );
+
+            if (overlay) {
+                overlay.classList.add(
+                    "active"
+                );
+            }
+
+
+            const sourceEmail =
+                document.getElementById(
+                    "emailLoginEmail"
+                );
+
+            const resetEmail =
+                document.getElementById(
+                    "passwordResetEmail"
+                );
+
+
+            if (
+                sourceEmail &&
+                resetEmail &&
+                sourceEmail.value
+            ) {
+
+                resetEmail.value =
+                    sourceEmail.value;
+            }
+
+
+            setTimeout(
+                function () {
+
+                    if (resetEmail) {
+                        resetEmail.focus();
+                    }
+
+                },
+                100
+            );
+        };
+
+
+    window.closePasswordReset =
+        function () {
+
+            const overlay =
+                document.getElementById(
+                    "passwordResetOverlay"
+                );
+
+            if (overlay) {
+                overlay.classList.remove(
+                    "active"
+                );
+            }
+        };
+
+
+    window.sendPasswordResetCode =
+        async function () {
+
+            clearStatus();
+
+
+            const email =
+                String(
+                    document.getElementById(
+                        "passwordResetEmail"
+                    )?.value || ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            if (
+                !email ||
+                !email.includes("@")
+            ) {
+
+                status(
+                    T.invalidEmail,
+                    "error"
+                );
+
+                return;
+            }
+
+
+            const button =
+                document.getElementById(
+                    "passwordResetSendCode"
+                );
+
+
+            if (button) {
+
+                button.disabled =
+                    true;
+
+                button.textContent =
+                    T.sending;
+            }
+
+
+            try {
+
+                await postJson(
+                    "/api/auth/email/send-code",
+                    {
+                        email,
+                        purpose: "login"
+                    }
+                );
+
+
+                status(
+                    T.sent,
+                    "success"
+                );
+
+            }
+            catch (error) {
+
+                status(
+                    error.message ||
+                    T.requestError,
+                    "error"
+                );
+            }
+            finally {
+
+                if (button) {
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        T.send;
+                }
+            }
+        };
+
+
+    window.submitPasswordReset =
+        async function () {
+
+            clearStatus();
+
+
+            const email =
+                String(
+                    document.getElementById(
+                        "passwordResetEmail"
+                    )?.value || ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            const code =
+                String(
+                    document.getElementById(
+                        "passwordResetCode"
+                    )?.value || ""
+                )
+                .trim();
+
+
+            const password =
+                String(
+                    document.getElementById(
+                        "passwordResetPassword"
+                    )?.value || ""
+                );
+
+
+            const passwordAgain =
+                String(
+                    document.getElementById(
+                        "passwordResetPasswordAgain"
+                    )?.value || ""
+                );
+
+
+            if (
+                !email ||
+                !email.includes("@")
+            ) {
+
+                status(
+                    T.invalidEmail,
+                    "error"
+                );
+
+                return;
+            }
+
+
+            if (!/^\d{6}$/.test(code)) {
+
+                status(
+                    T.invalidCode,
+                    "error"
+                );
+
+                return;
+            }
+
+
+            if (password.length < 8) {
+
+                status(
+                    T.shortPassword,
+                    "error"
+                );
+
+                return;
+            }
+
+
+            if (
+                password !==
+                passwordAgain
+            ) {
+
+                status(
+                    T.mismatch,
+                    "error"
+                );
+
+                return;
+            }
+
+
+            const button =
+                document.getElementById(
+                    "passwordResetSubmit"
+                );
+
+
+            if (button) {
+
+                button.disabled =
+                    true;
+
+                button.textContent =
+                    T.saving;
+            }
+
+
+            try {
+
+                await postJson(
+                    "/api/auth/password/reset",
+                    {
+                        email,
+                        code,
+                        password
+                    }
+                );
+
+
+                status(
+                    T.success,
+                    "success"
+                );
+
+
+                const p1 =
+                    document.getElementById(
+                        "passwordResetPassword"
+                    );
+
+                const p2 =
+                    document.getElementById(
+                        "passwordResetPasswordAgain"
+                    );
+
+                const codeEl =
+                    document.getElementById(
+                        "passwordResetCode"
+                    );
+
+
+                if (p1) p1.value = "";
+                if (p2) p2.value = "";
+                if (codeEl) codeEl.value = "";
+
+
+                setTimeout(
+                    function () {
+
+                        closePasswordReset();
+
+                    },
+                    1700
+                );
+
+            }
+            catch (error) {
+
+                status(
+                    error.message ||
+                    T.requestError,
+                    "error"
+                );
+            }
+            finally {
+
+                if (button) {
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        T.save;
+                }
+            }
+        };
+
+
+    function buildPasswordReset() {
+
+        const loginButton =
+            document.querySelector(
+                '#loginPasswordPanel button[onclick="login()"]'
+            );
+
+
+        if (
+            loginButton &&
+            !document.getElementById(
+                "forgotPasswordButton"
+            )
+        ) {
+
+            const forgot =
+                document.createElement(
+                    "button"
+                );
+
+
+            forgot.id =
+                "forgotPasswordButton";
+
+            forgot.type =
+                "button";
+
+            forgot.className =
+                "forgot-password-link";
+
+            forgot.textContent =
+                T.forgot;
+
+
+            forgot.addEventListener(
+                "click",
+                openPasswordReset
+            );
+
+
+            loginButton.insertAdjacentElement(
+                "afterend",
+                forgot
+            );
+        }
+
+
+        if (
+            document.getElementById(
+                "passwordResetOverlay"
+            )
+        ) {
+
+            return;
+        }
+
+
+        const overlay =
+            document.createElement(
+                "div"
+            );
+
+
+        overlay.id =
+            "passwordResetOverlay";
+
+        overlay.className =
+            "password-reset-overlay";
+
+
+        overlay.innerHTML = `
+
+            <div
+                class="password-reset-card"
+            >
+
+                <button
+                    type="button"
+                    class="password-reset-close"
+                    onclick="closePasswordReset()"
+                >
+                    &times;
+                </button>
+
+
+                <div
+                    class="password-reset-title"
+                >
+                    ${T.title}
+                </div>
+
+
+                <div
+                    class="password-reset-description"
+                >
+                    ${T.description}
+                </div>
+
+
+                <label
+                    class="password-reset-label"
+                >
+                    ${T.email}
+                </label>
+
+                <input
+                    id="passwordResetEmail"
+                    class="input"
+                    type="email"
+                    autocomplete="email"
+                    placeholder="name@example.com"
+                >
+
+
+                <label
+                    class="password-reset-label"
+                >
+                    ${T.code}
+                </label>
+
+
+                <div
+                    class="password-reset-code-row"
+                >
+
+                    <input
+                        id="passwordResetCode"
+                        class="input"
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="6"
+                        placeholder="000000"
+                    >
+
+
+                    <button
+                        id="passwordResetSendCode"
+                        type="button"
+                        class="password-reset-code-button"
+                        onclick="sendPasswordResetCode()"
+                    >
+                        ${T.send}
+                    </button>
+
+                </div>
+
+
+                <label
+                    class="password-reset-label"
+                >
+                    ${T.password}
+                </label>
+
+                <input
+                    id="passwordResetPassword"
+                    class="input"
+                    type="password"
+                    autocomplete="new-password"
+                >
+
+
+                <label
+                    class="password-reset-label"
+                >
+                    ${T.passwordAgain}
+                </label>
+
+                <input
+                    id="passwordResetPasswordAgain"
+                    class="input"
+                    type="password"
+                    autocomplete="new-password"
+                >
+
+
+                <button
+                    id="passwordResetSubmit"
+                    type="button"
+                    class="password-reset-submit"
+                    onclick="submitPasswordReset()"
+                >
+                    ${T.save}
+                </button>
+
+
+                <div
+                    id="passwordResetStatus"
+                    class="password-reset-status"
+                ></div>
+
+            </div>
+        `;
+
+
+        overlay.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target ===
+                    overlay
+                ) {
+
+                    closePasswordReset();
+                }
+            }
+        );
+
+
+        document.body.appendChild(
+            overlay
+        );
+    }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        buildPasswordReset
+    );
+
+})();
+
+</script>
+
+
+<script id="rauda-password-visibility-script">
+
+(function () {
+
+    const SHOW =
+        "\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u043f\u0430\u0440\u043e\u043b\u044c";
+
+    const HIDE =
+        "\u0421\u043a\u0440\u044b\u0442\u044c \u043f\u0430\u0440\u043e\u043b\u044c";
+
+
+    const eyeOpen = `
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
+            ></path>
+
+            <circle
+                cx="12"
+                cy="12"
+                r="2.8"
+            ></circle>
+        </svg>
+    `;
+
+
+    const eyeClosed = `
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M3 3l18 18"
+            ></path>
+
+            <path
+                d="M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a15 15 0 0 1-2.2 3"
+            ></path>
+
+            <path
+                d="M6.2 6.2C3.8 8 2.5 12 2.5 12s3.5 6 9.5 6a9.7 9.7 0 0 0 4-.8"
+            ></path>
+
+            <path
+                d="M10.2 10.2a2.8 2.8 0 0 0 3.6 3.6"
+            ></path>
+        </svg>
+    `;
+
+
+    function enhancePasswordInput(input) {
+
+        if (!input) {
+            return;
+        }
+
+
+        if (
+            input.dataset.passwordVisibility ===
+            "ready"
+        ) {
+            return;
+        }
+
+
+        input.dataset.passwordVisibility =
+            "ready";
+
+
+        const parent =
+            input.parentNode;
+
+
+        if (!parent) {
+            return;
+        }
+
+
+        const wrapper =
+            document.createElement("div");
+
+
+        wrapper.className =
+            "password-visibility-wrap";
+
+
+        parent.insertBefore(
+            wrapper,
+            input
+        );
+
+
+        wrapper.appendChild(
+            input
+        );
+
+
+        const button =
+            document.createElement("button");
+
+
+        button.type =
+            "button";
+
+        button.className =
+            "password-visibility-button";
+
+        button.setAttribute(
+            "aria-label",
+            SHOW
+        );
+
+        button.setAttribute(
+            "title",
+            SHOW
+        );
+
+        button.innerHTML =
+            eyeOpen;
+
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const hidden =
+                    input.type ===
+                    "password";
+
+
+                input.type =
+                    hidden
+                        ? "text"
+                        : "password";
+
+
+                button.innerHTML =
+                    hidden
+                        ? eyeClosed
+                        : eyeOpen;
+
+
+                button.setAttribute(
+                    "aria-label",
+                    hidden
+                        ? HIDE
+                        : SHOW
+                );
+
+
+                button.setAttribute(
+                    "title",
+                    hidden
+                        ? HIDE
+                        : SHOW
+                );
+
+
+                input.focus();
+            }
+        );
+
+
+        wrapper.appendChild(
+            button
+        );
+    }
+
+
+    function scanPasswords(root) {
+
+        const scope =
+            root || document;
+
+
+        if (
+            scope.matches &&
+            scope.matches(
+                'input[type="password"]'
+            )
+        ) {
+
+            enhancePasswordInput(
+                scope
+            );
+        }
+
+
+        if (
+            scope.querySelectorAll
+        ) {
+
+            scope
+                .querySelectorAll(
+                    'input[type="password"]'
+                )
+                .forEach(
+                    enhancePasswordInput
+                );
+        }
+    }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            scanPasswords(
+                document
+            );
+
+
+            const observer =
+                new MutationObserver(
+                    function (mutations) {
+
+                        mutations.forEach(
+                            function (mutation) {
+
+                                mutation
+                                    .addedNodes
+                                    .forEach(
+                                        function (node) {
+
+                                            if (
+                                                node.nodeType ===
+                                                1
+                                            ) {
+
+                                                scanPasswords(
+                                                    node
+                                                );
+                                            }
+                                        }
+                                    );
+                            }
+                        );
+                    }
+                );
+
+
+            observer.observe(
+                document.body,
+                {
+                    childList: true,
+                    subtree: true
+                }
+            );
+        }
+    );
+
+})();
+
+</script>
+
 </body>
 </html>
 
