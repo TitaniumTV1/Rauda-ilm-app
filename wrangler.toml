@@ -4,9 +4,18 @@ compatibility_date = "2026-08-30"
 
 [vars]
 APP_NAME = "RAUDA ILM"
+EMAIL_PROVIDER = "brevo"
+EMAIL_FROM = "team.rauda.ilm@gmail.com"
+TELEGRAM_BOT_USERNAME = "Rauda_ilmapp_bot"
+PUBLIC_APP_URL = "https://app.rauda-ilm.com"
+CHECKOUT_CLAIM_TTL_HOURS = "72"
 
 [secrets]
-required = ["TELEGRAM_BOT_TOKEN"]
+required = [
+  "TELEGRAM_BOT_TOKEN",
+  "BREVO_API_KEY",
+  "EMAIL_AUTH_SECRET"
+]
 
 [[d1_databases]]
 binding = "DB"
@@ -16,11 +25,3 @@ database_id = "11acb8cd-6a32-4daa-8d58-dc031853084c"
 [assets]
 directory = "./frontend"
 binding = "ASSETS"
-
-[vars]
-APP_NAME = "RAUDA ILM"
-EMAIL_PROVIDER = "brevo"
-EMAIL_FROM = "team.rauda.ilm@gmail.com"
-TELEGRAM_BOT_USERNAME = "Rauda_ilmapp_bot"
-PUBLIC_APP_URL = "https://app.rauda-ilm.com"
-CHECKOUT_CLAIM_TTL_HOURS = "72"
