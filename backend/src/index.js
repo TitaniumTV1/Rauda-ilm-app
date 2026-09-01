@@ -370,55 +370,6 @@ async function handleTelegramAuth(request, env) {
         );
     }
 }
-        const telegramUser = verification.user || {};
-        const telegramId = Number(telegramUser.id);
-        if (!Number.isSafeInteger(telegramId) || telegramId <= 0) {
-            return json({ ok: false, error: "Invalid Telegram user ID" }, 401, env);
-        }
-
-        let user = await first(env.DB, "SELECT * FROM users WHERE telegram_id = ? LIMIT 1", [telegramId]);
-        if (!user) {
-            const result = await run(env.DB, `
-                INSERT INTO users (telegram_id, username, first_name, last_name, role, status)
-                VALUES (?, ?, ?, ?, 'student', 'active')
-            `, [telegramId, telegramUser.username || null, telegramUser.first_name || null, telegramUser.last_name || null]);
-            user = await getUserById(env.DB, Number(result.meta.last_row_id));
-} else {
-
-    /*
-     * Пользователь уже существует.
-     * Не перезаписываем username,
-     * имя и фамилию из Telegram,
-     * потому что пользователь может
-     * менять их вручную в профиле.
-     */
-
-    await run(
-        env.DB,
-        `
-        UPDATE users
-        SET updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-        `,
-        [
-            user.id
-        ]
-    );
-
-    user =
-        await getUserById(
-            env.DB,
-            user.id
-        );
-}
-
-        const session = await createSession(env.DB, user.id);
-        return json({ ok: true, user, token: session.token, expires_at: session.expiresAt }, 200, env);
-    } catch (error) {
-        console.error("Telegram auth error:", error);
-        return json({ ok: false, error: "Telegram authentication failed" }, 500, env);
-    }
-}
 
 async function handleMe(request, env) {
     const auth = await requireUser(request, env);
