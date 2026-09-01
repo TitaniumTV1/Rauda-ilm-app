@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>RAUDA ILM вЂ” РђРґРјРёРЅ-РїР°РЅРµР»СЊ</title>
+  <title>RAUDA ILM — Админ-панель</title>
   <style>
     :root {
       --bg: #101211;
@@ -312,7 +312,7 @@
 
 
 /* =========================
-   РћРЎРќРћР’Рђ
+   ОСНОВА
 ========================= */
 
 body {
@@ -402,7 +402,7 @@ body {
 
 
 /* =========================
-   РљРђР РўРћР§РљР
+   КАРТОЧКИ
 ========================= */
 
 .card {
@@ -478,7 +478,7 @@ select:focus {
 
 
 /* =========================
-   Р“Р›РђР’РќР«Р• РљРќРћРџРљР
+   ГЛАВНЫЕ КНОПКИ
 ========================= */
 
 .primary-button {
@@ -525,7 +525,7 @@ select:focus {
 
 
 /* =========================
-   Р’РўРћР РР§РќР«Р• РљРќРћРџРљР
+   ВТОРИЧНЫЕ КНОПКИ
 ========================= */
 
 .secondary-button,
@@ -567,7 +567,7 @@ select:focus {
 
 
 /* =========================
-   Р’РЎР• РћРЎРўРђР›Р¬РќР«Р• РљРќРћРџРљР
+   ВСЕ ОСТАЛЬНЫЕ КНОПКИ
 ========================= */
 
 button {
@@ -792,7 +792,7 @@ th {
 }
 
 
-/* Р¤РћРќ */
+/* ФОН */
 
 html,
 body {
@@ -815,7 +815,7 @@ body {
 }
 
 
-/* РљРђР РўРћР§РљР */
+/* КАРТОЧКИ */
 
 .card,
 .topbar {
@@ -840,7 +840,7 @@ body {
 }
 
 
-/* РўР•РљРЎРў */
+/* ТЕКСТ */
 
 h1,
 h2,
@@ -864,7 +864,7 @@ label {
 }
 
 
-/* РџРћР›РЇ */
+/* ПОЛЯ */
 
 input:not([type="checkbox"]),
 textarea,
@@ -899,7 +899,7 @@ select:focus {
 }
 
 
-/* РћРЎРќРћР’РќРђРЇ РљРќРћРџРљРђ */
+/* ОСНОВНАЯ КНОПКА */
 
 .button.primary {
     background:
@@ -931,7 +931,7 @@ select:focus {
 }
 
 
-/* РћР‘Р«Р§РќР«Р• РљРќРћРџРљР */
+/* ОБЫЧНЫЕ КНОПКИ */
 
 .button {
     background:
@@ -969,7 +969,7 @@ select:focus {
 }
 
 
-/* Р—РћР›РћРўР«Р• РђРљР¦Р•РќРўР« */
+/* ЗОЛОТЫЕ АКЦЕНТЫ */
 
 .brand-mark {
     background:
@@ -1020,7 +1020,7 @@ select:focus {
 }
 
 
-/* РќРђР–РђРўРРЇ вЂ” Р‘Р•Р— Р§РЃР РќР«РҐ РљР’РђР”Р РђРўРћР’ */
+/* НАЖАТИЯ — БЕЗ ЧЁРНЫХ КВАДРАТОВ */
 
 * {
     -webkit-tap-highlight-color:
@@ -1068,8 +1068,8 @@ button:focus-visible {
 
 </style>
 
-<style id="rauda-no-black-press">
 
+<style id="rauda-no-black-press">
 html,
 body,
 *,
@@ -1115,7 +1115,6 @@ input[type="submit"]:active,
     filter: none !important;
     box-shadow: none !important;
     outline: none !important;
-    -webkit-tap-highlight-color: transparent !important;
 }
 
 .primary-button:active {
@@ -1124,13 +1123,12 @@ input[type="submit"]:active,
 }
 
 button:focus:not(:focus-visible),
-a:focus:not(:focus-visible),
-[role="button"]:focus:not(:focus-visible) {
+a:focus:not(:focus-visible) {
     outline: none !important;
     box-shadow: none !important;
 }
-
 </style>
+
 </head>
 <body>
   <main class="shell">
@@ -1139,12 +1137,12 @@ a:focus:not(:focus-visible),
         <div class="brand-mark">RI</div>
         <div>
           <h1>RAUDA ILM</h1>
-          <p>РђРґРјРёРЅРёСЃС‚СЂРёСЂРѕРІР°РЅРёРµ РѕР±СѓС‡РµРЅРёСЏ</p>
+          <p>Администрирование обучения</p>
         </div>
       </div>
 
    <div class="user-actions">
-  <a class="button ghost back-button" href="/">в†ђ РќР°Р·Р°Рґ</a>
+  <a class="button ghost back-button" href="/">← Назад</a>
 
   <span id="user-name"></span>
 
@@ -1153,22 +1151,22 @@ a:focus:not(:focus-visible),
     class="button ghost hidden"
     type="button"
   >
-    Р’С‹Р№С‚Рё
+    Выйти
   </button>
 </div>
 
     <section id="login-view" class="card login-card">
-      <h2>Р’С…РѕРґ РІ Р°РґРјРёРЅРєСѓ</h2>
-      <p>РСЃРїРѕР»СЊР·СѓР№ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ СЃ СЂРѕР»СЊСЋ РІР»Р°РґРµР»СЊС†Р° РёР»Рё Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°.</p>
+      <h2>Вход в админку</h2>
+      <p>Используй учётную запись с ролью владельца или администратора.</p>
 
       <form id="login-form">
         <div class="field">
-          <label for="login">Р›РѕРіРёРЅ</label>
+          <label for="login">Логин</label>
           <input id="login" name="login" autocomplete="username" required>
         </div>
 
       <div class="field" style="margin-top:14px">
-  <label for="password">РџР°СЂРѕР»СЊ</label>
+  <label for="password">Пароль</label>
 
   <div class="password-wrap">
     <input
@@ -1183,16 +1181,16 @@ a:focus:not(:focus-visible),
       id="password-toggle"
       class="password-toggle"
       type="button"
-      aria-label="РџРѕРєР°Р·Р°С‚СЊ РїР°СЂРѕР»СЊ"
-      title="РџРѕРєР°Р·Р°С‚СЊ РїР°СЂРѕР»СЊ"
+      aria-label="Показать пароль"
+      title="Показать пароль"
     >
-      рџ‘Ѓ
+      👁
     </button>
   </div>
 </div>
 
         <div class="buttons">
-          <button id="login-button" class="button primary" type="submit">Р’РѕР№С‚Рё</button>
+          <button id="login-button" class="button primary" type="submit">Войти</button>
         </div>
       </form>
 
@@ -1202,82 +1200,82 @@ a:focus:not(:focus-visible),
     <section id="workspace" class="workspace hidden">
       <div class="workspace-head">
         <div>
-          <h2>РќРѕРІС‹Р№ СѓСЂРѕРє</h2>
-          <p>РЎРЅР°С‡Р°Р»Р° СЃРѕР·РґР°С‘С‚СЃСЏ СѓСЂРѕРє, Р·Р°С‚РµРј РІС‹Р±СЂР°РЅРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹ Р·Р°РіСЂСѓР¶Р°СЋС‚СЃСЏ РІ R2.</p>
+          <h2>Новый урок</h2>
+          <p>Сначала создаётся урок, затем выбранные материалы загружаются в R2.</p>
         </div>
 
-        <span class="pill">R2 FILES РїРѕРґРєР»СЋС‡С‘РЅ</span>
+        <span class="pill">R2 FILES подключён</span>
       </div>
 
       <form id="lesson-form" class="card editor">
         <section>
-          <h3>РЎРѕРґРµСЂР¶Р°РЅРёРµ СѓСЂРѕРєР°</h3>
-          <p class="section-copy">РџРѕР»СЏ СЃ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂР°РјРё РјРѕР¶РЅРѕ РЅРµ Р·Р°РїРѕР»РЅСЏС‚СЊ, РµСЃР»Рё РѕРЅРё РїРѕРєР° РЅРµ РЅСѓР¶РЅС‹.</p>
+          <h3>Содержание урока</h3>
+          <p class="section-copy">Поля с идентификаторами можно не заполнять, если они пока не нужны.</p>
 
           <div class="form-grid">
             <div class="field full">
-              <label for="title">РќР°Р·РІР°РЅРёРµ СѓСЂРѕРєР°</label>
-              <input id="title" name="title" maxlength="250" placeholder="РќР°РїСЂРёРјРµСЂ: РЈСЂРѕРє 1. Р’РІРµРґРµРЅРёРµ" required>
+              <label for="title">Название урока</label>
+              <input id="title" name="title" maxlength="250" placeholder="Например: Урок 1. Введение" required>
             </div>
 
             <div class="field">
-              <label for="program-id">РџСЂРѕРіСЂР°РјРјР°</label>
+              <label for="program-id">Программа</label>
               <select id="program-id" name="program_id">
-                <option value="">РќРµ РІС‹Р±СЂР°РЅР°</option>
+                <option value="">Не выбрана</option>
               </select>
-              <span class="hint">РњРѕР¶РЅРѕ РІС‹Р±СЂР°С‚СЊ РёР· СЃРїРёСЃРєР° РёР»Рё СѓРєР°Р·Р°С‚СЊ ID РЅРёР¶Рµ.</span>
+              <span class="hint">Можно выбрать из списка или указать ID ниже.</span>
             </div>
 
             <div class="field">
-              <label for="program-id-manual">ID РїСЂРѕРіСЂР°РјРјС‹</label>
-              <input id="program-id-manual" type="number" min="1" inputmode="numeric" placeholder="РќРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ">
+              <label for="program-id-manual">ID программы</label>
+              <input id="program-id-manual" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
             </div>
 
             <div class="field">
-              <label for="course-id">РљСѓСЂСЃ</label>
+              <label for="course-id">Курс</label>
               <select id="course-id" name="course_id">
-                <option value="">РќРµ РІС‹Р±СЂР°РЅ</option>
+                <option value="">Не выбран</option>
               </select>
             </div>
 
             <div class="field">
-              <label for="course-id-manual">ID РєСѓСЂСЃР°</label>
-              <input id="course-id-manual" type="number" min="1" inputmode="numeric" placeholder="РќРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ">
+              <label for="course-id-manual">ID курса</label>
+              <input id="course-id-manual" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
             </div>
 
             <div class="field">
-              <label for="semester-id">ID СЃРµРјРµСЃС‚СЂР°</label>
-              <input id="semester-id" name="semester_id" type="number" min="1" inputmode="numeric" placeholder="РќРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ">
+              <label for="semester-id">ID семестра</label>
+              <input id="semester-id" name="semester_id" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
             </div>
 
             <div class="field">
-              <label for="subject-id">ID РїСЂРµРґРјРµС‚Р°</label>
-              <input id="subject-id" name="subject_id" type="number" min="1" inputmode="numeric" placeholder="РќРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ">
+              <label for="subject-id">ID предмета</label>
+              <input id="subject-id" name="subject_id" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
             </div>
 
             <div class="field">
-              <label for="lesson-number">РќРѕРјРµСЂ СѓСЂРѕРєР°</label>
+              <label for="lesson-number">Номер урока</label>
               <input id="lesson-number" name="lesson_number" type="number" min="0" value="0" inputmode="numeric">
             </div>
 
             <div class="field">
-              <label for="sort-order">РџРѕСЂСЏРґРѕРє РїРѕРєР°Р·Р°</label>
+              <label for="sort-order">Порядок показа</label>
               <input id="sort-order" name="sort_order" type="number" min="0" value="0" inputmode="numeric">
             </div>
 
             <div class="field full">
-              <label for="description">РљСЂР°С‚РєРѕРµ РѕРїРёСЃР°РЅРёРµ</label>
-              <textarea id="description" name="description" maxlength="20000" placeholder="Р§С‚Рѕ Р±СѓРґРµС‚ РІ СѓСЂРѕРєРµ"></textarea>
+              <label for="description">Краткое описание</label>
+              <textarea id="description" name="description" maxlength="20000" placeholder="Что будет в уроке"></textarea>
             </div>
 
             <div class="field full">
-              <label for="content">РўРµРєСЃС‚ СѓСЂРѕРєР°</label>
-              <textarea id="content" name="content" maxlength="20000" placeholder="РћСЃРЅРѕРІРЅРѕР№ С‚РµРєСЃС‚ СѓСЂРѕРєР°"></textarea>
+              <label for="content">Текст урока</label>
+              <textarea id="content" name="content" maxlength="20000" placeholder="Основной текст урока"></textarea>
             </div>
 
             <label class="switch-row field full">
               <input id="is-visible" name="is_visible" type="checkbox" checked>
-              РџРѕРєР°Р·С‹РІР°С‚СЊ СѓСЂРѕРє СѓС‡РµРЅРёРєР°Рј РїРѕСЃР»Рµ СЃРѕР·РґР°РЅРёСЏ
+              Показывать урок ученикам после создания
             </label>
           </div>
         </section>
@@ -1285,19 +1283,19 @@ a:focus:not(:focus-visible),
         <section>
           <div class="side-stack">
             <div>
-              <h3>РњР°С‚РµСЂРёР°Р»С‹</h3>
-              <p class="section-copy">Р¤РѕС‚Рѕ, РІРёРґРµРѕ, Р°СѓРґРёРѕ, PDF Рё РґРѕРєСѓРјРµРЅС‚С‹ РјРѕР¶РЅРѕ РІС‹Р±СЂР°С‚СЊ СЃСЂР°Р·Сѓ РЅРµСЃРєРѕР»СЊРєРѕ.</p>
+              <h3>Материалы</h3>
+              <p class="section-copy">Фото, видео, аудио, PDF и документы можно выбрать сразу несколько.</p>
 
               <div class="upload-box">
                 <input id="files" name="files" type="file" multiple>
 
                 <div class="field">
-                  <label for="caption">РџРѕРґРїРёСЃСЊ Рє РјР°С‚РµСЂРёР°Р»Р°Рј</label>
-                  <input id="caption" name="caption" maxlength="500" placeholder="РќРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ">
+                  <label for="caption">Подпись к материалам</label>
+                  <input id="caption" name="caption" maxlength="500" placeholder="Необязательно">
                 </div>
 
                 <div class="field">
-                  <label for="file-order">РџРѕСЂСЏРґРѕРє РјР°С‚РµСЂРёР°Р»РѕРІ</label>
+                  <label for="file-order">Порядок материалов</label>
                   <input id="file-order" name="file_order" type="number" min="0" value="0" inputmode="numeric">
                 </div>
               </div>
@@ -1306,18 +1304,18 @@ a:focus:not(:focus-visible),
             </div>
 
             <div id="created-lesson" class="lesson-id">
-              <strong>РЈСЂРѕРє СЃРѕР·РґР°РЅ</strong>
+              <strong>Урок создан</strong>
               <span id="created-lesson-text"></span>
             </div>
 
             <div class="note">
-              <h4>РљР°Рє СЌС‚Рѕ СЂР°Р±РѕС‚Р°РµС‚</h4>
-              <p>РЎРЅР°С‡Р°Р»Р° СЃРѕР·РґР°С‘С‚СЃСЏ СѓСЂРѕРє Рё РїРѕР»СѓС‡Р°РµС‚СЃСЏ РµРіРѕ ID. Р—Р°С‚РµРј РєР°Р¶РґС‹Р№ РјР°С‚РµСЂРёР°Р» РѕС‚РїСЂР°РІР»СЏРµС‚СЃСЏ РІ Р·Р°С‰РёС‰С‘РЅРЅРѕРµ С…СЂР°РЅРёР»РёС‰Рµ R2 Рё РїСЂРёРєСЂРµРїР»СЏРµС‚СЃСЏ Рє СЌС‚РѕРјСѓ СѓСЂРѕРєСѓ.</p>
+              <h4>Как это работает</h4>
+              <p>Сначала создаётся урок и получается его ID. Затем каждый материал отправляется в защищённое хранилище R2 и прикрепляется к этому уроку.</p>
             </div>
 
             <div class="buttons">
-              <button id="save-button" class="button primary" type="submit">РЎРѕР·РґР°С‚СЊ СѓСЂРѕРє Рё Р·Р°РіСЂСѓР·РёС‚СЊ</button>
-              <button id="new-lesson-button" class="button ghost" type="button">РќРѕРІС‹Р№ СѓСЂРѕРє</button>
+              <button id="save-button" class="button primary" type="submit">Создать урок и загрузить</button>
+              <button id="new-lesson-button" class="button ghost" type="button">Новый урок</button>
             </div>
 
             <div id="lesson-status" class="status" role="status"></div>
@@ -1367,7 +1365,7 @@ a:focus:not(:focus-visible),
     function humanBytes(bytes) {
       if (!Number.isFinite(bytes)) return "";
 
-      const units = ["Р‘", "РљР‘", "РњР‘", "Р“Р‘"];
+      const units = ["Б", "КБ", "МБ", "ГБ"];
       let value = bytes;
       let index = 0;
 
@@ -1389,11 +1387,11 @@ a:focus:not(:focus-visible),
       const response = await fetch(path, { ...options, headers });
       const payload = await response.json().catch(() => ({
         ok: false,
-        error: "РЎРµСЂРІРµСЂ РІРµСЂРЅСѓР» РЅРµРІРµСЂРЅС‹Р№ РѕС‚РІРµС‚"
+        error: "Сервер вернул неверный ответ"
       }));
 
       if (!response.ok || payload.ok === false) {
-        const error = new Error(payload.error || `РћС€РёР±РєР° ${response.status}`);
+        const error = new Error(payload.error || `Ошибка ${response.status}`);
         error.status = response.status;
         throw error;
       }
@@ -1423,7 +1421,7 @@ a:focus:not(:focus-visible),
       workspace.classList.remove("hidden");
       logoutButton.classList.remove("hidden");
 
-      userName.textContent = `${user.first_name || user.login || "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ"} В· ${user.role}`;
+      userName.textContent = `${user.first_name || user.login || "Пользователь"} · ${user.role}`;
       setStatus(loginStatus);
     }
 
@@ -1464,7 +1462,7 @@ a:focus:not(:focus-visible),
     async function loadPrograms() {
       const result = await api("/api/programs");
       state.programs = result.programs || [];
-      setOptions(programSelect, state.programs, "РќРµ РІС‹Р±СЂР°РЅР°");
+      setOptions(programSelect, state.programs, "Не выбрана");
     }
 
     async function loadCourses() {
@@ -1476,7 +1474,7 @@ a:focus:not(:focus-visible),
       const result = await api(`/api/courses${suffix}`);
 
       state.courses = result.courses || [];
-      setOptions(courseSelect, state.courses, "РќРµ РІС‹Р±СЂР°РЅ");
+      setOptions(courseSelect, state.courses, "Не выбран");
     }
 
     function renderSelectedFiles() {
@@ -1486,7 +1484,7 @@ a:focus:not(:focus-visible),
       if (!files.length) {
         const empty = document.createElement("p");
         empty.className = "hint";
-        empty.textContent = "РњР°С‚РµСЂРёР°Р»С‹ РїРѕРєР° РЅРµ РІС‹Р±СЂР°РЅС‹.";
+        empty.textContent = "Материалы пока не выбраны.";
         selectedFiles.append(empty);
         return;
       }
@@ -1504,7 +1502,7 @@ a:focus:not(:focus-visible),
 
         const meta = document.createElement("div");
         meta.className = "file-meta";
-        meta.textContent = `${file.type || "С„Р°Р№Р»"} В· ${humanBytes(file.size)}`;
+        meta.textContent = `${file.type || "файл"} · ${humanBytes(file.size)}`;
 
         main.append(name, meta);
         item.append(main);
@@ -1536,7 +1534,7 @@ a:focus:not(:focus-visible),
       const payload = lessonPayload();
 
       if (!payload.title) {
-        throw new Error("Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ СѓСЂРѕРєР°");
+        throw new Error("Введите название урока");
       }
 
       const result = await api("/api/admin/lessons", {
@@ -1546,7 +1544,7 @@ a:focus:not(:focus-visible),
       });
 
       state.lesson = result.lesson;
-      createdLessonText.textContent = `ID СѓСЂРѕРєР°: ${result.lesson.id}. РўРµРїРµСЂСЊ Р·Р°РіСЂСѓР¶Р°РµРј РјР°С‚РµСЂРёР°Р»С‹.`;
+      createdLessonText.textContent = `ID урока: ${result.lesson.id}. Теперь загружаем материалы.`;
       createdLesson.classList.add("visible");
 
       return result.lesson;
@@ -1566,7 +1564,7 @@ a:focus:not(:focus-visible),
       for (const [index, file] of files.entries()) {
         setStatus(
           lessonStatus,
-          `Р—Р°РіСЂСѓР·РєР° ${index + 1} РёР· ${files.length}: ${file.name}`,
+          `Загрузка ${index + 1} из ${files.length}: ${file.name}`,
           "loading"
         );
 
@@ -1597,14 +1595,14 @@ a:focus:not(:focus-visible),
         const result = await api("/api/auth/me");
 
         if (!ADMIN_ROLES.has(String(result.user?.role || "").toLowerCase())) {
-          showLogin("РЈ СЌС‚РѕР№ СѓС‡С‘С‚РЅРѕР№ Р·Р°РїРёСЃРё РЅРµС‚ РїСЂР°РІ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°.");
+          showLogin("У этой учётной записи нет прав администратора.");
           return;
         }
 
         showWorkspace(result.user);
         await Promise.all([loadPrograms(), loadCourses()]);
       } catch {
-        showLogin("РЎРµСЃСЃРёСЏ РёСЃС‚РµРєР»Р°. Р’РѕР№РґРёС‚Рµ СЃРЅРѕРІР°.");
+        showLogin("Сессия истекла. Войдите снова.");
       }
     }
 $("#password-toggle").addEventListener("click", () => {
@@ -1618,19 +1616,19 @@ $("#password-toggle").addEventListener("click", () => {
     : "text";
 
   toggleButton.textContent = isVisible
-    ? "рџ‘Ѓ"
-    : "рџ™€";
+    ? "👁"
+    : "🙈";
 
   toggleButton.setAttribute(
     "aria-label",
     isVisible
-      ? "РџРѕРєР°Р·Р°С‚СЊ РїР°СЂРѕР»СЊ"
-      : "РЎРєСЂС‹С‚СЊ РїР°СЂРѕР»СЊ"
+      ? "Показать пароль"
+      : "Скрыть пароль"
   );
 
   toggleButton.title = isVisible
-    ? "РџРѕРєР°Р·Р°С‚СЊ РїР°СЂРѕР»СЊ"
-    : "РЎРєСЂС‹С‚СЊ РїР°СЂРѕР»СЊ";
+    ? "Показать пароль"
+    : "Скрыть пароль";
 });
     $("#login-form").addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -1638,7 +1636,7 @@ $("#password-toggle").addEventListener("click", () => {
       const button = $("#login-button");
       button.disabled = true;
 
-      setStatus(loginStatus, "Р’С‹РїРѕР»РЅСЏРµС‚СЃСЏ РІС…РѕРґвЂ¦", "loading");
+      setStatus(loginStatus, "Выполняется вход…", "loading");
 
       try {
         const result = await fetch("/api/auth/login", {
@@ -1652,14 +1650,14 @@ $("#password-toggle").addEventListener("click", () => {
           const payload = await response.json().catch(() => ({}));
 
           if (!response.ok || payload.ok === false) {
-            throw new Error(payload.error || "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё");
+            throw new Error(payload.error || "Не удалось войти");
           }
 
           return payload;
         });
 
         if (!ADMIN_ROLES.has(String(result.user?.role || "").toLowerCase())) {
-          throw new Error("РЈ СЌС‚РѕР№ СѓС‡С‘С‚РЅРѕР№ Р·Р°РїРёСЃРё РЅРµС‚ РїСЂР°РІ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°.");
+          throw new Error("У этой учётной записи нет прав администратора.");
         }
 
         localStorage.setItem(TOKEN_KEY, result.token);
@@ -1667,7 +1665,7 @@ $("#password-toggle").addEventListener("click", () => {
         showWorkspace(result.user);
         await Promise.all([loadPrograms(), loadCourses()]);
       } catch (error) {
-        setStatus(loginStatus, error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё", "error");
+        setStatus(loginStatus, error.message || "Не удалось войти", "error");
       } finally {
         button.disabled = false;
       }
@@ -1679,7 +1677,7 @@ $("#password-toggle").addEventListener("click", () => {
       const button = $("#save-button");
       button.disabled = true;
 
-      setStatus(lessonStatus, "РЎРѕР·РґР°С‘Рј СѓСЂРѕРєвЂ¦", "loading");
+      setStatus(lessonStatus, "Создаём урок…", "loading");
 
       try {
         const lesson = state.lesson || await createLesson();
@@ -1688,8 +1686,8 @@ $("#password-toggle").addEventListener("click", () => {
         setStatus(
           lessonStatus,
           uploaded
-            ? `РЈСЂРѕРє СЃРѕР·РґР°РЅ. Р—Р°РіСЂСѓР¶РµРЅРѕ РјР°С‚РµСЂРёР°Р»РѕРІ: ${uploaded}.`
-            : "РЈСЂРѕРє СЃРѕР·РґР°РЅ. РњР°С‚РµСЂРёР°Р»С‹ РјРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ РїРѕР·Р¶Рµ.",
+            ? `Урок создан. Загружено материалов: ${uploaded}.`
+            : "Урок создан. Материалы можно добавить позже.",
           "success"
         );
 
@@ -1697,12 +1695,12 @@ $("#password-toggle").addEventListener("click", () => {
         renderSelectedFiles();
       } catch (error) {
         if (error.status === 401) {
-          showLogin("РЎРµСЃСЃРёСЏ РёСЃС‚РµРєР»Р°. Р’РѕР№РґРёС‚Рµ СЃРЅРѕРІР°.");
+          showLogin("Сессия истекла. Войдите снова.");
         }
 
         setStatus(
           lessonStatus,
-          error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ СѓСЂРѕРє",
+          error.message || "Не удалось сохранить урок",
           "error"
         );
       } finally {
@@ -1756,5 +1754,4 @@ $("#password-toggle").addEventListener("click", () => {
   </script>
 </body>
 </html>
-
 
