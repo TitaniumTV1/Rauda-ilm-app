@@ -1282,6 +1282,13 @@ async function ensureEmailAuthSchema(db) {
             if (url.pathname === "/api/progress" && request.method === "POST") {
                 return handleProgress(request, env);
             }
+            if (
+                url.pathname === "/api/grades" &&
+                request.method === "GET"
+            ) {
+                return handleGrades(request, env);
+            }
+
             if (url.pathname === "/api/webhooks/tribute" && request.method === "POST") {
                 return handleTributeWebhook(request, env);
             }
@@ -3821,6 +3828,514 @@ async function handleProgress(request, env) {
     } catch (error) {
         console.error("Progress error:", error);
         return json({ ok: false, error: "Не удалось сохранить прогресс" }, 500, env);
+    }
+}
+
+
+function defaultGradeFromPercentage(
+    percentage
+) {
+
+    const value =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Number(percentage) || 0
+            )
+        );
+
+
+    if (value >= 90) {
+        return "\u041e\u0442\u043b\u0438\u0447\u043d\u043e";
+    }
+
+    if (value >= 75) {
+        return "\u0425\u043e\u0440\u043e\u0448\u043e";
+    }
+
+    if (value >= 60) {
+        return "\u0423\u0434\u043e\u0432\u043b\u0435\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e";
+    }
+
+    return "\u041d\u0435 \u0441\u0434\u0430\u043d\u043e";
+}
+
+
+function resolveCourseGrade(
+    percentage,
+    courseId,
+    scales
+) {
+
+    const value =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Number(percentage) || 0
+            )
+        );
+
+
+    const scale =
+        Array.isArray(scales)
+            ? scales.find(
+                item =>
+                    Number(item.course_id) ===
+                        Number(courseId) &&
+                    value >=
+                        Number(item.min_score) &&
+                    value <=
+                        Number(item.max_score)
+            )
+            : null;
+
+
+    if (scale?.grade) {
+        return String(scale.grade);
+    }
+
+
+    return defaultGradeFromPercentage(
+        value
+    );
+}
+
+
+async function handleGrades(
+    request,
+    env
+) {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+
+    try {
+
+        const scales =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    course_id,
+                    min_score,
+                    max_score,
+                    grade,
+                    description
+                FROM grading_scales
+                ORDER BY
+                    course_id,
+                    min_score DESC
+                `
+            );
+
+
+        const tests =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    ta.id AS attempt_id,
+                    ta.test_id AS assessment_id,
+                    ta.course_id,
+                    ta.attempt_number,
+                    ta.score,
+                    ta.max_score,
+                    ta.percentage,
+                    ta.passed,
+                    ta.submitted_at,
+
+                    t.title,
+                    t.passing_score,
+
+                    c.name AS course_name
+
+                FROM test_attempts ta
+
+                LEFT JOIN tests t
+                    ON t.id = ta.test_id
+
+                LEFT JOIN courses c
+                    ON c.id = ta.course_id
+
+                WHERE ta.user_id = ?
+                  AND ta.submitted_at IS NOT NULL
+
+                ORDER BY
+                    ta.submitted_at DESC,
+                    ta.id DESC
+                `,
+                [auth.user.id]
+            );
+
+
+        const exams =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    ea.id AS attempt_id,
+                    ea.exam_id AS assessment_id,
+                    ea.course_id,
+                    ea.attempt_number,
+                    ea.score,
+                    ea.max_score,
+                    ea.percentage,
+                    ea.passed,
+                    ea.grade AS stored_grade,
+                    ea.submitted_at,
+
+                    e.title,
+                    e.passing_score,
+
+                    c.name AS course_name
+
+                FROM exam_attempts ea
+
+                LEFT JOIN exams e
+                    ON e.id = ea.exam_id
+
+                LEFT JOIN courses c
+                    ON c.id = ea.course_id
+
+                WHERE ea.user_id = ?
+                  AND ea.submitted_at IS NOT NULL
+
+                ORDER BY
+                    ea.submitted_at DESC,
+                    ea.id DESC
+                `,
+                [auth.user.id]
+            );
+
+
+        const attempts = [];
+
+
+        for (const row of tests || []) {
+
+            const percentage =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        Number(row.percentage) || 0
+                    )
+                );
+
+
+            attempts.push({
+                type: "test",
+
+                assessment_id:
+                    Number(row.assessment_id),
+
+                attempt_id:
+                    Number(row.attempt_id),
+
+                course_id:
+                    Number(row.course_id),
+
+                course_name:
+                    row.course_name ||
+                    "\u041a\u0443\u0440\u0441",
+
+                title:
+                    row.title ||
+                    "\u0422\u0435\u0441\u0442",
+
+                attempt_number:
+                    Number(
+                        row.attempt_number
+                    ) || 1,
+
+                score:
+                    Number(row.score) || 0,
+
+                max_score:
+                    Number(row.max_score) ||
+                    100,
+
+                percentage,
+
+                passing_score:
+                    Number(
+                        row.passing_score
+                    ) || 60,
+
+                passed:
+                    percentage >=
+                    (
+                        Number(
+                            row.passing_score
+                        ) || 60
+                    ),
+
+                grade:
+                    resolveCourseGrade(
+                        percentage,
+                        row.course_id,
+                        scales
+                    ),
+
+                submitted_at:
+                    row.submitted_at || null
+            });
+        }
+
+
+        for (const row of exams || []) {
+
+            const percentage =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        Number(row.percentage) || 0
+                    )
+                );
+
+
+            attempts.push({
+                type: "exam",
+
+                assessment_id:
+                    Number(row.assessment_id),
+
+                attempt_id:
+                    Number(row.attempt_id),
+
+                course_id:
+                    Number(row.course_id),
+
+                course_name:
+                    row.course_name ||
+                    "\u041a\u0443\u0440\u0441",
+
+                title:
+                    row.title ||
+                    "\u042d\u043a\u0437\u0430\u043c\u0435\u043d",
+
+                attempt_number:
+                    Number(
+                        row.attempt_number
+                    ) || 1,
+
+                score:
+                    Number(row.score) || 0,
+
+                max_score:
+                    Number(row.max_score) ||
+                    100,
+
+                percentage,
+
+                passing_score:
+                    Number(
+                        row.passing_score
+                    ) || 60,
+
+                passed:
+                    percentage >=
+                    (
+                        Number(
+                            row.passing_score
+                        ) || 60
+                    ),
+
+                grade:
+                    resolveCourseGrade(
+                        percentage,
+                        row.course_id,
+                        scales
+                    ),
+
+                submitted_at:
+                    row.submitted_at || null
+            });
+        }
+
+
+        /*
+         * Если было несколько попыток,
+         * в журнал идёт лучший результат.
+         */
+
+        const best =
+            new Map();
+
+
+        for (const item of attempts) {
+
+            const key =
+                item.type +
+                ":" +
+                item.assessment_id;
+
+
+            const previous =
+                best.get(key);
+
+
+            if (
+                !previous ||
+                item.percentage >
+                    previous.percentage ||
+                (
+                    item.percentage ===
+                        previous.percentage &&
+                    Number(item.attempt_id) >
+                        Number(
+                            previous.attempt_id
+                        )
+                )
+            ) {
+
+                best.set(
+                    key,
+                    item
+                );
+            }
+        }
+
+
+        const grades =
+            Array.from(
+                best.values()
+            )
+            .sort(
+                (a, b) => {
+
+                    const aDate =
+                        Date.parse(
+                            a.submitted_at || ""
+                        ) || 0;
+
+                    const bDate =
+                        Date.parse(
+                            b.submitted_at || ""
+                        ) || 0;
+
+
+                    return bDate - aDate;
+                }
+            );
+
+
+        const total =
+            grades.length;
+
+
+        const passed =
+            grades.filter(
+                item => item.passed
+            ).length;
+
+
+        const failed =
+            total - passed;
+
+
+        const average =
+            total
+                ? Math.round(
+                    grades.reduce(
+                        (
+                            sum,
+                            item
+                        ) =>
+                            sum +
+                            Number(
+                                item.percentage
+                            ),
+                        0
+                    ) /
+                    total
+                )
+                : 0;
+
+
+        return json(
+            {
+                ok: true,
+
+                scale: [
+                    {
+                        min: 90,
+                        max: 100,
+                        grade:
+                            "\u041e\u0442\u043b\u0438\u0447\u043d\u043e"
+                    },
+                    {
+                        min: 75,
+                        max: 89,
+                        grade:
+                            "\u0425\u043e\u0440\u043e\u0448\u043e"
+                    },
+                    {
+                        min: 60,
+                        max: 74,
+                        grade:
+                            "\u0423\u0434\u043e\u0432\u043b\u0435\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e"
+                    },
+                    {
+                        min: 0,
+                        max: 59,
+                        grade:
+                            "\u041d\u0435 \u0441\u0434\u0430\u043d\u043e"
+                    }
+                ],
+
+                summary: {
+                    total,
+                    passed,
+                    failed,
+                    average_percentage:
+                        average,
+
+                    average_grade:
+                        defaultGradeFromPercentage(
+                            average
+                        )
+                },
+
+                grades
+            },
+            200,
+            env
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Grades error:",
+            error
+        );
+
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043e\u0446\u0435\u043d\u043a\u0438"
+            },
+            500,
+            env
+        );
     }
 }
 

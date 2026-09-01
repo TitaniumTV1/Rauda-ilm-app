@@ -5142,6 +5142,277 @@ body {
 
 </style>
 
+
+<style id="rauda-grading-system-v1">
+
+/* RAUDA ILM -> главный экран */
+
+.header .logo {
+    cursor: pointer !important;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.header .logo:active {
+    opacity: .75;
+}
+
+
+/* =========================================================
+   ОЦЕНКИ
+   ========================================================= */
+
+#raudaProfileTabs {
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr)) !important;
+}
+
+.rauda-grades-panel {
+    display: none;
+}
+
+.rauda-grades-panel.active {
+    display: block;
+}
+
+.rauda-grades-summary {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 8px;
+
+    margin-bottom: 13px;
+}
+
+.rauda-grade-summary-card {
+    padding: 15px 7px;
+
+    border:
+        1px solid #e5dcc8;
+
+    border-radius: 13px;
+
+    background: #fffdf8;
+
+    text-align: center;
+}
+
+.rauda-grade-summary-value {
+    color: #183d2c;
+
+    font-size: 23px;
+    font-weight: 850;
+}
+
+.rauda-grade-summary-label {
+    margin-top: 4px;
+
+    color: #88857e;
+
+    font-size: 11px;
+}
+
+.rauda-grade-average {
+    padding: 18px;
+
+    margin-bottom: 13px;
+
+    border:
+        1px solid rgba(198,164,95,.50);
+
+    border-radius: 15px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #183d2c,
+            #214d39
+        );
+
+    color: white;
+}
+
+.rauda-grade-average-label {
+    color:
+        rgba(255,255,255,.68);
+
+    font-size: 12px;
+}
+
+.rauda-grade-average-row {
+    display: flex;
+
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-top: 5px;
+}
+
+.rauda-grade-average-number {
+    font-size: 32px;
+    font-weight: 850;
+}
+
+.rauda-grade-average-text {
+    padding-bottom: 4px;
+
+    color: #e1c77f;
+
+    font-size: 13px;
+    font-weight: 750;
+
+    text-align: right;
+}
+
+.rauda-grade-list {
+    display: grid;
+    gap: 9px;
+}
+
+.rauda-grade-item {
+    padding: 15px;
+
+    border:
+        1px solid #e5ddca;
+
+    border-radius: 14px;
+
+    background: #fffdf8;
+}
+
+.rauda-grade-item-top {
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 13px;
+}
+
+.rauda-grade-item-type {
+    margin-bottom: 4px;
+
+    color: #9b7c40;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: .5px;
+}
+
+.rauda-grade-item-title {
+    color: #183d2c;
+
+    font-size: 14px;
+    font-weight: 780;
+}
+
+.rauda-grade-item-course {
+    margin-top: 3px;
+
+    color: #908d85;
+
+    font-size: 11px;
+}
+
+.rauda-grade-percent {
+    flex: 0 0 auto;
+
+    color: #183d2c;
+
+    font-size: 20px;
+    font-weight: 850;
+}
+
+.rauda-grade-item-bottom {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-top: 12px;
+
+    padding-top: 10px;
+
+    border-top:
+        1px solid #eee7da;
+}
+
+.rauda-grade-result {
+    color: #786b50;
+
+    font-size: 12px;
+}
+
+.rauda-grade-label {
+    padding: 5px 8px;
+
+    border-radius: 7px;
+
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.rauda-grade-label.passed {
+    background: #e7f1e8;
+
+    color: #245b38;
+}
+
+.rauda-grade-label.failed {
+    background: #f6e8e5;
+
+    color: #93483d;
+}
+
+.rauda-grades-empty,
+.rauda-grades-loading {
+    padding: 31px 15px;
+
+    border:
+        1px dashed #ddcfb3;
+
+    border-radius: 14px;
+
+    background: #faf6ed;
+
+    color: #85827a;
+
+    text-align: center;
+
+    font-size: 13px;
+}
+
+
+@media (max-width: 390px) {
+
+    #raudaProfileTabs {
+        gap: 3px !important;
+    }
+
+    #raudaProfileTabs
+    .rauda-profile-tab {
+        padding-left: 3px !important;
+        padding-right: 3px !important;
+
+        font-size: 11px !important;
+    }
+
+    .rauda-grades-summary {
+        gap: 5px;
+    }
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
@@ -12346,6 +12617,814 @@ function setRegisterMethod(method) {
     } else {
 
         initRaudaProfileStatsHeader();
+    }
+
+})();
+
+</script>
+
+
+<script id="rauda-grading-system-v1-script">
+
+(function () {
+
+    let gradesHiddenElements = [];
+
+
+    /* =====================================================
+       RAUDA ILM -> HOME
+       ===================================================== */
+
+    function enableRaudaHomeButton() {
+
+        const logo =
+            document.querySelector(
+                ".header .logo"
+            );
+
+
+        if (
+            !logo ||
+            logo.dataset.raudaHome ===
+                "1"
+        ) {
+            return;
+        }
+
+
+        logo.dataset.raudaHome =
+            "1";
+
+
+        logo.setAttribute(
+            "role",
+            "button"
+        );
+
+
+        logo.setAttribute(
+            "tabindex",
+            "0"
+        );
+
+
+        logo.setAttribute(
+            "aria-label",
+            "\u041d\u0430 \u0433\u043b\u0430\u0432\u043d\u0443\u044e"
+        );
+
+
+        function goHome() {
+
+            if (
+                typeof closeMenu ===
+                "function"
+            ) {
+                closeMenu();
+            }
+
+
+            if (
+                typeof closeRaudaNotifications ===
+                "function"
+            ) {
+                closeRaudaNotifications();
+            }
+
+
+            if (
+                typeof showScreen ===
+                "function"
+            ) {
+
+                showScreen(
+                    "homeScreen"
+                );
+            }
+
+
+            if (
+                typeof loadPrograms ===
+                "function"
+            ) {
+
+                loadPrograms();
+            }
+        }
+
+
+        logo.addEventListener(
+            "click",
+            goHome
+        );
+
+
+        logo.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key ===
+                        "Enter" ||
+                    event.key ===
+                        " "
+                ) {
+
+                    event.preventDefault();
+
+                    goHome();
+                }
+            }
+        );
+    }
+
+
+    /* =====================================================
+       PROFILE -> GRADES
+       ===================================================== */
+
+    function escapeGradeHtml(value) {
+
+        return String(
+            value ?? ""
+        )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+    }
+
+
+    function restoreGradesProfile() {
+
+        gradesHiddenElements.forEach(
+            element => {
+
+                if (!element) {
+                    return;
+                }
+
+
+                const old =
+                    element.dataset
+                        .raudaGradesDisplay;
+
+
+                element.style.display =
+                    old === "__EMPTY__"
+                        ? ""
+                        : old || "";
+
+
+                delete element.dataset
+                    .raudaGradesDisplay;
+            }
+        );
+
+
+        gradesHiddenElements =
+            [];
+
+
+        document
+            .getElementById(
+                "raudaGradesPanel"
+            )
+            ?.classList
+            .remove("active");
+
+
+        document
+            .getElementById(
+                "raudaProfileGradesTab"
+            )
+            ?.classList
+            .remove("active");
+    }
+
+
+    function openGradesTab() {
+
+        const avatar =
+            document.getElementById(
+                "profileAvatar"
+            );
+
+
+        const screen =
+            avatar?.closest(
+                ".screen"
+            );
+
+
+        const tabs =
+            document.getElementById(
+                "raudaProfileTabs"
+            );
+
+
+        const panel =
+            document.getElementById(
+                "raudaGradesPanel"
+            );
+
+
+        if (
+            !screen ||
+            !tabs ||
+            !panel
+        ) {
+            return;
+        }
+
+
+        /*
+         * Сначала возвращаем обычный
+         * профиль в исходное состояние.
+         */
+
+        if (
+            typeof window
+                .switchRaudaProfileTab ===
+            "function"
+        ) {
+
+            window
+                .switchRaudaProfileTab(
+                    "profile"
+                );
+        }
+
+
+        restoreGradesProfile();
+
+
+        const profileTab =
+            document.getElementById(
+                "raudaProfileMainTab"
+            );
+
+
+        const statsTab =
+            document.getElementById(
+                "raudaProfileStatsTab"
+            );
+
+
+        const gradesTab =
+            document.getElementById(
+                "raudaProfileGradesTab"
+            );
+
+
+        profileTab?.classList
+            .remove("active");
+
+        statsTab?.classList
+            .remove("active");
+
+        gradesTab?.classList
+            .add("active");
+
+
+        Array.from(
+            screen.children
+        ).forEach(
+            element => {
+
+                if (
+                    element === panel ||
+                    element === tabs ||
+                    element.classList
+                        ?.contains(
+                            "back-button"
+                        ) ||
+                    element.classList
+                        ?.contains(
+                            "profile-header"
+                        )
+                ) {
+                    return;
+                }
+
+
+                element.dataset
+                    .raudaGradesDisplay =
+                    element.style
+                        .display ||
+                    "__EMPTY__";
+
+
+                element.style.display =
+                    "none";
+
+
+                gradesHiddenElements.push(
+                    element
+                );
+            }
+        );
+
+
+        panel.classList.add(
+            "active"
+        );
+
+
+        loadRaudaGrades();
+    }
+
+
+    function ensureGradesTab() {
+
+        if (
+            document.getElementById(
+                "raudaProfileGradesTab"
+            )
+        ) {
+            return true;
+        }
+
+
+        const tabs =
+            document.getElementById(
+                "raudaProfileTabs"
+            );
+
+
+        const avatar =
+            document.getElementById(
+                "profileAvatar"
+            );
+
+
+        const screen =
+            avatar?.closest(
+                ".screen"
+            );
+
+
+        if (
+            !tabs ||
+            !screen
+        ) {
+            return false;
+        }
+
+
+        const button =
+            document.createElement(
+                "button"
+            );
+
+
+        button.type =
+            "button";
+
+        button.id =
+            "raudaProfileGradesTab";
+
+        button.className =
+            "rauda-profile-tab";
+
+        button.textContent =
+            "\u041e\u0446\u0435\u043d\u043a\u0438";
+
+
+        tabs.appendChild(
+            button
+        );
+
+
+        const panel =
+            document.createElement(
+                "div"
+            );
+
+
+        panel.id =
+            "raudaGradesPanel";
+
+        panel.className =
+            "rauda-grades-panel";
+
+
+        panel.innerHTML = `
+
+            <div
+                id="raudaGradesContent"
+                class="rauda-grades-loading"
+            >
+                \u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043e\u0446\u0435\u043d\u043e\u043a\u2026
+            </div>
+        `;
+
+
+        tabs.insertAdjacentElement(
+            "afterend",
+            panel
+        );
+
+
+        button.addEventListener(
+            "click",
+            openGradesTab
+        );
+
+
+        document
+            .getElementById(
+                "raudaProfileMainTab"
+            )
+            ?.addEventListener(
+                "click",
+                restoreGradesProfile,
+                true
+            );
+
+
+        document
+            .getElementById(
+                "raudaProfileStatsTab"
+            )
+            ?.addEventListener(
+                "click",
+                restoreGradesProfile,
+                true
+            );
+
+
+        return true;
+    }
+
+
+    async function loadRaudaGrades() {
+
+        const content =
+            document.getElementById(
+                "raudaGradesContent"
+            );
+
+
+        if (!content) {
+            return;
+        }
+
+
+        content.className =
+            "rauda-grades-loading";
+
+        content.textContent =
+            "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043e\u0446\u0435\u043d\u043e\u043a\u2026";
+
+
+        try {
+
+            const result =
+                await api(
+                    "/grades"
+                );
+
+
+            if (
+                !result.data ||
+                !result.data.ok
+            ) {
+
+                throw new Error(
+                    result.data?.error ||
+                    "Grades error"
+                );
+            }
+
+
+            const summary =
+                result.data.summary ||
+                {};
+
+
+            const grades =
+                Array.isArray(
+                    result.data.grades
+                )
+                    ? result.data.grades
+                    : [];
+
+
+            if (!grades.length) {
+
+                content.className =
+                    "rauda-grades-empty";
+
+                content.textContent =
+                    "\u041e\u0446\u0435\u043d\u043e\u043a \u043f\u043e\u043a\u0430 \u043d\u0435\u0442. \u041e\u043d\u0438 \u043f\u043e\u044f\u0432\u044f\u0442\u0441\u044f \u043f\u043e\u0441\u043b\u0435 \u043f\u0440\u043e\u0445\u043e\u0436\u0434\u0435\u043d\u0438\u044f \u0442\u0435\u0441\u0442\u043e\u0432 \u0438 \u044d\u043a\u0437\u0430\u043c\u0435\u043d\u043e\u0432.";
+
+                return;
+            }
+
+
+            const items =
+                grades.map(
+                    item => {
+
+                        const type =
+                            item.type ===
+                            "exam"
+                                ? "\u042d\u043a\u0437\u0430\u043c\u0435\u043d"
+                                : "\u0422\u0435\u0441\u0442";
+
+
+                        const stateClass =
+                            item.passed
+                                ? "passed"
+                                : "failed";
+
+
+                        return `
+
+                            <div
+                                class="rauda-grade-item"
+                            >
+
+                                <div
+                                    class="rauda-grade-item-top"
+                                >
+
+                                    <div>
+
+                                        <div
+                                            class="rauda-grade-item-type"
+                                        >
+                                            ${type}
+                                        </div>
+
+                                        <div
+                                            class="rauda-grade-item-title"
+                                        >
+                                            ${escapeGradeHtml(
+                                                item.title
+                                            )}
+                                        </div>
+
+                                        <div
+                                            class="rauda-grade-item-course"
+                                        >
+                                            ${escapeGradeHtml(
+                                                item.course_name
+                                            )}
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        class="rauda-grade-percent"
+                                    >
+                                        ${Math.round(
+                                            Number(
+                                                item.percentage
+                                            ) || 0
+                                        )}%
+                                    </div>
+
+                                </div>
+
+
+                                <div
+                                    class="rauda-grade-item-bottom"
+                                >
+
+                                    <div
+                                        class="rauda-grade-result"
+                                    >
+                                        ${Number(
+                                            item.score
+                                        ) || 0}
+                                        /
+                                        ${Number(
+                                            item.max_score
+                                        ) || 100}
+                                        \u0431\u0430\u043b\u043b\u043e\u0432
+                                    </div>
+
+
+                                    <div
+                                        class="rauda-grade-label ${stateClass}"
+                                    >
+                                        ${escapeGradeHtml(
+                                            item.grade
+                                        )}
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        `;
+                    }
+                )
+                .join("");
+
+
+            content.className =
+                "";
+
+
+            content.innerHTML = `
+
+                <div
+                    class="rauda-grade-average"
+                >
+
+                    <div
+                        class="rauda-grade-average-label"
+                    >
+                        \u0421\u0440\u0435\u0434\u043d\u0438\u0439 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442
+                    </div>
+
+
+                    <div
+                        class="rauda-grade-average-row"
+                    >
+
+                        <div
+                            class="rauda-grade-average-number"
+                        >
+                            ${Number(
+                                summary.average_percentage
+                            ) || 0}%
+                        </div>
+
+                        <div
+                            class="rauda-grade-average-text"
+                        >
+                            ${escapeGradeHtml(
+                                summary.average_grade
+                            )}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="rauda-grades-summary"
+                >
+
+                    <div
+                        class="rauda-grade-summary-card"
+                    >
+                        <div
+                            class="rauda-grade-summary-value"
+                        >
+                            ${Number(
+                                summary.total
+                            ) || 0}
+                        </div>
+
+                        <div
+                            class="rauda-grade-summary-label"
+                        >
+                            \u0412\u0441\u0435\u0433\u043e
+                        </div>
+                    </div>
+
+
+                    <div
+                        class="rauda-grade-summary-card"
+                    >
+                        <div
+                            class="rauda-grade-summary-value"
+                        >
+                            ${Number(
+                                summary.passed
+                            ) || 0}
+                        </div>
+
+                        <div
+                            class="rauda-grade-summary-label"
+                        >
+                            \u0421\u0434\u0430\u043d\u043e
+                        </div>
+                    </div>
+
+
+                    <div
+                        class="rauda-grade-summary-card"
+                    >
+                        <div
+                            class="rauda-grade-summary-value"
+                        >
+                            ${Number(
+                                summary.failed
+                            ) || 0}
+                        </div>
+
+                        <div
+                            class="rauda-grade-summary-label"
+                        >
+                            \u041d\u0435 \u0441\u0434\u0430\u043d\u043e
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="rauda-grade-list"
+                >
+                    ${items}
+                </div>
+            `;
+
+
+        } catch (error) {
+
+            console.error(
+                "Grades:",
+                error
+            );
+
+
+            content.className =
+                "rauda-grades-empty";
+
+
+            content.textContent =
+                "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043e\u0446\u0435\u043d\u043a\u0438.";
+        }
+    }
+
+
+    window.openRaudaGradesTab =
+        openGradesTab;
+
+
+    window.loadRaudaGrades =
+        loadRaudaGrades;
+
+
+    function initGradingSystem() {
+
+        enableRaudaHomeButton();
+
+
+        if (!ensureGradesTab()) {
+
+            const observer =
+                new MutationObserver(
+                    function () {
+
+                        if (
+                            ensureGradesTab()
+                        ) {
+
+                            observer.disconnect();
+                        }
+                    }
+                );
+
+
+            observer.observe(
+                document.body,
+                {
+                    childList: true,
+                    subtree: true
+                }
+            );
+        }
+    }
+
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initGradingSystem
+        );
+
+    } else {
+
+        initGradingSystem();
     }
 
 })();
