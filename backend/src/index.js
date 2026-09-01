@@ -150,18 +150,6 @@ async function handleRegister(request, env) {
         `, [technicalTelegramId, firstName || null, lastName || null, phone || null, login, passwordHash]);
 
         const user = await getUserById(env.DB, Number(result.meta.last_row_id));
-        if (user.status !== "active") {
-    return json(
-        {
-            ok: false,
-            error:
-                user.blocked_reason ||
-                "Ваш аккаунт заблокирован"
-        },
-        403,
-        env
-    );
-}
         const session = await createSession(env.DB, user.id);
         return json({ ok: true, user, token: session.token, expires_at: session.expiresAt }, 201, env);
     } catch (error) {
