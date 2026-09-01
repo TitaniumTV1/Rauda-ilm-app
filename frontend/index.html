@@ -2087,6 +2087,603 @@ button:active,
 
 </style>
 
+
+<style id="rauda-final-theme">
+
+:root {
+    --green: #183d2c;
+    --green-hover: #214d39;
+    --green-pressed: #123324;
+
+    --gold: #c6a45f;
+    --gold-soft: #f1e5c8;
+
+    --cream: #f6f1e6;
+    --surface: #fffdf8;
+
+    --text: #1e2923;
+    --muted: #777a71;
+
+    --border: #e2d7bf;
+}
+
+/* УБИРАЕМ ЧЁРНЫЙ КВАДРАТ И СТАРЫЕ ЭФФЕКТЫ */
+
+* {
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+
+button,
+a,
+.primary-button,
+.secondary-button,
+.admin-link,
+.menu-button,
+.menu-item,
+.menu-close,
+.back-button,
+.auth-switch button {
+    transform: none !important;
+    scale: 1 !important;
+
+    -webkit-tap-highlight-color: transparent !important;
+
+    transition:
+        background-color .22s cubic-bezier(.2,.8,.2,1),
+        border-color .22s cubic-bezier(.2,.8,.2,1),
+        color .22s cubic-bezier(.2,.8,.2,1),
+        box-shadow .22s cubic-bezier(.2,.8,.2,1),
+        opacity .22s cubic-bezier(.2,.8,.2,1)
+        !important;
+
+    background-clip: padding-box !important;
+}
+
+button:active,
+a:active,
+.primary-button:active,
+.secondary-button:active,
+.admin-link:active,
+.menu-button:active,
+.menu-item:active,
+.menu-close:active,
+.back-button:active {
+    transform: none !important;
+    scale: 1 !important;
+}
+
+
+/* ФОН */
+
+html,
+body {
+    background: var(--cream) !important;
+    color: var(--text) !important;
+}
+
+body {
+    background:
+        radial-gradient(
+            circle at 50% -120px,
+            rgba(198,164,95,.15),
+            transparent 340px
+        ),
+        var(--cream) !important;
+}
+
+
+/* СТРАНИЦА ВХОДА */
+
+.auth-screen {
+    min-height: 100vh !important;
+
+    padding: 22px 14px !important;
+
+    background:
+        radial-gradient(
+            circle at 50% 0,
+            rgba(198,164,95,.17),
+            transparent 340px
+        ),
+        linear-gradient(
+            180deg,
+            #faf7ef 0%,
+            #f4efe3 100%
+        ) !important;
+}
+
+.auth-card {
+    width: 100% !important;
+    max-width: 400px !important;
+
+    padding: 24px !important;
+
+    border-radius: 18px !important;
+
+    background: var(--surface) !important;
+
+    border: 1px solid var(--border) !important;
+
+    box-shadow:
+        0 12px 35px rgba(24,61,44,.07)
+        !important;
+
+    overflow: hidden;
+}
+
+.auth-card::before {
+    content: "";
+
+    display: block;
+
+    width: 52px;
+    height: 3px;
+
+    margin: -5px auto 19px;
+
+    border-radius: 999px;
+
+    background: var(--gold);
+}
+
+.auth-logo {
+    color: var(--green) !important;
+
+    font-size: 27px !important;
+    font-weight: 800 !important;
+
+    letter-spacing: .8px !important;
+}
+
+.auth-subtitle {
+    color: var(--muted) !important;
+
+    font-size: 13px !important;
+
+    margin-bottom: 22px !important;
+}
+
+
+/* ПОЛЯ */
+
+.input {
+    width: 100% !important;
+
+    min-height: 43px !important;
+
+    padding: 10px 12px !important;
+
+    margin-bottom: 10px !important;
+
+    border-radius: 10px !important;
+
+    border:
+        1px solid
+        #ddd2ba !important;
+
+    background:
+        #fffefa !important;
+
+    color:
+        var(--text) !important;
+
+    font-size:
+        14px !important;
+
+    box-shadow:
+        none !important;
+
+    transition:
+        border-color .22s ease,
+        box-shadow .22s ease,
+        background-color .22s ease
+        !important;
+}
+
+.input:hover {
+    border-color:
+        #cdbb94 !important;
+}
+
+.input:focus {
+    outline: none !important;
+
+    border-color:
+        var(--gold) !important;
+
+    background:
+        #ffffff !important;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(198,164,95,.12)
+        !important;
+}
+
+.input::placeholder {
+    color:
+        #aaa398 !important;
+}
+
+
+/* ОСНОВНАЯ КНОПКА */
+
+.primary-button {
+    min-height: 42px !important;
+
+    padding: 9px 14px !important;
+
+    margin-top: 8px !important;
+
+    border-radius: 10px !important;
+
+    border:
+        1px solid
+        #214b38 !important;
+
+    background:
+        var(--green) !important;
+
+    color:
+        #fffdf8 !important;
+
+    font-size:
+        13.5px !important;
+
+    font-weight:
+        700 !important;
+
+    box-shadow:
+        none !important;
+
+    overflow: hidden !important;
+}
+
+.primary-button:hover {
+    background:
+        var(--green-hover) !important;
+
+    box-shadow:
+        0 4px 10px
+        rgba(24,61,44,.10)
+        !important;
+}
+
+.primary-button:active {
+    background:
+        var(--green-pressed) !important;
+
+    box-shadow:
+        inset 0 1px 3px
+        rgba(0,0,0,.12)
+        !important;
+}
+
+
+/* ВТОРИЧНЫЕ КНОПКИ */
+
+.secondary-button,
+.admin-link {
+    min-height: 40px !important;
+
+    padding: 9px 12px !important;
+
+    margin-top: 8px !important;
+
+    border-radius: 10px !important;
+
+    border:
+        1px solid
+        #d7c59d !important;
+
+    background:
+        #faf5e9 !important;
+
+    color:
+        var(--green) !important;
+
+    font-size:
+        13px !important;
+
+    font-weight:
+        650 !important;
+
+    box-shadow:
+        none !important;
+
+    overflow: hidden !important;
+}
+
+.secondary-button:hover,
+.admin-link:hover {
+    background:
+        var(--gold-soft) !important;
+
+    border-color:
+        var(--gold) !important;
+}
+
+.secondary-button:active,
+.admin-link:active {
+    background:
+        #e8d8b5 !important;
+
+    box-shadow:
+        inset 0 1px 2px
+        rgba(70,50,20,.09)
+        !important;
+}
+
+
+/* ПЕРЕКЛЮЧЕНИЕ ВХОД / РЕГИСТРАЦИЯ */
+
+.auth-switch {
+    margin-top: 17px !important;
+
+    color:
+        var(--muted) !important;
+
+    font-size:
+        12.5px !important;
+}
+
+.auth-switch button {
+    padding: 4px 7px !important;
+
+    border-radius: 7px !important;
+
+    border: none !important;
+
+    background:
+        transparent !important;
+
+    color:
+        var(--green) !important;
+
+    font-size:
+        12.5px !important;
+
+    font-weight:
+        700 !important;
+
+    overflow: hidden !important;
+}
+
+.auth-switch button:hover {
+    background:
+        var(--gold-soft) !important;
+}
+
+.auth-switch button:active {
+    background:
+        #eadab7 !important;
+}
+
+
+/* ОСНОВНОЙ ИНТЕРФЕЙС */
+
+.header {
+    height: 58px !important;
+
+    background:
+        rgba(255,253,248,.96)
+        !important;
+
+    border-bottom:
+        1px solid
+        var(--border) !important;
+
+    box-shadow:
+        none !important;
+}
+
+.logo {
+    color:
+        var(--green) !important;
+
+    font-size:
+        17px !important;
+}
+
+.content {
+    max-width:
+        860px !important;
+
+    padding:
+        18px 14px 34px
+        !important;
+}
+
+.card {
+    padding:
+        17px !important;
+
+    border-radius:
+        14px !important;
+
+    background:
+        var(--surface) !important;
+
+    border:
+        1px solid
+        var(--border) !important;
+
+    box-shadow:
+        0 4px 14px
+        rgba(24,61,44,.035)
+        !important;
+}
+
+.welcome-title,
+.program-title,
+.lesson-title,
+.profile-name {
+    color:
+        var(--green) !important;
+}
+
+.welcome-small,
+.program-label,
+.program-description,
+.lesson-description,
+.profile-role {
+    color:
+        var(--muted) !important;
+}
+
+.semester {
+    border-radius:
+        8px !important;
+
+    background:
+        var(--gold-soft) !important;
+
+    color:
+        #705a30 !important;
+
+    border:
+        1px solid
+        #e0cda5 !important;
+}
+
+
+/* МЕНЮ */
+
+.menu-button,
+.menu-close {
+    border-radius:
+        10px !important;
+
+    background:
+        #edf2ee !important;
+
+    color:
+        var(--green) !important;
+
+    border:
+        1px solid
+        #d5dfd7 !important;
+
+    box-shadow:
+        none !important;
+
+    overflow:
+        hidden !important;
+}
+
+.menu-button:hover,
+.menu-close:hover {
+    background:
+        #e3ece5 !important;
+}
+
+.menu-button:active,
+.menu-close:active {
+    background:
+        #d8e5db !important;
+}
+
+.menu-item {
+    border-radius:
+        9px !important;
+
+    color:
+        var(--green) !important;
+}
+
+.menu-item:hover {
+    background:
+        #edf2ee !important;
+}
+
+.menu-item:active {
+    background:
+        #e1ebe4 !important;
+}
+
+
+/* ПРОФИЛЬ */
+
+.avatar {
+    background:
+        var(--green) !important;
+
+    color:
+        white !important;
+
+    border:
+        2px solid
+        var(--gold) !important;
+
+    box-shadow:
+        none !important;
+}
+
+.profile-row {
+    border-bottom-color:
+        #ece3d2 !important;
+}
+
+
+/* FOCUS БЕЗ ЧЁРНОГО КВАДРАТА */
+
+button:focus,
+a:focus {
+    outline: none !important;
+}
+
+button:focus-visible,
+a:focus-visible {
+    outline:
+        2px solid
+        rgba(198,164,95,.45)
+        !important;
+
+    outline-offset:
+        2px !important;
+}
+
+
+/* МОБИЛЬНЫЙ */
+
+@media (max-width: 520px) {
+
+    .auth-screen {
+        align-items:
+            flex-start !important;
+
+        padding:
+            14px 10px !important;
+    }
+
+    .auth-card {
+        padding:
+            19px 16px !important;
+
+        border-radius:
+            15px !important;
+    }
+
+    .primary-button,
+    .secondary-button,
+    .admin-link {
+        min-height:
+            40px !important;
+    }
+
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
