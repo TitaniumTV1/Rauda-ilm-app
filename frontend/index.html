@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ru">
+﻿<!DOCTYPE html><html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>RAUDA ILM</title>
@@ -752,7 +752,7 @@ button:disabled {
 
 
 /* =========================
-   ОСНОВА
+   РћРЎРќРћР’Рђ
 ========================= */
 
 body {
@@ -842,7 +842,7 @@ body {
 
 
 /* =========================
-   КАРТОЧКИ
+   РљРђР РўРћР§РљР
 ========================= */
 
 .card {
@@ -918,7 +918,7 @@ select:focus {
 
 
 /* =========================
-   ГЛАВНЫЕ КНОПКИ
+   Р“Р›РђР’РќР«Р• РљРќРћРџРљР
 ========================= */
 
 .primary-button {
@@ -965,7 +965,7 @@ select:focus {
 
 
 /* =========================
-   ВТОРИЧНЫЕ КНОПКИ
+   Р’РўРћР РР§РќР«Р• РљРќРћРџРљР
 ========================= */
 
 .secondary-button,
@@ -1007,7 +1007,7 @@ select:focus {
 
 
 /* =========================
-   ВСЕ ОСТАЛЬНЫЕ КНОПКИ
+   Р’РЎР• РћРЎРўРђР›Р¬РќР«Р• РљРќРћРџРљР
 ========================= */
 
 button {
@@ -2107,7 +2107,7 @@ button:active,
     --border: #e2d7bf;
 }
 
-/* УБИРАЕМ ЧЁРНЫЙ КВАДРАТ И СТАРЫЕ ЭФФЕКТЫ */
+/* РЈР‘РР РђР•Рњ Р§РЃР РќР«Р™ РљР’РђР”Р РђРў Р РЎРўРђР Р«Р• Р­Р¤Р¤Р•РљРўР« */
 
 * {
     -webkit-tap-highlight-color: transparent !important;
@@ -2162,7 +2162,7 @@ a:active,
 }
 
 
-/* ФОН */
+/* Р¤РћРќ */
 
 html,
 body {
@@ -2181,7 +2181,7 @@ body {
 }
 
 
-/* СТРАНИЦА ВХОДА */
+/* РЎРўР РђРќРР¦Рђ Р’РҐРћР”Рђ */
 
 .auth-screen {
     min-height: 100vh !important;
@@ -2253,7 +2253,7 @@ body {
 }
 
 
-/* ПОЛЯ */
+/* РџРћР›РЇ */
 
 .input {
     width: 100% !important;
@@ -2315,7 +2315,7 @@ body {
 }
 
 
-/* ОСНОВНАЯ КНОПКА */
+/* РћРЎРќРћР’РќРђРЇ РљРќРћРџРљРђ */
 
 .primary-button {
     min-height: 42px !important;
@@ -2369,7 +2369,7 @@ body {
 }
 
 
-/* ВТОРИЧНЫЕ КНОПКИ */
+/* Р’РўРћР РР§РќР«Р• РљРќРћРџРљР */
 
 .secondary-button,
 .admin-link {
@@ -2424,7 +2424,7 @@ body {
 }
 
 
-/* ПЕРЕКЛЮЧЕНИЕ ВХОД / РЕГИСТРАЦИЯ */
+/* РџР•Р Р•РљР›Р®Р§Р•РќРР• Р’РҐРћР” / Р Р•Р“РРЎРўР РђР¦РРЇ */
 
 .auth-switch {
     margin-top: 17px !important;
@@ -2469,7 +2469,7 @@ body {
 }
 
 
-/* ОСНОВНОЙ ИНТЕРФЕЙС */
+/* РћРЎРќРћР’РќРћР™ РРќРўР•Р Р¤Р•Р™РЎ */
 
 .header {
     height: 58px !important;
@@ -2556,7 +2556,7 @@ body {
 }
 
 
-/* МЕНЮ */
+/* РњР•РќР® */
 
 .menu-button,
 .menu-close {
@@ -2611,7 +2611,7 @@ body {
 }
 
 
-/* ПРОФИЛЬ */
+/* РџР РћР¤РР›Р¬ */
 
 .avatar {
     background:
@@ -2634,7 +2634,7 @@ body {
 }
 
 
-/* FOCUS БЕЗ ЧЁРНОГО КВАДРАТА */
+/* FOCUS Р‘Р•Р— Р§РЃР РќРћР“Рћ РљР’РђР”Р РђРўРђ */
 
 button:focus,
 a:focus {
@@ -2653,7 +2653,7 @@ a:focus-visible {
 }
 
 
-/* МОБИЛЬНЫЙ */
+/* РњРћР‘РР›Р¬РќР«Р™ */
 
 @media (max-width: 520px) {
 
@@ -2720,6 +2720,69 @@ a:focus-visible {
 
 </style>
 
+<style id="rauda-no-black-press">
+
+html,
+body,
+*,
+*::before,
+*::after {
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+button,
+a,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+.primary-button,
+.secondary-button,
+.admin-link,
+.menu-button,
+.menu-item,
+.menu-close,
+.auth-tab,
+.auth-tabs button {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    background-clip: padding-box !important;
+}
+
+button:active,
+a:active,
+[role="button"]:active,
+input[type="button"]:active,
+input[type="submit"]:active,
+.primary-button:active,
+.secondary-button:active,
+.admin-link:active,
+.menu-button:active,
+.menu-item:active,
+.menu-close:active,
+.auth-tab:active,
+.auth-tabs button:active {
+    transform: none !important;
+    scale: 1 !important;
+    filter: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.primary-button:active {
+    background: #123324 !important;
+    color: #ffffff !important;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+</style>
 </head><body>
 <div id="authApp" class="auth-screen">
 
@@ -2740,7 +2803,7 @@ a:focus-visible {
                 </div>
 
                 <div class="auth-brand-subtitle">
-                    Образовательная платформа
+                    РћР±СЂР°Р·РѕРІР°С‚РµР»СЊРЅР°СЏ РїР»Р°С‚С„РѕСЂРјР°
                 </div>
             </div>
         </div>
@@ -2759,11 +2822,11 @@ a:focus-visible {
             <div id="loginForm">
 
                 <div class="auth-heading">
-                    Вход
+                    Р’С…РѕРґ
                 </div>
 
                 <div class="auth-description">
-                    Выберите удобный способ входа
+                    Р’С‹Р±РµСЂРёС‚Рµ СѓРґРѕР±РЅС‹Р№ СЃРїРѕСЃРѕР± РІС…РѕРґР°
                 </div>
 
 
@@ -2775,7 +2838,7 @@ a:focus-visible {
                         data-method="password"
                         onclick="setLoginMethod('password')"
                     >
-                        Логин
+                        Р›РѕРіРёРЅ
                     </button>
 
                     <button
@@ -2784,7 +2847,7 @@ a:focus-visible {
                         data-method="email"
                         onclick="setLoginMethod('email')"
                     >
-                        Почта
+                        РџРѕС‡С‚Р°
                     </button>
 
                 </div>
@@ -2798,27 +2861,27 @@ a:focus-visible {
                 >
 
                     <label class="field-label">
-                        Логин
+                        Р›РѕРіРёРЅ
                     </label>
 
                     <input
                         id="loginInput"
                         class="input"
                         type="text"
-                        placeholder="Введите логин"
+                        placeholder="Р’РІРµРґРёС‚Рµ Р»РѕРіРёРЅ"
                         autocomplete="username"
                     >
 
 
                     <label class="field-label">
-                        Пароль
+                        РџР°СЂРѕР»СЊ
                     </label>
 
                     <input
                         id="loginPassword"
                         class="input"
                         type="password"
-                        placeholder="Введите пароль"
+                        placeholder="Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ"
                         autocomplete="current-password"
                     >
 
@@ -2828,7 +2891,7 @@ a:focus-visible {
                         class="primary-button"
                         onclick="login()"
                     >
-                        Войти
+                        Р’РѕР№С‚Рё
                     </button>
 
                 </div>
@@ -2842,7 +2905,7 @@ a:focus-visible {
                 >
 
                     <label class="field-label">
-                        Электронная почта
+                        Р­Р»РµРєС‚СЂРѕРЅРЅР°СЏ РїРѕС‡С‚Р°
                     </label>
 
                     <input
@@ -2855,7 +2918,7 @@ a:focus-visible {
 
 
                     <label class="field-label">
-                        Код подтверждения
+                        РљРѕРґ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ
                     </label>
 
                     <div class="code-row">
@@ -2874,7 +2937,7 @@ a:focus-visible {
                             class="code-button"
                             onclick="sendEmailCode('login')"
                         >
-                            Получить код
+                            РџРѕР»СѓС‡РёС‚СЊ РєРѕРґ
                         </button>
 
                     </div>
@@ -2885,7 +2948,7 @@ a:focus-visible {
                         class="primary-button"
                         onclick="emailLogin()"
                     >
-                        Войти по почте
+                        Р’РѕР№С‚Рё РїРѕ РїРѕС‡С‚Рµ
                     </button>
 
 
@@ -2898,7 +2961,7 @@ a:focus-visible {
 
 
                 <div class="auth-divider">
-                    <span>или</span>
+                    <span>РёР»Рё</span>
                 </div>
 
 
@@ -2908,7 +2971,7 @@ a:focus-visible {
                     onclick="telegramLogin()"
                 >
                     <span class="telegram-mark">T</span>
-                    Войти через Telegram
+                    Р’РѕР№С‚Рё С‡РµСЂРµР· Telegram
                 </button>
 
 
@@ -2916,18 +2979,18 @@ a:focus-visible {
                     class="admin-link"
                     href="/admin/"
                 >
-                    Админ-панель
+                    РђРґРјРёРЅ-РїР°РЅРµР»СЊ
                 </a>
 
 
                 <div class="auth-switch">
-                    Нет аккаунта?
+                    РќРµС‚ Р°РєРєР°СѓРЅС‚Р°?
 
                     <button
                         type="button"
                         onclick="showRegister()"
                     >
-                        Зарегистрироваться
+                        Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ
                     </button>
                 </div>
 
@@ -2942,23 +3005,23 @@ a:focus-visible {
             >
 
                 <div class="auth-heading">
-                    Регистрация
+                    Р РµРіРёСЃС‚СЂР°С†РёСЏ
                 </div>
 
                 <div class="auth-description">
-                    Создайте аккаунт RAUDA ILM
+                    РЎРѕР·РґР°Р№С‚Рµ Р°РєРєР°СѓРЅС‚ RAUDA ILM
                 </div>
 
 
                 <label class="field-label">
-                    Логин
+                    Р›РѕРіРёРЅ
                 </label>
 
                 <input
                     id="registerLogin"
                     class="input"
                     type="text"
-                    placeholder="Придумайте логин"
+                    placeholder="РџСЂРёРґСѓРјР°Р№С‚Рµ Р»РѕРіРёРЅ"
                     autocomplete="username"
                 >
 
@@ -2967,27 +3030,27 @@ a:focus-visible {
 
                     <div>
                         <label class="field-label">
-                            Имя
+                            РРјСЏ
                         </label>
 
                         <input
                             id="registerFirstName"
                             class="input"
                             type="text"
-                            placeholder="Имя"
+                            placeholder="РРјСЏ"
                         >
                     </div>
 
                     <div>
                         <label class="field-label">
-                            Фамилия
+                            Р¤Р°РјРёР»РёСЏ
                         </label>
 
                         <input
                             id="registerLastName"
                             class="input"
                             type="text"
-                            placeholder="Фамилия"
+                            placeholder="Р¤Р°РјРёР»РёСЏ"
                         >
                     </div>
 
@@ -3002,7 +3065,7 @@ a:focus-visible {
                         data-method="email"
                         onclick="setRegisterMethod('email')"
                     >
-                        По почте
+                        РџРѕ РїРѕС‡С‚Рµ
                     </button>
 
                     <button
@@ -3011,7 +3074,7 @@ a:focus-visible {
                         data-method="password"
                         onclick="setRegisterMethod('password')"
                     >
-                        С паролем
+                        РЎ РїР°СЂРѕР»РµРј
                     </button>
 
                 </div>
@@ -3025,7 +3088,7 @@ a:focus-visible {
                 >
 
                     <label class="field-label">
-                        Электронная почта
+                        Р­Р»РµРєС‚СЂРѕРЅРЅР°СЏ РїРѕС‡С‚Р°
                     </label>
 
                     <input
@@ -3038,7 +3101,7 @@ a:focus-visible {
 
 
                     <label class="field-label">
-                        Код подтверждения
+                        РљРѕРґ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ
                     </label>
 
                     <div class="code-row">
@@ -3057,7 +3120,7 @@ a:focus-visible {
                             class="code-button"
                             onclick="sendEmailCode('register')"
                         >
-                            Получить код
+                            РџРѕР»СѓС‡РёС‚СЊ РєРѕРґ
                         </button>
 
                     </div>
@@ -3068,7 +3131,7 @@ a:focus-visible {
                         class="primary-button"
                         onclick="emailRegister()"
                     >
-                        Создать аккаунт
+                        РЎРѕР·РґР°С‚СЊ Р°РєРєР°СѓРЅС‚
                     </button>
 
 
@@ -3088,27 +3151,27 @@ a:focus-visible {
                 >
 
                     <label class="field-label">
-                        Пароль
+                        РџР°СЂРѕР»СЊ
                     </label>
 
                     <input
                         id="registerPassword"
                         class="input"
                         type="password"
-                        placeholder="Минимум 8 символов"
+                        placeholder="РњРёРЅРёРјСѓРј 8 СЃРёРјРІРѕР»РѕРІ"
                         autocomplete="new-password"
                     >
 
 
                     <label class="field-label">
-                        Телефон
+                        РўРµР»РµС„РѕРЅ
                     </label>
 
                     <input
                         id="registerPhone"
                         class="input"
                         type="tel"
-                        placeholder="Необязательно"
+                        placeholder="РќРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ"
                     >
 
 
@@ -3117,20 +3180,20 @@ a:focus-visible {
                         class="primary-button"
                         onclick="register()"
                     >
-                        Создать аккаунт
+                        РЎРѕР·РґР°С‚СЊ Р°РєРєР°СѓРЅС‚
                     </button>
 
                 </div>
 
 
                 <div class="auth-switch">
-                    Уже есть аккаунт?
+                    РЈР¶Рµ РµСЃС‚СЊ Р°РєРєР°СѓРЅС‚?
 
                     <button
                         type="button"
                         onclick="showLogin()"
                     >
-                        Войти
+                        Р’РѕР№С‚Рё
                     </button>
                 </div>
 
@@ -3144,15 +3207,15 @@ a:focus-visible {
 <div id="app" class="app" style="display:none"><header class="header">
 
     <div class="logo">
-        RАUDA ILM
+        RРђUDA ILM
     </div>
 
     <button
         class="menu-button"
         onclick="openMenu()"
-        aria-label="Меню"
+        aria-label="РњРµРЅСЋ"
     >
-        ☰
+        в°
     </button>
 
 </header>
@@ -3170,14 +3233,14 @@ a:focus-visible {
         <div class="welcome">
 
             <div class="welcome-small">
-                С возвращением
+                РЎ РІРѕР·РІСЂР°С‰РµРЅРёРµРј
             </div>
 
             <h1
                 id="welcomeName"
                 class="welcome-title"
             >
-                Студент
+                РЎС‚СѓРґРµРЅС‚
             </h1>
 
         </div>
@@ -3185,35 +3248,35 @@ a:focus-visible {
         <div class="card">
 
             <div class="program-label">
-                Программа обучения
+                РџСЂРѕРіСЂР°РјРјР° РѕР±СѓС‡РµРЅРёСЏ
             </div>
 
             <div
                 id="programTitle"
                 class="program-title"
             >
-                Загрузка...
+                Р—Р°РіСЂСѓР·РєР°...
             </div>
 
             <div
                 id="programDescription"
                 class="program-description"
             >
-                Загружаем информацию о программе.
+                Р—Р°РіСЂСѓР¶Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РїСЂРѕРіСЂР°РјРјРµ.
             </div>
 
             <div
                 id="semesterLabel"
                 class="semester"
             >
-                Семестр
+                РЎРµРјРµСЃС‚СЂ
             </div>
 
             <button
                 class="primary-button"
                 onclick="showScreen('lessonsScreen'); loadLessons();"
             >
-                Перейти к урокам
+                РџРµСЂРµР№С‚Рё Рє СѓСЂРѕРєР°Рј
             </button>
 
         </div>
@@ -3232,7 +3295,7 @@ a:focus-visible {
         class="back-button"
         onclick="showScreen('homeScreen')"
     >
-        ← Назад
+        в†ђ РќР°Р·Р°Рґ
     </button>
 
     <div class="card">
@@ -3243,76 +3306,76 @@ a:focus-visible {
                 id="profileAvatar"
                 class="avatar"
             >
-                С
+                РЎ
             </div>
 
             <div
                 id="profileName"
                 class="profile-name"
             >
-                Студент
+                РЎС‚СѓРґРµРЅС‚
             </div>
 
             <div
                 id="profileRole"
                 class="profile-role"
             >
-                Студент
+                РЎС‚СѓРґРµРЅС‚
             </div>
 
         </div>
 
         <div style="margin-top:16px">
 
-            <label>Ник</label>
+            <label>РќРёРє</label>
             <input
                 id="profileUsernameInput"
                 class="input"
                 type="text"
-                placeholder="Ник"
+                placeholder="РќРёРє"
                 maxlength="64"
             >
 
-            <label>Имя</label>
+            <label>РРјСЏ</label>
             <input
                 id="profileFirstNameInput"
                 class="input"
                 type="text"
-                placeholder="Имя"
+                placeholder="РРјСЏ"
                 maxlength="64"
             >
 
-            <label>Фамилия</label>
+            <label>Р¤Р°РјРёР»РёСЏ</label>
             <input
                 id="profileLastNameInput"
                 class="input"
                 type="text"
-                placeholder="Фамилия"
+                placeholder="Р¤Р°РјРёР»РёСЏ"
                 maxlength="64"
             >
 
         </div>
 
         <div class="profile-row">
-            <span>Логин</span>
-            <span id="profileLogin">—</span>
+            <span>Р›РѕРіРёРЅ</span>
+            <span id="profileLogin">вЂ”</span>
         </div>
 
         <div class="profile-row">
             <span>Telegram</span>
-            <span id="profileTelegramId">—</span>
+            <span id="profileTelegramId">вЂ”</span>
         </div>
 
         <div class="profile-row">
-            <span>Роль</span>
-            <span id="profileRoleValue">—</span>
+            <span>Р РѕР»СЊ</span>
+            <span id="profileRoleValue">вЂ”</span>
         </div>
 
         <button
             class="primary-button"
             onclick="saveProfile()"
         >
-            Сохранить изменения
+            РЎРѕС…СЂР°РЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ
         </button>
 
     </div>
@@ -3321,7 +3384,7 @@ a:focus-visible {
         class="secondary-button"
         onclick="logout()"
     >
-        Выйти из аккаунта
+        Р’С‹Р№С‚Рё РёР· Р°РєРєР°СѓРЅС‚Р°
     </button>
 
 </section>
@@ -3337,32 +3400,32 @@ a:focus-visible {
         class="back-button"
         onclick="showScreen('homeScreen')"
     >
-        ← Назад
+        в†ђ РќР°Р·Р°Рґ
     </button>
 
     <div class="card">
 
         <h2>
-            Настройки
+            РќР°СЃС‚СЂРѕР№РєРё
         </h2>
 
         <div class="profile-row">
-            <span>ID аккаунта</span>
-            <span id="settingsUserId">—</span>
+            <span>ID Р°РєРєР°СѓРЅС‚Р°</span>
+            <span id="settingsUserId">вЂ”</span>
         </div>
 
         <div class="profile-row">
             <span>Telegram ID</span>
-            <span id="settingsTelegramId">—</span>
+            <span id="settingsTelegramId">вЂ”</span>
         </div>
 
         <div class="profile-row">
-            <span>Логин</span>
-            <span id="settingsLogin">Не привязан</span>
+            <span>Р›РѕРіРёРЅ</span>
+            <span id="settingsLogin">РќРµ РїСЂРёРІСЏР·Р°РЅ</span>
         </div>
         <div class="profile-row">
-            <span>Почта</span>
-            <span id="settingsEmail">Не привязана</span>
+            <span>РџРѕС‡С‚Р°</span>
+            <span id="settingsEmail">РќРµ РїСЂРёРІСЏР·Р°РЅР°</span>
         </div>
 
 
@@ -3375,14 +3438,14 @@ a:focus-visible {
                 font-weight:750;
                 margin-bottom:10px;
             ">
-                Привязать почту
+                РџСЂРёРІСЏР·Р°С‚СЊ РїРѕС‡С‚Сѓ
             </div>
 
             <input
                 id="linkEmailInput"
                 class="input"
                 type="email"
-                placeholder="Электронная почта"
+                placeholder="Р­Р»РµРєС‚СЂРѕРЅРЅР°СЏ РїРѕС‡С‚Р°"
                 autocomplete="email"
             >
 
@@ -3391,7 +3454,7 @@ a:focus-visible {
                 class="secondary-button"
                 onclick="sendLinkEmailCode()"
             >
-                Получить код
+                РџРѕР»СѓС‡РёС‚СЊ РєРѕРґ
             </button>
 
             <input
@@ -3400,7 +3463,7 @@ a:focus-visible {
                 type="text"
                 inputmode="numeric"
                 maxlength="6"
-                placeholder="6-значный код"
+                placeholder="6-Р·РЅР°С‡РЅС‹Р№ РєРѕРґ"
                 style="margin-top:10px"
             >
 
@@ -3409,7 +3472,7 @@ a:focus-visible {
                 class="primary-button"
                 onclick="linkEmail()"
             >
-                Привязать почту
+                РџСЂРёРІСЏР·Р°С‚СЊ РїРѕС‡С‚Сѓ
             </button>
 
             <div
@@ -3424,56 +3487,56 @@ a:focus-visible {
         >
 
             <h3>
-                Привязать логин
+                РџСЂРёРІСЏР·Р°С‚СЊ Р»РѕРіРёРЅ
             </h3>
 
             <p
                 class="muted"
                 style="margin-bottom:14px"
             >
-                Логин и пароль позволят войти в аккаунт,
-                даже если доступ к Telegram будет потерян.
+                Р›РѕРіРёРЅ Рё РїР°СЂРѕР»СЊ РїРѕР·РІРѕР»СЏС‚ РІРѕР№С‚Рё РІ Р°РєРєР°СѓРЅС‚,
+                РґР°Р¶Рµ РµСЃР»Рё РґРѕСЃС‚СѓРї Рє Telegram Р±СѓРґРµС‚ РїРѕС‚РµСЂСЏРЅ.
             </p>
 
             <label>
-                Логин
+                Р›РѕРіРёРЅ
             </label>
 
             <input
                 id="linkLoginInput"
                 class="input"
                 type="text"
-                placeholder="Введите логин"
+                placeholder="Р’РІРµРґРёС‚Рµ Р»РѕРіРёРЅ"
                 maxlength="30"
             >
 
             <label>
-                Пароль
+                РџР°СЂРѕР»СЊ
             </label>
 
             <input
                 id="linkPasswordInput"
                 class="input"
                 type="password"
-                placeholder="Минимум 8 символов"
+                placeholder="РњРёРЅРёРјСѓРј 8 СЃРёРјРІРѕР»РѕРІ"
             >
 
             <label>
-                Повторите пароль
+                РџРѕРІС‚РѕСЂРёС‚Рµ РїР°СЂРѕР»СЊ
             </label>
 
             <input
                 id="linkPasswordConfirmInput"
                 class="input"
                 type="password"
-                placeholder="Повторите пароль"
+                placeholder="РџРѕРІС‚РѕСЂРёС‚Рµ РїР°СЂРѕР»СЊ"
             >
 
             <button
                 class="primary-button"
                 onclick="linkLogin()"
             >
-                Привязать логин
+                РџСЂРёРІСЏР·Р°С‚СЊ Р»РѕРіРёРЅ
             </button>
 
         </div>
@@ -3483,7 +3546,7 @@ a:focus-visible {
             style="display:none; margin-top:20px"
         >
             <p>
-                Логин для резервного входа настроен.
+                Р›РѕРіРёРЅ РґР»СЏ СЂРµР·РµСЂРІРЅРѕРіРѕ РІС…РѕРґР° РЅР°СЃС‚СЂРѕРµРЅ.
             </p>
         </div>
 
@@ -3502,20 +3565,20 @@ a:focus-visible {
             class="back-button"
             onclick="showScreen('homeScreen')"
         >
-            ← Назад
+            в†ђ РќР°Р·Р°Рґ
         </button>
 
         <div class="card">
 
             <div class="program-title">
-                Мои уроки
+                РњРѕРё СѓСЂРѕРєРё
             </div>
 
             <div
                 id="lessonsContainer"
             >
                 <div class="loading">
-                    Загружаем уроки...
+                    Р—Р°РіСЂСѓР¶Р°РµРј СѓСЂРѕРєРё...
                 </div>
             </div>
 
@@ -3535,17 +3598,17 @@ a:focus-visible {
             class="back-button"
             onclick="showScreen('homeScreen')"
         >
-            ← Назад
+            в†ђ РќР°Р·Р°Рґ
         </button>
 
         <div class="card">
 
             <div class="program-title">
-                Расписание
+                Р Р°СЃРїРёСЃР°РЅРёРµ
             </div>
 
             <div class="empty">
-                Раздел готовится.
+                Р Р°Р·РґРµР» РіРѕС‚РѕРІРёС‚СЃСЏ.
             </div>
 
         </div>
@@ -3564,17 +3627,17 @@ a:focus-visible {
             class="back-button"
             onclick="showScreen('homeScreen')"
         >
-            ← Назад
+            в†ђ РќР°Р·Р°Рґ
         </button>
 
         <div class="card">
 
             <div class="program-title">
-                Экзамены
+                Р­РєР·Р°РјРµРЅС‹
             </div>
 
             <div class="empty">
-                Раздел готовится.
+                Р Р°Р·РґРµР» РіРѕС‚РѕРІРёС‚СЃСЏ.
             </div>
 
         </div>
@@ -3593,17 +3656,17 @@ a:focus-visible {
             class="back-button"
             onclick="showScreen('homeScreen')"
         >
-            ← Назад
+            в†ђ РќР°Р·Р°Рґ
         </button>
 
         <div class="card">
 
             <div class="program-title">
-                Научные материалы
+                РќР°СѓС‡РЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹
             </div>
 
             <div class="empty">
-                Раздел готовится.
+                Р Р°Р·РґРµР» РіРѕС‚РѕРІРёС‚СЃСЏ.
             </div>
 
         </div>
@@ -3623,60 +3686,60 @@ a:focus-visible {
     class="menu-close"
     onclick="closeMenu()"
 >
-    ×
+    Г—
 </button>
 
 <div class="menu-title">
-    Меню
+    РњРµРЅСЋ
 </div>
 
 <button
     class="menu-item"
     onclick="openProfile()"
 >
-    👤 Профиль
+    рџ‘¤ РџСЂРѕС„РёР»СЊ
 </button>
 
 <button
     class="menu-item"
     onclick="openLessons()"
 >
-    📚 Мои уроки
+    рџ“љ РњРѕРё СѓСЂРѕРєРё
 </button>
 
 <button
     class="menu-item"
     onclick="openSchedule()"
 >
-    📅 Расписание
+    рџ“… Р Р°СЃРїРёСЃР°РЅРёРµ
 </button>
 
 <button
     class="menu-item"
     onclick="openExams()"
 >
-    📝 Экзамены
+    рџ“ќ Р­РєР·Р°РјРµРЅС‹
 </button>
 
 <button
     class="menu-item"
     onclick="openScience()"
 >
-    🔬 Научные материалы
+    рџ”¬ РќР°СѓС‡РЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹
 </button>
 
 <button
     class="menu-item"
     onclick="openSettings()"
 >
-    ⚙ Настройки
+    вљ™ РќР°СЃС‚СЂРѕР№РєРё
 </button>
 
 <button
     class="menu-item"
     onclick="logout()"
 >
-    🚪 Выйти
+    рџљЄ Р’С‹Р№С‚Рё
 </button>
 
 </div><script>
@@ -3756,7 +3819,7 @@ a:focus-visible {
         } catch {
             data = {
                 ok: false,
-                error: "Ошибка сервера"
+                error: "РћС€РёР±РєР° СЃРµСЂРІРµСЂР°"
             };
         }
 
@@ -3781,7 +3844,7 @@ a:focus-visible {
             );
 
         element.textContent =
-            message || "Произошла ошибка";
+            message || "РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР°";
 
         element.classList.add(
             "show"
@@ -3849,7 +3912,7 @@ a:focus-visible {
 
         if (!loginValue || !password) {
             showError(
-                "Введите логин и пароль"
+                "Р’РІРµРґРёС‚Рµ Р»РѕРіРёРЅ Рё РїР°СЂРѕР»СЊ"
             );
             return;
         }
@@ -3981,8 +4044,8 @@ a:focus-visible {
         hideError();
 
         /*
-         * В Telegram Mini App
-         * данные доступны через
+         * Р’ Telegram Mini App
+         * РґР°РЅРЅС‹Рµ РґРѕСЃС‚СѓРїРЅС‹ С‡РµСЂРµР·
          * Telegram.WebApp.initData.
          */
 
@@ -3991,7 +4054,7 @@ a:focus-visible {
             !window.Telegram.WebApp
         ) {
             showError(
-                "Telegram авторизация доступна внутри Telegram Mini App"
+                "Telegram Р°РІС‚РѕСЂРёР·Р°С†РёСЏ РґРѕСЃС‚СѓРїРЅР° РІРЅСѓС‚СЂРё Telegram Mini App"
             );
             return;
         }
@@ -4004,7 +4067,7 @@ a:focus-visible {
 
         if (!initData) {
             showError(
-                "Telegram initData отсутствует"
+                "Telegram initData РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚"
             );
             return;
         }
@@ -4128,7 +4191,7 @@ function updateProfile() {
         ).trim() ||
         username ||
         currentUser.login ||
-        "Студент";
+        "РЎС‚СѓРґРµРЅС‚";
 
 
     const profileName =
@@ -4193,7 +4256,7 @@ function updateProfile() {
 
     if (profileLogin) {
         profileLogin.textContent =
-            currentUser.login || "—";
+            currentUser.login || "вЂ”";
     }
 
 
@@ -4212,7 +4275,7 @@ function updateProfile() {
             Number.isSafeInteger(telegramId) &&
             telegramId > 0
                 ? String(telegramId)
-                : "Не привязан";
+                : "РќРµ РїСЂРёРІСЏР·Р°РЅ";
     }
 
 
@@ -4289,7 +4352,7 @@ function updateSettings() {
 
     if (userId) {
         userId.textContent =
-            currentUser.id ?? "—";
+            currentUser.id ?? "вЂ”";
     }
 
     const telegramId =
@@ -4307,7 +4370,7 @@ function updateSettings() {
             Number.isSafeInteger(telegramId) &&
             telegramId > 0
                 ? String(telegramId)
-                : "Не привязан";
+                : "РќРµ РїСЂРёРІСЏР·Р°РЅ";
     }
 
     const login =
@@ -4320,7 +4383,7 @@ function updateSettings() {
 
     if (loginElement) {
         loginElement.textContent =
-            login || "Не привязан";
+            login || "РќРµ РїСЂРёРІСЏР·Р°РЅ";
     }
 
     const emailElement =
@@ -4331,7 +4394,7 @@ function updateSettings() {
     if (emailElement) {
         emailElement.textContent =
             currentUser.email ||
-            "Не привязана";
+            "РќРµ РїСЂРёРІСЏР·Р°РЅР°";
     }
 
     const emailLinkBlock =
@@ -4399,19 +4462,19 @@ function updateSettings() {
             .value;
 
     if (!login) {
-        alert("Введите логин");
+        alert("Р’РІРµРґРёС‚Рµ Р»РѕРіРёРЅ");
         return;
     }
 
     if (password.length < 8) {
         alert(
-            "Пароль должен содержать минимум 8 символов"
+            "РџР°СЂРѕР»СЊ РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ РјРёРЅРёРјСѓРј 8 СЃРёРјРІРѕР»РѕРІ"
         );
         return;
     }
 
     if (password !== passwordConfirm) {
-        alert("Пароли не совпадают");
+        alert("РџР°СЂРѕР»Рё РЅРµ СЃРѕРІРїР°РґР°СЋС‚");
         return;
     }
 
@@ -4436,7 +4499,7 @@ function updateSettings() {
         ) {
             alert(
                 result.data?.error ||
-                "Не удалось привязать логин"
+                "РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРёРІСЏР·Р°С‚СЊ Р»РѕРіРёРЅ"
             );
             return;
         }
@@ -4460,7 +4523,7 @@ function updateSettings() {
             .value = "";
 
         alert(
-            "Логин успешно привязан"
+            "Р›РѕРіРёРЅ СѓСЃРїРµС€РЅРѕ РїСЂРёРІСЏР·Р°РЅ"
         );
 
     } catch (error) {
@@ -4470,7 +4533,7 @@ function updateSettings() {
         );
 
         alert(
-            "Не удалось привязать логин"
+            "РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРёРІСЏР·Р°С‚СЊ Р»РѕРіРёРЅ"
         );
     }
 }
@@ -4537,7 +4600,7 @@ async function saveProfile() {
         ) {
             alert(
                 result.data?.error ||
-                "Не удалось сохранить профиль"
+                "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ РїСЂРѕС„РёР»СЊ"
             );
             return;
         }
@@ -4548,7 +4611,7 @@ async function saveProfile() {
         updateProfile();
 
         alert(
-            "Профиль сохранён"
+            "РџСЂРѕС„РёР»СЊ СЃРѕС…СЂР°РЅС‘РЅ"
         );
 
     } catch (error) {
@@ -4559,21 +4622,21 @@ async function saveProfile() {
         );
 
         alert(
-            "Не удалось сохранить профиль"
+            "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ РїСЂРѕС„РёР»СЊ"
         );
     }
 }
     function translateRole(role) {
 
         const roles = {
-            student: "Студент",
-            admin: "Администратор",
-            owner: "Владелец"
+            student: "РЎС‚СѓРґРµРЅС‚",
+            admin: "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ",
+            owner: "Р’Р»Р°РґРµР»РµС†"
         };
 
         return roles[role] ||
             role ||
-            "Студент";
+            "РЎС‚СѓРґРµРЅС‚";
     }
 
 
@@ -4609,14 +4672,14 @@ async function saveProfile() {
                         "programTitle"
                     )
                     .textContent =
-                    "Программа пока не назначена";
+                    "РџСЂРѕРіСЂР°РјРјР° РїРѕРєР° РЅРµ РЅР°Р·РЅР°С‡РµРЅР°";
 
                 document
                     .getElementById(
                         "programDescription"
                     )
                     .textContent =
-                    "После назначения образовательной программы она появится здесь.";
+                    "РџРѕСЃР»Рµ РЅР°Р·РЅР°С‡РµРЅРёСЏ РѕР±СЂР°Р·РѕРІР°С‚РµР»СЊРЅРѕР№ РїСЂРѕРіСЂР°РјРјС‹ РѕРЅР° РїРѕСЏРІРёС‚СЃСЏ Р·РґРµСЃСЊ.";
 
                 return;
             }
@@ -4630,7 +4693,7 @@ async function saveProfile() {
                 )
                 .textContent =
                 program.name ||
-                "Образовательная программа";
+                "РћР±СЂР°Р·РѕРІР°С‚РµР»СЊРЅР°СЏ РїСЂРѕРіСЂР°РјРјР°";
 
             document
                 .getElementById(
@@ -4639,7 +4702,7 @@ async function saveProfile() {
                 .textContent =
                 program.description ||
                 program.purpose ||
-                "Информация о программе отсутствует.";
+                "РРЅС„РѕСЂРјР°С†РёСЏ Рѕ РїСЂРѕРіСЂР°РјРјРµ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚.";
 
         } catch (error) {
 
@@ -4664,7 +4727,7 @@ async function saveProfile() {
 
         container.innerHTML =
             `<div class="loading">
-                Загружаем уроки...
+                Р—Р°РіСЂСѓР¶Р°РµРј СѓСЂРѕРєРё...
             </div>`;
 
         const result =
@@ -4678,7 +4741,7 @@ async function saveProfile() {
                 `<div class="empty">
                     ${escapeHtml(
                         result.data.error ||
-                        "Не удалось загрузить уроки"
+                        "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СѓСЂРѕРєРё"
                     )}
                 </div>`;
 
@@ -4697,7 +4760,7 @@ async function saveProfile() {
 
             container.innerHTML =
                 `<div class="empty">
-                    Пока нет доступных уроков.
+                    РџРѕРєР° РЅРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… СѓСЂРѕРєРѕРІ.
                 </div>`;
 
             return;
@@ -4721,7 +4784,7 @@ async function saveProfile() {
                                 <div class="lesson-title">
                                     ${escapeHtml(
                                         lesson.title ||
-                                        "Урок"
+                                        "РЈСЂРѕРє"
                                     )}
                                 </div>
 
@@ -4736,7 +4799,7 @@ async function saveProfile() {
                                     isCompleted
                                         ? `
                                             <div class="completed">
-                                                ✓ Урок пройден
+                                                вњ“ РЈСЂРѕРє РїСЂРѕР№РґРµРЅ
                                             </div>
                                           `
                                         : `
@@ -4744,7 +4807,7 @@ async function saveProfile() {
                                                 class="secondary-button"
                                                 onclick="completeLesson(${Number(lesson.id)})"
                                             >
-                                                Отметить как пройденный
+                                                РћС‚РјРµС‚РёС‚СЊ РєР°Рє РїСЂРѕР№РґРµРЅРЅС‹Р№
                                             </button>
                                           `
                                 }
@@ -4764,7 +4827,7 @@ async function saveProfile() {
     const id = Number(lessonId);
 
     if (!Number.isInteger(id) || id <= 0) {
-        alert("Ошибка: у урока отсутствует ID");
+        alert("РћС€РёР±РєР°: Сѓ СѓСЂРѕРєР° РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ ID");
         return;
     }
 
@@ -4783,7 +4846,7 @@ async function saveProfile() {
     if (!result.data.ok) {
         alert(
             result.data.error ||
-            "Не удалось сохранить прогресс"
+            "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ РїСЂРѕРіСЂРµСЃСЃ"
         );
         return;
     }
@@ -5068,7 +5131,7 @@ async function emailAuthRequest(path, body) {
             ok: false,
             status: 0,
             data: {
-                error: "Нет соединения с сервером"
+                error: "РќРµС‚ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ СЃРµСЂРІРµСЂРѕРј"
             }
         };
     }
@@ -5091,7 +5154,7 @@ async function sendEmailCode(purpose) {
 
     if (!email) {
         showError(
-            "Введите электронную почту"
+            "Р’РІРµРґРёС‚Рµ СЌР»РµРєС‚СЂРѕРЅРЅСѓСЋ РїРѕС‡С‚Сѓ"
         );
         return;
     }
@@ -5108,13 +5171,13 @@ async function sendEmailCode(purpose) {
     if (!result.ok) {
         showError(
             result.data?.error ||
-            "Не удалось отправить код"
+            "РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ РєРѕРґ"
         );
         return;
     }
 
     alert(
-        "Код отправлен на почту"
+        "РљРѕРґ РѕС‚РїСЂР°РІР»РµРЅ РЅР° РїРѕС‡С‚Сѓ"
     );
 }
 
@@ -5136,7 +5199,7 @@ async function emailLogin() {
 
     if (!email || !code) {
         showError(
-            "Введите почту и код"
+            "Р’РІРµРґРёС‚Рµ РїРѕС‡С‚Сѓ Рё РєРѕРґ"
         );
         return;
     }
@@ -5153,7 +5216,7 @@ async function emailLogin() {
     if (!result.ok) {
         showError(
             result.data?.error ||
-            "Не удалось войти"
+            "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё"
         );
         return;
     }
@@ -5208,7 +5271,7 @@ async function emailRegister() {
         !login
     ) {
         showError(
-            "Введите логин, почту и код"
+            "Р’РІРµРґРёС‚Рµ Р»РѕРіРёРЅ, РїРѕС‡С‚Сѓ Рё РєРѕРґ"
         );
         return;
     }
@@ -5228,7 +5291,7 @@ async function emailRegister() {
     if (!result.ok) {
         showError(
             result.data?.error ||
-            "Не удалось зарегистрироваться"
+            "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ"
         );
         return;
     }
@@ -5281,7 +5344,7 @@ async function sendLinkEmailCode() {
     if (!email) {
         setEmailStatus(
             "linkEmailStatus",
-            "Введите электронную почту",
+            "Р’РІРµРґРёС‚Рµ СЌР»РµРєС‚СЂРѕРЅРЅСѓСЋ РїРѕС‡С‚Сѓ",
             "error"
         );
         return;
@@ -5289,7 +5352,7 @@ async function sendLinkEmailCode() {
 
     setEmailStatus(
         "linkEmailStatus",
-        "Отправляем код…",
+        "РћС‚РїСЂР°РІР»СЏРµРј РєРѕРґвЂ¦",
         "loading"
     );
 
@@ -5306,7 +5369,7 @@ async function sendLinkEmailCode() {
         setEmailStatus(
             "linkEmailStatus",
             result.data?.error ||
-                "Не удалось отправить код",
+                "РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ РєРѕРґ",
             "error"
         );
         return;
@@ -5314,7 +5377,7 @@ async function sendLinkEmailCode() {
 
     setEmailStatus(
         "linkEmailStatus",
-        "Код отправлен на почту",
+        "РљРѕРґ РѕС‚РїСЂР°РІР»РµРЅ РЅР° РїРѕС‡С‚Сѓ",
         "success"
     );
 }
@@ -5340,7 +5403,7 @@ async function linkEmail() {
     if (!email || !code) {
         setEmailStatus(
             "linkEmailStatus",
-            "Введите почту и код",
+            "Р’РІРµРґРёС‚Рµ РїРѕС‡С‚Сѓ Рё РєРѕРґ",
             "error"
         );
         return;
@@ -5348,7 +5411,7 @@ async function linkEmail() {
 
     setEmailStatus(
         "linkEmailStatus",
-        "Проверяем код…",
+        "РџСЂРѕРІРµСЂСЏРµРј РєРѕРґвЂ¦",
         "loading"
     );
 
@@ -5378,7 +5441,7 @@ async function linkEmail() {
             setEmailStatus(
                 "linkEmailStatus",
                 data?.error ||
-                    "Не удалось привязать почту",
+                    "РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРёРІСЏР·Р°С‚СЊ РїРѕС‡С‚Сѓ",
                 "error"
             );
             return;
@@ -5391,14 +5454,14 @@ async function linkEmail() {
 
         setEmailStatus(
             "linkEmailStatus",
-            "Почта успешно привязана",
+            "РџРѕС‡С‚Р° СѓСЃРїРµС€РЅРѕ РїСЂРёРІСЏР·Р°РЅР°",
             "success"
         );
 
     } catch (error) {
         setEmailStatus(
             "linkEmailStatus",
-            "Нет соединения с сервером",
+            "РќРµС‚ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ СЃРµСЂРІРµСЂРѕРј",
             "error"
         );
     }
@@ -5406,8 +5469,8 @@ async function linkEmail() {
 
 
 /*
- * Более понятная email-регистрация.
- * Сообщение показывается прямо под кнопкой.
+ * Р‘РѕР»РµРµ РїРѕРЅСЏС‚РЅР°СЏ email-СЂРµРіРёСЃС‚СЂР°С†РёСЏ.
+ * РЎРѕРѕР±С‰РµРЅРёРµ РїРѕРєР°Р·С‹РІР°РµС‚СЃСЏ РїСЂСЏРјРѕ РїРѕРґ РєРЅРѕРїРєРѕР№.
  */
 async function emailRegister() {
     hideError();
@@ -5455,7 +5518,7 @@ async function emailRegister() {
     if (!login) {
         setEmailStatus(
             "emailRegisterStatus",
-            "Введите логин",
+            "Р’РІРµРґРёС‚Рµ Р»РѕРіРёРЅ",
             "error"
         );
         return;
@@ -5464,7 +5527,7 @@ async function emailRegister() {
     if (!email) {
         setEmailStatus(
             "emailRegisterStatus",
-            "Введите электронную почту",
+            "Р’РІРµРґРёС‚Рµ СЌР»РµРєС‚СЂРѕРЅРЅСѓСЋ РїРѕС‡С‚Сѓ",
             "error"
         );
         return;
@@ -5473,7 +5536,7 @@ async function emailRegister() {
     if (!code) {
         setEmailStatus(
             "emailRegisterStatus",
-            "Сначала получите и введите код",
+            "РЎРЅР°С‡Р°Р»Р° РїРѕР»СѓС‡РёС‚Рµ Рё РІРІРµРґРёС‚Рµ РєРѕРґ",
             "error"
         );
         return;
@@ -5481,7 +5544,7 @@ async function emailRegister() {
 
     setEmailStatus(
         "emailRegisterStatus",
-        "Создаём аккаунт…",
+        "РЎРѕР·РґР°С‘Рј Р°РєРєР°СѓРЅС‚вЂ¦",
         "loading"
     );
 
@@ -5503,7 +5566,7 @@ async function emailRegister() {
         setEmailStatus(
             "emailRegisterStatus",
             result.data?.error ||
-                "Не удалось зарегистрироваться",
+                "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ",
             "error"
         );
         return;
@@ -5518,7 +5581,7 @@ async function emailRegister() {
 
     setEmailStatus(
         "emailRegisterStatus",
-        "Аккаунт создан",
+        "РђРєРєР°СѓРЅС‚ СЃРѕР·РґР°РЅ",
         "success"
     );
 
@@ -5548,7 +5611,7 @@ async function emailLogin() {
     if (!email || !code) {
         setEmailStatus(
             "emailLoginStatus",
-            "Введите почту и код",
+            "Р’РІРµРґРёС‚Рµ РїРѕС‡С‚Сѓ Рё РєРѕРґ",
             "error"
         );
         return;
@@ -5556,7 +5619,7 @@ async function emailLogin() {
 
     setEmailStatus(
         "emailLoginStatus",
-        "Выполняется вход…",
+        "Р’С‹РїРѕР»РЅСЏРµС‚СЃСЏ РІС…РѕРґвЂ¦",
         "loading"
     );
 
@@ -5573,7 +5636,7 @@ async function emailLogin() {
         setEmailStatus(
             "emailLoginStatus",
             result.data?.error ||
-                "Не удалось войти",
+                "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё",
             "error"
         );
         return;
@@ -5680,4 +5743,5 @@ function setRegisterMethod(method) {
 
 </script><!-- Telegram Mini App SDK --><script src="https://telegram.org/js/telegram-web-app.js"></script></body>
 </html>
+
 
