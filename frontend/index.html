@@ -3753,6 +3753,42 @@ a:focus:not(:focus-visible) {
 
 </style>
 
+
+<style id="rauda-eye-final-fix">
+
+.password-visibility-button,
+.password-visibility-button:hover,
+.password-visibility-button:active,
+.password-visibility-button:focus,
+.password-visibility-button:focus-visible {
+    top: 50% !important;
+
+    margin: -3px 0 0 0 !important;
+
+    transform: translateY(-50%) !important;
+    scale: 1 !important;
+
+    box-shadow: none !important;
+    outline: none !important;
+
+    filter: none !important;
+
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.password-visibility-button svg,
+.password-visibility-button:hover svg,
+.password-visibility-button:active svg,
+.password-visibility-button:focus svg {
+    display: block !important;
+
+    transform: translateY(-1px) !important;
+
+    margin: 0 !important;
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
