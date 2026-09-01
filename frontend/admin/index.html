@@ -290,7 +290,485 @@
       #user-name { display: none; }
       .login-card { margin-top: 30px; padding: 22px; }
     }
-  </style>
+  
+/* RAUDA GOLD GREEN THEME START */
+
+:root {
+    --rauda-green: #173d2c;
+    --rauda-green-2: #24543d;
+    --rauda-green-soft: #e9f0eb;
+
+    --rauda-gold: #c5a25d;
+    --rauda-gold-dark: #a98745;
+    --rauda-gold-soft: #f1e7cf;
+
+    --rauda-cream: #f7f3e9;
+    --rauda-surface: #fffdf8;
+
+    --rauda-text: #1d2b23;
+    --rauda-muted: #7a7a6f;
+    --rauda-border: #e5dbc4;
+}
+
+
+/* =========================
+   ОСНОВА
+========================= */
+
+body {
+    background:
+        radial-gradient(
+            circle at 10% 0%,
+            rgba(197,162,93,.12),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 100% 10%,
+            rgba(23,61,44,.08),
+            transparent 35%
+        ),
+        var(--rauda-cream) !important;
+
+    color: var(--rauda-text) !important;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+    background: rgba(255,253,248,.96) !important;
+    border-bottom: 1px solid var(--rauda-border) !important;
+    box-shadow: 0 3px 18px rgba(23,61,44,.045);
+}
+
+.logo,
+.auth-logo {
+    color: var(--rauda-green) !important;
+}
+
+.auth-logo {
+    letter-spacing: 1.2px;
+}
+
+.auth-logo::after {
+    content: "";
+    display: block;
+    width: 42px;
+    height: 3px;
+    margin: 10px auto 0;
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--rauda-gold-dark),
+            var(--rauda-gold)
+        );
+}
+
+
+/* =========================
+   AUTH
+========================= */
+
+.auth-screen {
+    background:
+        radial-gradient(
+            circle at 50% -5%,
+            rgba(197,162,93,.17),
+            transparent 34%
+        ),
+        linear-gradient(
+            180deg,
+            #faf7ef 0%,
+            #f4efe4 100%
+        ) !important;
+}
+
+.auth-card {
+    background: rgba(255,253,248,.98) !important;
+    border: 1px solid var(--rauda-border) !important;
+
+    box-shadow:
+        0 22px 55px rgba(23,61,44,.09),
+        0 3px 12px rgba(197,162,93,.08) !important;
+}
+
+.auth-subtitle {
+    color: var(--rauda-muted) !important;
+}
+
+
+/* =========================
+   КАРТОЧКИ
+========================= */
+
+.card {
+    background: var(--rauda-surface) !important;
+    border: 1px solid var(--rauda-border) !important;
+
+    box-shadow:
+        0 5px 20px rgba(23,61,44,.045) !important;
+}
+
+.program-label,
+.welcome-small,
+.profile-role,
+.lesson-description {
+    color: var(--rauda-muted) !important;
+}
+
+.program-title,
+.welcome-title,
+.profile-name,
+.lesson-title {
+    color: var(--rauda-green) !important;
+}
+
+.semester {
+    background: var(--rauda-gold-soft) !important;
+    color: #725b2e !important;
+    border: 1px solid #e3d2aa;
+}
+
+
+/* =========================
+   INPUT
+========================= */
+
+.input,
+input,
+textarea,
+select {
+    background: #fffdf9 !important;
+    color: var(--rauda-text) !important;
+
+    border-color:
+        var(--rauda-border) !important;
+}
+
+.input:hover,
+input:hover,
+textarea:hover,
+select:hover {
+    border-color: #d5c399 !important;
+}
+
+.input:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    border-color:
+        var(--rauda-gold-dark) !important;
+
+    background: #ffffff !important;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(197,162,93,.13) !important;
+
+    outline: none;
+}
+
+::placeholder {
+    color: #a19c8e !important;
+}
+
+
+/* =========================
+   ГЛАВНЫЕ КНОПКИ
+========================= */
+
+.primary-button {
+    background:
+        linear-gradient(
+            180deg,
+            #214c38 0%,
+            var(--rauda-green) 100%
+        ) !important;
+
+    color: #fffdf8 !important;
+
+    border:
+        1px solid #294f3c !important;
+
+    box-shadow:
+        0 5px 13px
+        rgba(23,61,44,.18) !important;
+
+    transform: none !important;
+}
+
+.primary-button:hover {
+    background:
+        linear-gradient(
+            180deg,
+            #295840 0%,
+            #1d4633 100%
+        ) !important;
+
+    transform: none !important;
+}
+
+.primary-button:active {
+    background:
+        #123324 !important;
+
+    transform: none !important;
+
+    box-shadow:
+        inset 0 2px 5px
+        rgba(0,0,0,.18) !important;
+}
+
+
+/* =========================
+   ВТОРИЧНЫЕ КНОПКИ
+========================= */
+
+.secondary-button,
+.admin-link {
+    background:
+        #fbf7ee !important;
+
+    color:
+        var(--rauda-green) !important;
+
+    border:
+        1px solid #d9c79f !important;
+
+    transform: none !important;
+}
+
+.secondary-button:hover,
+.admin-link:hover {
+    background:
+        var(--rauda-gold-soft) !important;
+
+    border-color:
+        var(--rauda-gold) !important;
+
+    transform: none !important;
+}
+
+.secondary-button:active,
+.admin-link:active {
+    background:
+        #e7d9b9 !important;
+
+    transform: none !important;
+
+    box-shadow:
+        inset 0 2px 4px
+        rgba(90,70,30,.10) !important;
+}
+
+
+/* =========================
+   ВСЕ ОСТАЛЬНЫЕ КНОПКИ
+========================= */
+
+button {
+    transition:
+        background-color .12s ease,
+        border-color .12s ease,
+        box-shadow .12s ease,
+        opacity .12s ease !important;
+
+    transform: none !important;
+}
+
+button:active {
+    transform: none !important;
+}
+
+button:disabled {
+    opacity: .55;
+    transform: none !important;
+}
+
+
+/* =========================
+   MENU
+========================= */
+
+.menu-button,
+.menu-close {
+    background:
+        var(--rauda-green-soft) !important;
+
+    color:
+        var(--rauda-green) !important;
+
+    border:
+        1px solid #d8e2da !important;
+}
+
+.menu-button:hover,
+.menu-close:hover {
+    background:
+        #dfe9e2 !important;
+}
+
+.menu-item {
+    color:
+        var(--rauda-green) !important;
+}
+
+.menu-item:hover,
+.menu-item:active {
+    background:
+        var(--rauda-green-soft) !important;
+}
+
+.side-menu {
+    background:
+        var(--rauda-surface) !important;
+
+    border-left:
+        1px solid var(--rauda-border);
+}
+
+
+/* =========================
+   PROFILE
+========================= */
+
+.avatar {
+    background:
+        linear-gradient(
+            145deg,
+            var(--rauda-green-2),
+            var(--rauda-green)
+        ) !important;
+
+    border:
+        3px solid
+        var(--rauda-gold) !important;
+
+    box-shadow:
+        0 7px 18px
+        rgba(23,61,44,.18);
+}
+
+.profile-row {
+    border-bottom-color:
+        #eee5d3 !important;
+}
+
+.profile-row span:first-child {
+    color:
+        var(--rauda-muted) !important;
+}
+
+
+/* =========================
+   LINKS / SWITCH
+========================= */
+
+.auth-switch button,
+.back-button,
+a {
+    color:
+        var(--rauda-green-2);
+}
+
+.auth-switch button:hover {
+    background:
+        var(--rauda-gold-soft) !important;
+}
+
+
+/* =========================
+   SUCCESS
+========================= */
+
+.completed {
+    color:
+        #39704e !important;
+}
+
+.email-status.success {
+    background:
+        #edf5ef !important;
+
+    color:
+        #28583d !important;
+
+    border-color:
+        #c9ddcd !important;
+}
+
+.email-status.loading {
+    background:
+        #f6f0e2 !important;
+
+    color:
+        #725e36 !important;
+
+    border-color:
+        #e3d5b5 !important;
+}
+
+
+/* =========================
+   FOCUS
+========================= */
+
+button:focus-visible,
+a:focus-visible {
+    outline:
+        3px solid
+        rgba(197,162,93,.28) !important;
+
+    outline-offset: 2px;
+}
+
+
+/* =========================
+   TEXT SELECTION
+========================= */
+
+::selection {
+    background:
+        #dbc690;
+
+    color:
+        var(--rauda-green);
+}
+
+
+/* =========================
+   ADMIN GENERIC
+========================= */
+
+.panel,
+.modal,
+.section,
+.dashboard-card,
+.stat-card,
+.table-wrap {
+    border-color:
+        var(--rauda-border) !important;
+}
+
+thead,
+.table-header {
+    background:
+        #f4eddd !important;
+}
+
+th {
+    color:
+        var(--rauda-green) !important;
+}
+
+
+/* RAUDA GOLD GREEN THEME END */
+
+</style>
 </head>
 <body>
   <main class="shell">
