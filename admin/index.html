@@ -137,7 +137,41 @@
       border-color: var(--green);
       box-shadow: 0 0 0 3px rgba(141, 207, 108, .13);
     }
+.password-wrap {
+  position: relative;
+}
 
+.password-wrap input {
+  padding-right: 48px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  color: var(--muted);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.password-toggle:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, .06);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
     textarea { min-height: 122px; resize: vertical; }
 
     .switch-row { display: flex; align-items: center; gap: 9px; min-height: 42px; color: var(--muted); }
@@ -278,10 +312,29 @@
           <input id="login" name="login" autocomplete="username" required>
         </div>
 
-        <div class="field" style="margin-top:14px">
-          <label for="password">Пароль</label>
-          <input id="password" name="password" type="password" autocomplete="current-password" required>
-        </div>
+      <div class="field" style="margin-top:14px">
+  <label for="password">Пароль</label>
+
+  <div class="password-wrap">
+    <input
+      id="password"
+      name="password"
+      type="password"
+      autocomplete="current-password"
+      required
+    >
+
+    <button
+      id="password-toggle"
+      class="password-toggle"
+      type="button"
+      aria-label="Показать пароль"
+      title="Показать пароль"
+    >
+      👁
+    </button>
+  </div>
+</div>
 
         <div class="buttons">
           <button id="login-button" class="button primary" type="submit">Войти</button>
@@ -699,7 +752,31 @@
         showLogin("Сессия истекла. Войдите снова.");
       }
     }
+$("#password-toggle").addEventListener("click", () => {
+  const passwordInput = $("#password");
+  const toggleButton = $("#password-toggle");
 
+  const isVisible = passwordInput.type === "text";
+
+  passwordInput.type = isVisible
+    ? "password"
+    : "text";
+
+  toggleButton.textContent = isVisible
+    ? "👁"
+    : "🙈";
+
+  toggleButton.setAttribute(
+    "aria-label",
+    isVisible
+      ? "Показать пароль"
+      : "Скрыть пароль"
+  );
+
+  toggleButton.title = isVisible
+    ? "Показать пароль"
+    : "Скрыть пароль";
+});
     $("#login-form").addEventListener("submit", async (event) => {
       event.preventDefault();
 
