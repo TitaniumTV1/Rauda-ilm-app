@@ -4561,6 +4561,587 @@ body {
 
 </style>
 
+
+<style id="rauda-profile-stats-header-v1">
+
+/* =========================================================
+   HEADER ACTIONS
+   ========================================================= */
+
+.rauda-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    margin-left: auto;
+}
+
+.rauda-header-icon {
+    position: relative;
+
+    width: 40px !important;
+    height: 40px !important;
+
+    min-width: 40px !important;
+    min-height: 40px !important;
+
+    padding: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border: 1px solid #e0d5bb !important;
+    border-radius: 11px !important;
+
+    background: #fffdf8 !important;
+    color: #183d2c !important;
+
+    box-shadow: none !important;
+
+    transform: none !important;
+    scale: 1 !important;
+}
+
+.rauda-header-icon:hover {
+    background: #f6f1e6 !important;
+    border-color: #d4c39d !important;
+}
+
+.rauda-header-icon:active,
+.rauda-header-icon:focus {
+    transform: none !important;
+    scale: 1 !important;
+    box-shadow: none !important;
+}
+
+.rauda-header-icon svg {
+    width: 20px;
+    height: 20px;
+
+    display: block;
+
+    stroke: currentColor;
+}
+
+.rauda-header-profile {
+    border-color: rgba(198,164,95,.55) !important;
+}
+
+.rauda-notification-badge {
+    position: absolute;
+
+    top: 6px;
+    right: 6px;
+
+    min-width: 8px;
+    height: 8px;
+
+    padding: 0;
+
+    display: none;
+
+    border: 2px solid #fffdf8;
+    border-radius: 99px;
+
+    background: #c6a45f;
+}
+
+
+/* Приводим гамбургер к тем же размерам */
+
+.rauda-header-actions > .menu-button {
+    width: 40px !important;
+    height: 40px !important;
+
+    min-width: 40px !important;
+    min-height: 40px !important;
+
+    margin: 0 !important;
+
+    border-radius: 11px !important;
+
+    transform: none !important;
+    scale: 1 !important;
+}
+
+.rauda-header-actions > .menu-button:active,
+.rauda-header-actions > .menu-button:focus {
+    transform: none !important;
+    scale: 1 !important;
+}
+
+
+/* =========================================================
+   PROFILE TABS
+   ========================================================= */
+
+.rauda-profile-tabs {
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 5px;
+
+    margin: 0 0 17px;
+    padding: 4px;
+
+    border: 1px solid #e4dac4;
+    border-radius: 12px;
+
+    background: #f6f1e6;
+}
+
+.rauda-profile-tab {
+    min-height: 40px;
+
+    padding: 8px 9px;
+
+    border: 0 !important;
+    border-radius: 9px !important;
+
+    background: transparent !important;
+
+    color: #77756e !important;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    box-shadow: none !important;
+
+    transform: none !important;
+    scale: 1 !important;
+}
+
+.rauda-profile-tab:hover {
+    background: rgba(255,255,255,.55) !important;
+}
+
+.rauda-profile-tab.active {
+    background: #183d2c !important;
+    color: #ffffff !important;
+
+    box-shadow:
+        0 3px 9px
+        rgba(24,61,44,.13) !important;
+}
+
+.rauda-profile-tab:active,
+.rauda-profile-tab:focus {
+    transform: none !important;
+    scale: 1 !important;
+}
+
+
+/* =========================================================
+   LEARNING STATISTICS
+   ========================================================= */
+
+.rauda-learning-stats {
+    display: none;
+}
+
+.rauda-learning-stats.active {
+    display: block;
+}
+
+.rauda-stats-hero {
+    position: relative;
+
+    overflow: hidden;
+
+    padding: 22px;
+
+    border:
+        1px solid rgba(198,164,95,.45);
+
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #183d2c 0%,
+            #214d39 100%
+        );
+
+    color: #ffffff;
+
+    margin-bottom: 13px;
+}
+
+.rauda-stats-hero::after {
+    content: "";
+
+    position: absolute;
+
+    width: 150px;
+    height: 150px;
+
+    top: -80px;
+    right: -55px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(198,164,95,.13);
+}
+
+.rauda-stats-caption {
+    position: relative;
+    z-index: 1;
+
+    color: rgba(255,255,255,.70);
+
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.rauda-stats-percent {
+    position: relative;
+    z-index: 1;
+
+    margin-top: 5px;
+
+    font-size: 36px;
+    line-height: 1.05;
+    font-weight: 850;
+}
+
+.rauda-stats-progress {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    height: 7px;
+
+    margin-top: 16px;
+
+    overflow: hidden;
+
+    border-radius: 99px;
+
+    background:
+        rgba(255,255,255,.16);
+}
+
+.rauda-stats-progress-fill {
+    width: 0%;
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: #d2b66f;
+
+    transition:
+        width .45s
+        cubic-bezier(.22,1,.36,1);
+}
+
+.rauda-stats-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 9px;
+
+    margin-bottom: 13px;
+}
+
+.rauda-stat-card {
+    min-width: 0;
+
+    padding: 15px 10px;
+
+    border:
+        1px solid #e6decb;
+
+    border-radius: 13px;
+
+    background: #fffdf8;
+
+    text-align: center;
+}
+
+.rauda-stat-value {
+    color: #183d2c;
+
+    font-size: 23px;
+    font-weight: 850;
+}
+
+.rauda-stat-label {
+    margin-top: 4px;
+
+    color: #88867f;
+
+    font-size: 11px;
+    line-height: 1.25;
+}
+
+.rauda-stats-info {
+    padding: 15px 16px;
+
+    border:
+        1px solid #e6decb;
+
+    border-radius: 13px;
+
+    background: #fffdf8;
+}
+
+.rauda-stats-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 10px 0;
+
+    border-bottom:
+        1px solid #eee8dc;
+}
+
+.rauda-stats-info-row:first-child {
+    padding-top: 0;
+}
+
+.rauda-stats-info-row:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.rauda-stats-info-label {
+    color: #7d7b74;
+    font-size: 13px;
+}
+
+.rauda-stats-info-value {
+    color: #183d2c;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.rauda-stats-loading {
+    padding: 30px 15px;
+
+    text-align: center;
+
+    color: #85837c;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   NOTIFICATIONS
+   ========================================================= */
+
+.rauda-notifications-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 100800;
+
+    background:
+        rgba(7,15,10,.32);
+
+    backdrop-filter:
+        blur(3px);
+
+    -webkit-backdrop-filter:
+        blur(3px);
+
+    opacity: 0;
+
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity .20s ease,
+        visibility .20s ease;
+}
+
+.rauda-notifications-overlay.active {
+    opacity: 1;
+
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.rauda-notifications-panel {
+    position: absolute;
+
+    top: 72px;
+    right: 12px;
+
+    width:
+        min(
+            370px,
+            calc(100vw - 24px)
+        );
+
+    max-height:
+        calc(100vh - 92px);
+
+    overflow: auto;
+
+    padding: 17px;
+
+    border:
+        1px solid #dfd4bb;
+
+    border-radius: 17px;
+
+    background: #fffdf8;
+
+    box-shadow:
+        0 22px 60px
+        rgba(8,20,12,.22);
+
+    transform:
+        translateY(-8px);
+
+    transition:
+        transform .25s
+        cubic-bezier(.22,1,.36,1);
+}
+
+.rauda-notifications-overlay.active
+.rauda-notifications-panel {
+    transform:
+        translateY(0);
+}
+
+.rauda-notifications-head {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 14px;
+}
+
+.rauda-notifications-title {
+    color: #183d2c;
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.rauda-notifications-close {
+    width: 34px !important;
+    height: 34px !important;
+
+    padding: 0 !important;
+
+    border:
+        1px solid #e2d9c7 !important;
+
+    border-radius:
+        9px !important;
+
+    background:
+        #f6f1e6 !important;
+
+    color: #183d2c !important;
+
+    font-size: 20px;
+
+    box-shadow:
+        none !important;
+
+    transform:
+        none !important;
+}
+
+.rauda-notifications-empty {
+    padding: 32px 14px;
+
+    border:
+        1px dashed #ddd0b5;
+
+    border-radius: 13px;
+
+    text-align: center;
+
+    background: #faf6ed;
+}
+
+.rauda-notifications-empty-icon {
+    width: 46px;
+    height: 46px;
+
+    margin: 0 auto 11px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #eee3c8;
+
+    color: #183d2c;
+}
+
+.rauda-notifications-empty-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.rauda-notifications-empty-title {
+    color: #183d2c;
+
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.rauda-notifications-empty-text {
+    margin-top: 5px;
+
+    color: #8a877f;
+
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+
+@media (max-width: 420px) {
+
+    .header {
+        padding-left: 13px !important;
+        padding-right: 10px !important;
+    }
+
+    .rauda-header-actions {
+        gap: 4px;
+    }
+
+    .rauda-header-icon,
+    .rauda-header-actions > .menu-button {
+        width: 37px !important;
+        height: 37px !important;
+
+        min-width: 37px !important;
+        min-height: 37px !important;
+    }
+
+    .rauda-stats-grid {
+        gap: 6px;
+    }
+
+    .rauda-stat-card {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
@@ -10690,6 +11271,1082 @@ function setRegisterMethod(method) {
 
     window.renderRaudaAvatar =
         renderRaudaAvatar;
+
+})();
+
+</script>
+
+
+<script id="rauda-profile-stats-header-v1-script">
+
+(function () {
+
+    let profileOriginalChildren = [];
+
+    /* =====================================================
+       HEADER
+       ===================================================== */
+
+    function buildRaudaHeaderActions() {
+
+        const header =
+            document.querySelector(
+                ".header"
+            );
+
+        const menu =
+            document.querySelector(
+                ".header .menu-button"
+            );
+
+
+        if (
+            !header ||
+            !menu ||
+            document.getElementById(
+                "raudaHeaderActions"
+            )
+        ) {
+            return;
+        }
+
+
+        const actions =
+            document.createElement(
+                "div"
+            );
+
+
+        actions.id =
+            "raudaHeaderActions";
+
+        actions.className =
+            "rauda-header-actions";
+
+
+        const notifications =
+            document.createElement(
+                "button"
+            );
+
+
+        notifications.type =
+            "button";
+
+        notifications.id =
+            "raudaNotificationsButton";
+
+        notifications.className =
+            "rauda-header-icon";
+
+        notifications.setAttribute(
+            "aria-label",
+            "\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f"
+        );
+
+
+        notifications.innerHTML = `
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path
+                    d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                ></path>
+
+                <path
+                    d="M10 21h4"
+                ></path>
+            </svg>
+
+            <span
+                id="raudaNotificationBadge"
+                class="rauda-notification-badge"
+            ></span>
+        `;
+
+
+        notifications.addEventListener(
+            "click",
+            function () {
+                openRaudaNotifications();
+            }
+        );
+
+
+        const profile =
+            document.createElement(
+                "button"
+            );
+
+
+        profile.type =
+            "button";
+
+        profile.className =
+            "rauda-header-icon rauda-header-profile";
+
+        profile.setAttribute(
+            "aria-label",
+            "\u041f\u0440\u043e\u0444\u0438\u043b\u044c"
+        );
+
+
+        profile.innerHTML = `
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <circle
+                    cx="12"
+                    cy="8"
+                    r="4"
+                ></circle>
+
+                <path
+                    d="M4.5 21a7.5 7.5 0 0 1 15 0"
+                ></path>
+            </svg>
+        `;
+
+
+        profile.addEventListener(
+            "click",
+            function () {
+
+                if (
+                    typeof window.openProfile ===
+                    "function"
+                ) {
+                    window.openProfile();
+
+                    setTimeout(
+                        function () {
+                            switchRaudaProfileTab(
+                                "profile"
+                            );
+                        },
+                        0
+                    );
+                }
+            }
+        );
+
+
+        /*
+         * Порядок:
+         * уведомления -> профиль -> меню
+         */
+
+        menu.parentNode.insertBefore(
+            actions,
+            menu
+        );
+
+
+        actions.appendChild(
+            notifications
+        );
+
+        actions.appendChild(
+            profile
+        );
+
+        actions.appendChild(
+            menu
+        );
+    }
+
+
+    /* =====================================================
+       NOTIFICATIONS
+       ===================================================== */
+
+    function buildRaudaNotifications() {
+
+        if (
+            document.getElementById(
+                "raudaNotificationsOverlay"
+            )
+        ) {
+            return;
+        }
+
+
+        const overlay =
+            document.createElement(
+                "div"
+            );
+
+
+        overlay.id =
+            "raudaNotificationsOverlay";
+
+        overlay.className =
+            "rauda-notifications-overlay";
+
+
+        overlay.innerHTML = `
+
+            <div
+                class="rauda-notifications-panel"
+            >
+
+                <div
+                    class="rauda-notifications-head"
+                >
+
+                    <div
+                        class="rauda-notifications-title"
+                    >
+                        \u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f
+                    </div>
+
+                    <button
+                        type="button"
+                        class="rauda-notifications-close"
+                        onclick="closeRaudaNotifications()"
+                        aria-label="\u0417\u0430\u043a\u0440\u044b\u0442\u044c"
+                    >
+                        &times;
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="raudaNotificationsList"
+                >
+
+                    <div
+                        class="rauda-notifications-empty"
+                    >
+
+                        <div
+                            class="rauda-notifications-empty-icon"
+                        >
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path
+                                    d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                                ></path>
+
+                                <path
+                                    d="M10 21h4"
+                                ></path>
+                            </svg>
+                        </div>
+
+                        <div
+                            class="rauda-notifications-empty-title"
+                        >
+                            \u041d\u043e\u0432\u044b\u0445 \u0443\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u0439 \u043d\u0435\u0442
+                        </div>
+
+                        <div
+                            class="rauda-notifications-empty-text"
+                        >
+                            \u0417\u0434\u0435\u0441\u044c \u0431\u0443\u0434\u0443\u0442 \u043f\u043e\u044f\u0432\u043b\u044f\u0442\u044c\u0441\u044f \u0432\u0430\u0436\u043d\u044b\u0435 \u0441\u043e\u0431\u044b\u0442\u0438\u044f RAUDA ILM
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+
+        overlay.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target === overlay
+                ) {
+                    closeRaudaNotifications();
+                }
+            }
+        );
+
+
+        document.body.appendChild(
+            overlay
+        );
+    }
+
+
+    window.openRaudaNotifications =
+        function () {
+
+            buildRaudaNotifications();
+
+
+            document
+                .getElementById(
+                    "raudaNotificationsOverlay"
+                )
+                ?.classList
+                .add("active");
+        };
+
+
+    window.closeRaudaNotifications =
+        function () {
+
+            document
+                .getElementById(
+                    "raudaNotificationsOverlay"
+                )
+                ?.classList
+                .remove("active");
+        };
+
+
+    window.setRaudaNotificationCount =
+        function (count) {
+
+            const badge =
+                document.getElementById(
+                    "raudaNotificationBadge"
+                );
+
+
+            if (!badge) {
+                return;
+            }
+
+
+            badge.style.display =
+                Number(count) > 0
+                    ? "block"
+                    : "none";
+        };
+
+
+    /* =====================================================
+       PROFILE STATISTICS
+       ===================================================== */
+
+    function buildRaudaProfileStatistics() {
+
+        if (
+            document.getElementById(
+                "raudaProfileTabs"
+            )
+        ) {
+            return;
+        }
+
+
+        const avatar =
+            document.getElementById(
+                "profileAvatar"
+            );
+
+
+        if (!avatar) {
+            return;
+        }
+
+
+        const screen =
+            avatar.closest(
+                ".screen"
+            );
+
+
+        const profileHeader =
+            avatar.closest(
+                ".profile-header"
+            );
+
+
+        if (
+            !screen ||
+            !profileHeader
+        ) {
+            return;
+        }
+
+
+        const tabs =
+            document.createElement(
+                "div"
+            );
+
+
+        tabs.id =
+            "raudaProfileTabs";
+
+        tabs.className =
+            "rauda-profile-tabs";
+
+
+        tabs.innerHTML = `
+
+            <button
+                type="button"
+                id="raudaProfileMainTab"
+                class="rauda-profile-tab active"
+            >
+                \u041f\u0440\u043e\u0444\u0438\u043b\u044c
+            </button>
+
+            <button
+                type="button"
+                id="raudaProfileStatsTab"
+                class="rauda-profile-tab"
+            >
+                \u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430 \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u044f
+            </button>
+        `;
+
+
+        profileHeader.insertAdjacentElement(
+            "afterend",
+            tabs
+        );
+
+
+        const stats =
+            document.createElement(
+                "div"
+            );
+
+
+        stats.id =
+            "raudaLearningStats";
+
+        stats.className =
+            "rauda-learning-stats";
+
+
+        stats.innerHTML = `
+
+            <div
+                class="rauda-stats-hero"
+            >
+
+                <div
+                    class="rauda-stats-caption"
+                >
+                    \u041e\u0431\u0449\u0438\u0439 \u043f\u0440\u043e\u0433\u0440\u0435\u0441\u0441
+                </div>
+
+                <div
+                    id="raudaStatsPercent"
+                    class="rauda-stats-percent"
+                >
+                    0%
+                </div>
+
+                <div
+                    class="rauda-stats-progress"
+                >
+                    <div
+                        id="raudaStatsProgressFill"
+                        class="rauda-stats-progress-fill"
+                    ></div>
+                </div>
+
+            </div>
+
+
+            <div
+                class="rauda-stats-grid"
+            >
+
+                <div
+                    class="rauda-stat-card"
+                >
+                    <div
+                        id="raudaStatsCompleted"
+                        class="rauda-stat-value"
+                    >
+                        0
+                    </div>
+
+                    <div
+                        class="rauda-stat-label"
+                    >
+                        \u041f\u0440\u043e\u0439\u0434\u0435\u043d\u043e
+                    </div>
+                </div>
+
+
+                <div
+                    class="rauda-stat-card"
+                >
+                    <div
+                        id="raudaStatsTotal"
+                        class="rauda-stat-value"
+                    >
+                        0
+                    </div>
+
+                    <div
+                        class="rauda-stat-label"
+                    >
+                        \u0412\u0441\u0435\u0433\u043e \u0443\u0440\u043e\u043a\u043e\u0432
+                    </div>
+                </div>
+
+
+                <div
+                    class="rauda-stat-card"
+                >
+                    <div
+                        id="raudaStatsRemaining"
+                        class="rauda-stat-value"
+                    >
+                        0
+                    </div>
+
+                    <div
+                        class="rauda-stat-label"
+                    >
+                        \u041e\u0441\u0442\u0430\u043b\u043e\u0441\u044c
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div
+                class="rauda-stats-info"
+            >
+
+                <div
+                    class="rauda-stats-info-row"
+                >
+                    <span
+                        class="rauda-stats-info-label"
+                    >
+                        \u0421\u0442\u0430\u0442\u0443\u0441
+                    </span>
+
+                    <span
+                        id="raudaStatsStatus"
+                        class="rauda-stats-info-value"
+                    >
+                        \u041e\u0431\u0443\u0447\u0435\u043d\u0438\u0435
+                    </span>
+                </div>
+
+
+                <div
+                    class="rauda-stats-info-row"
+                >
+                    <span
+                        class="rauda-stats-info-label"
+                    >
+                        \u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043e
+                    </span>
+
+                    <span
+                        id="raudaStatsCompletedText"
+                        class="rauda-stats-info-value"
+                    >
+                        0 \u0438\u0437 0
+                    </span>
+                </div>
+
+            </div>
+        `;
+
+
+        tabs.insertAdjacentElement(
+            "afterend",
+            stats
+        );
+
+
+        profileOriginalChildren =
+            Array.from(
+                screen.children
+            ).filter(
+                element =>
+                    element !== tabs &&
+                    element !== stats
+            );
+
+
+        document
+            .getElementById(
+                "raudaProfileMainTab"
+            )
+            ?.addEventListener(
+                "click",
+                function () {
+                    switchRaudaProfileTab(
+                        "profile"
+                    );
+                }
+            );
+
+
+        document
+            .getElementById(
+                "raudaProfileStatsTab"
+            )
+            ?.addEventListener(
+                "click",
+                function () {
+                    switchRaudaProfileTab(
+                        "stats"
+                    );
+                }
+            );
+    }
+
+
+    window.switchRaudaProfileTab =
+        function (tab) {
+
+            const avatar =
+                document.getElementById(
+                    "profileAvatar"
+                );
+
+
+            const screen =
+                avatar?.closest(
+                    ".screen"
+                );
+
+
+            const tabs =
+                document.getElementById(
+                    "raudaProfileTabs"
+                );
+
+
+            const stats =
+                document.getElementById(
+                    "raudaLearningStats"
+                );
+
+
+            const mainButton =
+                document.getElementById(
+                    "raudaProfileMainTab"
+                );
+
+
+            const statsButton =
+                document.getElementById(
+                    "raudaProfileStatsTab"
+                );
+
+
+            if (
+                !screen ||
+                !tabs ||
+                !stats
+            ) {
+                return;
+            }
+
+
+            const statsMode =
+                tab === "stats";
+
+
+            mainButton?.classList.toggle(
+                "active",
+                !statsMode
+            );
+
+
+            statsButton?.classList.toggle(
+                "active",
+                statsMode
+            );
+
+
+            profileOriginalChildren.forEach(
+                function (element) {
+
+                    /*
+                     * Кнопку назад и шапку
+                     * профиля оставляем видимыми.
+                     */
+
+                    const keep =
+                        element.classList
+                            ?.contains(
+                                "back-button"
+                            ) ||
+                        element.classList
+                            ?.contains(
+                                "profile-header"
+                            );
+
+
+                    if (keep) {
+                        return;
+                    }
+
+
+                    if (statsMode) {
+
+                        if (
+                            !element.dataset
+                                .raudaOriginalDisplay
+                        ) {
+
+                            element.dataset
+                                .raudaOriginalDisplay =
+                                element.style
+                                    .display ||
+                                "__EMPTY__";
+                        }
+
+
+                        element.style.display =
+                            "none";
+
+                    } else {
+
+                        const old =
+                            element.dataset
+                                .raudaOriginalDisplay;
+
+
+                        if (old) {
+
+                            element.style.display =
+                                old === "__EMPTY__"
+                                    ? ""
+                                    : old;
+
+
+                            delete element.dataset
+                                .raudaOriginalDisplay;
+
+                        } else {
+
+                            element.style.display =
+                                "";
+                        }
+                    }
+                }
+            );
+
+
+            stats.classList.toggle(
+                "active",
+                statsMode
+            );
+
+
+            if (statsMode) {
+                loadRaudaLearningStats();
+            }
+        };
+
+
+    window.loadRaudaLearningStats =
+        async function () {
+
+            const percentElement =
+                document.getElementById(
+                    "raudaStatsPercent"
+                );
+
+
+            if (!percentElement) {
+                return;
+            }
+
+
+            percentElement.textContent =
+                "\u2026";
+
+
+            try {
+
+                const result =
+                    await api(
+                        "/lessons"
+                    );
+
+
+                if (
+                    !result ||
+                    !result.data
+                ) {
+                    throw new Error(
+                        "Lessons response is empty"
+                    );
+                }
+
+
+                const lessons =
+                    Array.isArray(
+                        result.data.lessons
+                    )
+                        ? result.data.lessons
+                        : [];
+
+
+                const completedIds =
+                    Array.isArray(
+                        result.data
+                            .completedLessonIds
+                    )
+                        ? result.data
+                            .completedLessonIds
+                        : [];
+
+
+                const total =
+                    lessons.length;
+
+
+                /*
+                 * Убираем дубликаты id.
+                 */
+
+                const completed =
+                    new Set(
+                        completedIds.map(
+                            id => String(id)
+                        )
+                    ).size;
+
+
+                const safeCompleted =
+                    Math.min(
+                        completed,
+                        total
+                    );
+
+
+                const remaining =
+                    Math.max(
+                        total -
+                        safeCompleted,
+                        0
+                    );
+
+
+                const percent =
+                    total > 0
+                        ? Math.round(
+                            safeCompleted /
+                            total *
+                            100
+                        )
+                        : 0;
+
+
+                document
+                    .getElementById(
+                        "raudaStatsPercent"
+                    )
+                    .textContent =
+                    percent + "%";
+
+
+                document
+                    .getElementById(
+                        "raudaStatsCompleted"
+                    )
+                    .textContent =
+                    safeCompleted;
+
+
+                document
+                    .getElementById(
+                        "raudaStatsTotal"
+                    )
+                    .textContent =
+                    total;
+
+
+                document
+                    .getElementById(
+                        "raudaStatsRemaining"
+                    )
+                    .textContent =
+                    remaining;
+
+
+                document
+                    .getElementById(
+                        "raudaStatsCompletedText"
+                    )
+                    .textContent =
+                    safeCompleted +
+                    " \u0438\u0437 " +
+                    total;
+
+
+                document
+                    .getElementById(
+                        "raudaStatsProgressFill"
+                    )
+                    .style.width =
+                    percent + "%";
+
+
+                const status =
+                    document.getElementById(
+                        "raudaStatsStatus"
+                    );
+
+
+                if (status) {
+
+                    if (
+                        total > 0 &&
+                        percent >= 100
+                    ) {
+
+                        status.textContent =
+                            "\u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043e";
+
+                    } else if (
+                        safeCompleted > 0
+                    ) {
+
+                        status.textContent =
+                            "\u0412 \u043f\u0440\u043e\u0446\u0435\u0441\u0441\u0435";
+
+                    } else {
+
+                        status.textContent =
+                            "\u041d\u0430\u0447\u0430\u043b\u043e \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u044f";
+                    }
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    "Learning statistics:",
+                    error
+                );
+
+
+                percentElement.textContent =
+                    "—";
+
+
+                const status =
+                    document.getElementById(
+                        "raudaStatsStatus"
+                    );
+
+
+                if (status) {
+                    status.textContent =
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c";
+                }
+            }
+        };
+
+
+    /* =====================================================
+       OPEN PROFILE WRAPPER
+       ===================================================== */
+
+    function enhanceOpenProfile() {
+
+        if (
+            typeof window.openProfile !==
+                "function" ||
+            window.openProfile
+                .__raudaStatsWrapped
+        ) {
+            return;
+        }
+
+
+        const original =
+            window.openProfile;
+
+
+        const enhanced =
+            function () {
+
+                const result =
+                    original.apply(
+                        this,
+                        arguments
+                    );
+
+
+                setTimeout(
+                    function () {
+
+                        buildRaudaProfileStatistics();
+
+                        switchRaudaProfileTab(
+                            "profile"
+                        );
+                    },
+                    0
+                );
+
+
+                return result;
+            };
+
+
+        enhanced.__raudaStatsWrapped =
+            true;
+
+
+        window.openProfile =
+            enhanced;
+    }
+
+
+    /* =====================================================
+       INIT
+       ===================================================== */
+
+    function initRaudaProfileStatsHeader() {
+
+        buildRaudaHeaderActions();
+
+        buildRaudaNotifications();
+
+        buildRaudaProfileStatistics();
+
+        enhanceOpenProfile();
+    }
+
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initRaudaProfileStatsHeader
+        );
+
+    } else {
+
+        initRaudaProfileStatsHeader();
+    }
 
 })();
 
