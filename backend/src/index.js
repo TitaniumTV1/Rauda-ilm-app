@@ -67,7 +67,14 @@ if (
 ) {
     return handleEmailRegister(request, env);
 }
-            async function handleEmailSendCode(request, env) {
+            
+if (
+    url.pathname === "/api/auth/password/reset" &&
+    request.method === "POST"
+) {
+    return handlePasswordReset(request, env);
+}
+async function handleEmailSendCode(request, env) {
     if (!env.DB) return databaseMissing(env);
 
     try {
@@ -322,6 +329,168 @@ if (
 }
 
 
+
+
+async function handlePasswordReset(request, env) {
+    if (!env.DB) return databaseMissing(env);
+
+    try {
+        await ensureAuthSessionsTable(env.DB);
+        await ensureEmailAuthSchema(env.DB);
+
+        const body = await readJson(request);
+
+        const email = String(body?.email || "")
+            .trim()
+            .toLowerCase();
+
+        const code = String(body?.code || "")
+            .trim();
+
+        const password = String(body?.password || "");
+
+        if (!isValidEmail(email)) {
+            return json(
+                {
+                    ok: false,
+                    error: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u0443\u044e \u043f\u043e\u0447\u0442\u0443"
+                },
+                400,
+                env
+            );
+        }
+
+        if (!/^\d{6}$/.test(code)) {
+            return json(
+                {
+                    ok: false,
+                    error: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 6-\u0437\u043d\u0430\u0447\u043d\u044b\u0439 \u043a\u043e\u0434"
+                },
+                400,
+                env
+            );
+        }
+
+        if (
+            password.length < 8 ||
+            password.length > 128
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error: "\u041f\u0430\u0440\u043e\u043b\u044c \u0434\u043e\u043b\u0436\u0435\u043d \u0441\u043e\u0434\u0435\u0440\u0436\u0430\u0442\u044c \u043c\u0438\u043d\u0438\u043c\u0443\u043c 8 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432"
+                },
+                400,
+                env
+            );
+        }
+
+        /*
+         * Используем существующий код EMAIL LOGIN.
+         * Поэтому отдельная таблица reset-кодов не нужна.
+         */
+
+        const verification =
+            await verifyEmailCode(
+                env.DB,
+                email,
+                "login",
+                code,
+                env
+            );
+
+        if (!verification.ok) {
+            return json(
+                {
+                    ok: false,
+                    error: verification.error
+                },
+                verification.status || 400,
+                env
+            );
+        }
+
+        const user = await first(
+            env.DB,
+            `
+            SELECT id
+            FROM users
+            WHERE LOWER(email) = ?
+            LIMIT 1
+            `,
+            [email]
+        );
+
+        if (!user) {
+            return json(
+                {
+                    ok: false,
+                    error: "\u0410\u043a\u043a\u0430\u0443\u043d\u0442 \u0441 \u0442\u0430\u043a\u043e\u0439 \u043f\u043e\u0447\u0442\u043e\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d"
+                },
+                404,
+                env
+            );
+        }
+
+        const passwordHash =
+            await hashPassword(password);
+
+        await run(
+            env.DB,
+            `
+            UPDATE users
+            SET
+                password_hash = ?,
+                email_verified_at = COALESCE(
+                    email_verified_at,
+                    CURRENT_TIMESTAMP
+                ),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [
+                passwordHash,
+                user.id
+            ]
+        );
+
+        /*
+         * После смены пароля закрываем старые сессии.
+         */
+
+        await run(
+            env.DB,
+            `
+            DELETE FROM auth_sessions
+            WHERE user_id = ?
+            `,
+            [user.id]
+        );
+
+        return json(
+            {
+                ok: true
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Password reset error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error: "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u043f\u0430\u0440\u043e\u043b\u044c"
+            },
+            500,
+            env
+        );
+    }
+}
 
 async function handleEmailLink(request, env) {
     if (!env.DB) return databaseMissing(env);
@@ -1041,6 +1210,12 @@ async function ensureEmailAuthSchema(db) {
             if (url.pathname === "/api/auth/telegram" && request.method === "POST") {
                 return handleTelegramAuth(request, env);
             }
+            if (
+                url.pathname === "/api/auth/telegram-widget" &&
+                request.method === "POST"
+            ) {
+                return handleTelegramWidgetAuth(request, env);
+            }
             if (url.pathname === "/api/auth/me" && request.method === "GET") {
                 return handleMe(request, env);
             }
@@ -1382,6 +1557,484 @@ if (
             500,
             env
         );
+    }
+}
+
+
+async function handleTelegramWidgetAuth(request, env) {
+    if (!env.DB) {
+        return databaseMissing(env);
+    }
+
+    if (!env.TELEGRAM_BOT_TOKEN) {
+        return json(
+            {
+                ok: false,
+                error: "Telegram bot token is not configured"
+            },
+            500,
+            env
+        );
+    }
+
+    try {
+        await ensureAuthSessionsTable(
+            env.DB
+        );
+
+        const body =
+            await readJson(request);
+
+        const verification =
+            await verifyTelegramWidgetAuth(
+                body,
+                env.TELEGRAM_BOT_TOKEN
+            );
+
+        if (!verification.ok) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        verification.error ||
+                        "Telegram authentication failed"
+                },
+                401,
+                env
+            );
+        }
+
+
+        const telegramUser =
+            verification.user;
+
+
+        const telegramId =
+            Number(telegramUser.id);
+
+
+        if (
+            !Number.isSafeInteger(telegramId) ||
+            telegramId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error: "Invalid Telegram user ID"
+                },
+                401,
+                env
+            );
+        }
+
+
+        let user =
+            await first(
+                env.DB,
+                `
+                SELECT *
+                FROM users
+                WHERE telegram_id = ?
+                LIMIT 1
+                `,
+                [telegramId]
+            );
+
+
+        /*
+         * Первый вход через Telegram
+         */
+
+        if (!user) {
+
+            const result =
+                await run(
+                    env.DB,
+                    `
+                    INSERT INTO users (
+                        telegram_id,
+                        username,
+                        first_name,
+                        last_name,
+                        role,
+                        status
+                    )
+                    VALUES (
+                        ?, ?, ?, ?,
+                        'student',
+                        'active'
+                    )
+                    `,
+                    [
+                        telegramId,
+                        telegramUser.username || null,
+                        telegramUser.first_name || null,
+                        telegramUser.last_name || null
+                    ]
+                );
+
+
+            user =
+                await getUserById(
+                    env.DB,
+                    Number(
+                        result.meta.last_row_id
+                    )
+                );
+
+        } else {
+
+            /*
+             * Не перезаписываем имя,
+             * которое пользователь мог
+             * изменить в RAUDA ILM.
+             */
+
+            await run(
+                env.DB,
+                `
+                UPDATE users
+                SET updated_at =
+                    CURRENT_TIMESTAMP
+                WHERE id = ?
+                `,
+                [user.id]
+            );
+
+
+            user =
+                await getUserById(
+                    env.DB,
+                    user.id
+                );
+        }
+
+
+        if (
+            user.status !==
+            "active"
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        user.blocked_reason ||
+                        "Ваш аккаунт заблокирован"
+                },
+                403,
+                env
+            );
+        }
+
+
+        const session =
+            await createSession(
+                env.DB,
+                user.id
+            );
+
+
+        return json(
+            {
+                ok: true,
+                user:
+                    publicUser(user),
+                token:
+                    session.token,
+                expires_at:
+                    session.expiresAt
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Telegram widget auth error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось выполнить вход через Telegram"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function verifyTelegramWidgetAuth(
+    data,
+    botToken
+) {
+
+    try {
+
+        if (
+            !data ||
+            typeof data !== "object"
+        ) {
+            return {
+                ok: false,
+                error:
+                    "Telegram данные отсутствуют"
+            };
+        }
+
+
+        const receivedHash =
+            String(
+                data.hash || ""
+            )
+            .trim()
+            .toLowerCase();
+
+
+        if (
+            !/^[a-f0-9]{64}$/.test(
+                receivedHash
+            )
+        ) {
+            return {
+                ok: false,
+                error:
+                    "Некорректная подпись Telegram"
+            };
+        }
+
+
+        const authDate =
+            Number(
+                data.auth_date
+            );
+
+
+        if (
+            !Number.isSafeInteger(
+                authDate
+            )
+        ) {
+            return {
+                ok: false,
+                error:
+                    "Некорректное время Telegram авторизации"
+            };
+        }
+
+
+        const now =
+            Math.floor(
+                Date.now() / 1000
+            );
+
+
+        /*
+         * Авторизация должна быть свежей.
+         */
+
+        if (
+            authDate > now + 60 ||
+            now - authDate > 300
+        ) {
+            return {
+                ok: false,
+                error:
+                    "Telegram авторизация устарела. Попробуйте войти ещё раз."
+            };
+        }
+
+
+        const values =
+            Object.entries(data)
+                .filter(
+                    ([key, value]) =>
+                        key !== "hash" &&
+                        value !== undefined &&
+                        value !== null
+                )
+                .map(
+                    ([key, value]) => [
+                        key,
+                        String(value)
+                    ]
+                )
+                .sort(
+                    (a, b) =>
+                        a[0].localeCompare(
+                            b[0]
+                        )
+                );
+
+
+        const dataCheckString =
+            values
+                .map(
+                    ([key, value]) =>
+                        `${key}=${value}`
+                )
+                .join("\n");
+
+
+        const encoder =
+            new TextEncoder();
+
+
+        /*
+         * secret_key =
+         * SHA256(bot_token)
+         */
+
+        const secretKey =
+            await crypto.subtle.digest(
+                "SHA-256",
+                encoder.encode(
+                    String(botToken)
+                )
+            );
+
+
+        const hmacKey =
+            await crypto.subtle.importKey(
+                "raw",
+                secretKey,
+                {
+                    name: "HMAC",
+                    hash: "SHA-256"
+                },
+                false,
+                ["sign"]
+            );
+
+
+        const signature =
+            await crypto.subtle.sign(
+                "HMAC",
+                hmacKey,
+                encoder.encode(
+                    dataCheckString
+                )
+            );
+
+
+        const expectedHash =
+            Array.from(
+                new Uint8Array(
+                    signature
+                )
+            )
+            .map(
+                byte =>
+                    byte
+                        .toString(16)
+                        .padStart(2, "0")
+            )
+            .join("");
+
+
+        if (
+            expectedHash.length !==
+            receivedHash.length
+        ) {
+            return {
+                ok: false,
+                error:
+                    "Telegram подпись не совпадает"
+            };
+        }
+
+
+        /*
+         * Сравниваем без раннего выхода.
+         */
+
+        let difference = 0;
+
+        for (
+            let i = 0;
+            i < expectedHash.length;
+            i++
+        ) {
+            difference |=
+                expectedHash.charCodeAt(i) ^
+                receivedHash.charCodeAt(i);
+        }
+
+
+        if (difference !== 0) {
+            return {
+                ok: false,
+                error:
+                    "Telegram подпись не совпадает"
+            };
+        }
+
+
+        const telegramId =
+            Number(
+                data.id
+            );
+
+
+        if (
+            !Number.isSafeInteger(
+                telegramId
+            ) ||
+            telegramId <= 0
+        ) {
+            return {
+                ok: false,
+                error:
+                    "Некорректный Telegram ID"
+            };
+        }
+
+
+        return {
+            ok: true,
+
+            user: {
+                id:
+                    telegramId,
+
+                first_name:
+                    cleanText(
+                        data.first_name
+                    ) || null,
+
+                last_name:
+                    cleanText(
+                        data.last_name
+                    ) || null,
+
+                username:
+                    cleanText(
+                        data.username
+                    ) || null,
+
+                photo_url:
+                    cleanText(
+                        data.photo_url
+                    ) || null
+            }
+        };
+
+    } catch (error) {
+
+        console.error(
+            "Telegram widget verification error:",
+            error
+        );
+
+        return {
+            ok: false,
+            error:
+                "Не удалось проверить Telegram авторизацию"
+        };
     }
 }
 

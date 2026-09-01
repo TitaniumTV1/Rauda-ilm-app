@@ -3832,6 +3832,401 @@ a:focus:not(:focus-visible) {
 
 </style>
 
+
+<style id="rauda-telegram-browser-login">
+
+.telegram-login-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 100000;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 18px;
+
+    background:
+        rgba(8, 14, 10, .62);
+
+    backdrop-filter:
+        blur(6px);
+
+    -webkit-backdrop-filter:
+        blur(6px);
+
+    opacity: 0;
+
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity .22s ease,
+        visibility .22s ease;
+}
+
+
+.telegram-login-overlay.active {
+    opacity: 1;
+
+    visibility: visible;
+    pointer-events: auto;
+}
+
+
+.telegram-login-card {
+    position: relative;
+
+    width: 100%;
+    max-width: 370px;
+
+    padding:
+        27px 20px 22px;
+
+    border:
+        1px solid #e2d7bf;
+
+    border-radius:
+        20px;
+
+    background:
+        #fffdf8;
+
+    text-align: center;
+
+    box-shadow:
+        0 26px 70px
+        rgba(8, 20, 13, .24);
+}
+
+
+.telegram-login-close {
+    position: absolute;
+
+    top: 11px;
+    right: 11px;
+
+    width: 36px;
+    height: 36px;
+
+    padding: 0;
+
+    border:
+        1px solid #e3dac8;
+
+    border-radius:
+        10px;
+
+    background:
+        #f6f1e6 !important;
+
+    color:
+        #183d2c;
+
+    font-size:
+        22px;
+
+    box-shadow:
+        none !important;
+
+    transform:
+        none !important;
+}
+
+
+.telegram-login-logo {
+    width: 68px;
+    height: 68px;
+
+    margin:
+        4px auto 13px;
+
+    overflow: hidden;
+
+    border-radius:
+        18px;
+
+    background:
+        #f6f0e3;
+
+    border:
+        1px solid #ddcca7;
+}
+
+
+.telegram-login-logo img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: contain;
+}
+
+
+.telegram-login-title {
+    color:
+        #183d2c;
+
+    font-size:
+        20px;
+
+    font-weight:
+        800;
+}
+
+
+.telegram-login-description {
+    margin:
+        7px auto 19px;
+
+    max-width:
+        290px;
+
+    color:
+        #777a71;
+
+    font-size:
+        13px;
+
+    line-height:
+        1.5;
+}
+
+
+#telegramWidgetContainer {
+    min-height:
+        44px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+}
+
+
+.telegram-login-status {
+    display: none;
+
+    margin-top:
+        14px;
+
+    padding:
+        10px 12px;
+
+    border-radius:
+        10px;
+
+    font-size:
+        12px;
+
+    line-height:
+        1.45;
+}
+
+
+.telegram-login-status.show {
+    display: block;
+}
+
+
+.telegram-login-status.loading {
+    background:
+        #f5efdf;
+
+    color:
+        #715d34;
+}
+
+
+.telegram-login-status.error {
+    background:
+        #faeaea;
+
+    color:
+        #992f2f;
+}
+
+</style>
+
+
+<style id="rauda-telegram-browser-v2">
+
+.telegram-browser-overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 100000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 18px;
+
+    background:
+        rgba(8,14,10,.62);
+
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity .2s ease,
+        visibility .2s ease;
+}
+
+.telegram-browser-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.telegram-browser-card {
+    position: relative;
+
+    width: 100%;
+    max-width: 370px;
+
+    padding: 27px 20px 23px;
+
+    border:
+        1px solid #e2d7bf;
+
+    border-radius:
+        20px;
+
+    background:
+        #fffdf8;
+
+    text-align: center;
+
+    box-shadow:
+        0 25px 65px
+        rgba(10,25,16,.22);
+}
+
+.telegram-browser-close {
+    position: absolute;
+
+    top: 11px;
+    right: 11px;
+
+    width: 36px;
+    height: 36px;
+
+    padding: 0;
+
+    border:
+        1px solid #e4dccb;
+
+    border-radius:
+        10px;
+
+    background:
+        #f6f1e6 !important;
+
+    color:
+        #183d2c;
+
+    font-size:
+        22px;
+
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.telegram-browser-logo {
+    width: 65px;
+    height: 65px;
+
+    margin:
+        3px auto 13px;
+
+    overflow: hidden;
+
+    border-radius:
+        17px;
+
+    border:
+        1px solid #ddcca7;
+
+    background:
+        #f6f0e3;
+}
+
+.telegram-browser-logo img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+}
+
+.telegram-browser-title {
+    color: #183d2c;
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.telegram-browser-text {
+    margin:
+        7px 0 18px;
+
+    color:
+        #777a71;
+
+    font-size:
+        13px;
+
+    line-height: 1.5;
+}
+
+#telegramBrowserWidget {
+    min-height: 45px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.telegram-browser-status {
+    display: none;
+
+    margin-top: 14px;
+    padding: 10px;
+
+    border-radius: 10px;
+
+    font-size: 12px;
+}
+
+.telegram-browser-status.show {
+    display: block;
+}
+
+.telegram-browser-status.error {
+    background: #faeaea;
+    color: #982e2e;
+}
+
+.telegram-browser-status.loading {
+    background: #f5efdf;
+    color: #6d5933;
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
@@ -8125,6 +8520,809 @@ function setRegisterMethod(method) {
                 }
             );
         }
+    );
+
+})();
+
+</script>
+
+
+<script id="rauda-telegram-browser-login-script">
+
+(function () {
+
+    const TEXT = {
+
+        title:
+            "\u0412\u0445\u043e\u0434 \u0447\u0435\u0440\u0435\u0437 Telegram",
+
+        description:
+            "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 Telegram-\u0430\u043a\u043a\u0430\u0443\u043d\u0442 \u0434\u043b\u044f \u0432\u0445\u043e\u0434\u0430 \u0432 RAUDA ILM",
+
+        loading:
+            "\u041f\u0440\u043e\u0432\u0435\u0440\u044f\u0435\u043c Telegram\u2026",
+
+        error:
+            "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0432\u043e\u0439\u0442\u0438 \u0447\u0435\u0440\u0435\u0437 Telegram"
+    };
+
+
+    function setTelegramStatus(
+        message,
+        type
+    ) {
+
+        const element =
+            document.getElementById(
+                "telegramBrowserStatus"
+            );
+
+        if (!element) {
+            return;
+        }
+
+
+        if (!message) {
+
+            element.textContent =
+                "";
+
+            element.className =
+                "telegram-login-status";
+
+            return;
+        }
+
+
+        element.textContent =
+            message;
+
+        element.className =
+            "telegram-login-status show " +
+            (type || "loading");
+    }
+
+
+    window.closeTelegramBrowserLogin =
+        function () {
+
+            const overlay =
+                document.getElementById(
+                    "telegramBrowserOverlay"
+                );
+
+            if (overlay) {
+
+                overlay.classList.remove(
+                    "active"
+                );
+            }
+        };
+
+
+    function loadTelegramWidget() {
+
+        const container =
+            document.getElementById(
+                "telegramWidgetContainer"
+            );
+
+
+        if (!container) {
+            return;
+        }
+
+
+        /*
+         * Уже загружен.
+         */
+
+        if (
+            container.dataset.loaded ===
+            "1"
+        ) {
+            return;
+        }
+
+
+        container.dataset.loaded =
+            "1";
+
+
+        const script =
+            document.createElement(
+                "script"
+            );
+
+
+        script.async =
+            true;
+
+
+        script.src =
+            "https://telegram.org/js/telegram-widget.js?22";
+
+
+        script.setAttribute(
+            "data-telegram-login",
+            "Rauda_ilmapp_bot"
+        );
+
+
+        script.setAttribute(
+            "data-size",
+            "large"
+        );
+
+
+        script.setAttribute(
+            "data-radius",
+            "10"
+        );
+
+
+        script.setAttribute(
+            "data-userpic",
+            "false"
+        );
+
+
+        script.setAttribute(
+            "data-onauth",
+            "onTelegramWidgetAuth(user)"
+        );
+
+
+        container.appendChild(
+            script
+        );
+    }
+
+
+    window.openTelegramBrowserLogin =
+        function () {
+
+            setTelegramStatus(
+                "",
+                ""
+            );
+
+
+            const overlay =
+                document.getElementById(
+                    "telegramBrowserOverlay"
+                );
+
+
+            if (overlay) {
+
+                overlay.classList.add(
+                    "active"
+                );
+            }
+
+
+            loadTelegramWidget();
+        };
+
+
+    window.onTelegramWidgetAuth =
+        async function (telegramUser) {
+
+            setTelegramStatus(
+                TEXT.loading,
+                "loading"
+            );
+
+
+            try {
+
+                const result =
+                    await api(
+                        "/auth/telegram-widget",
+                        {
+                            method:
+                                "POST",
+
+                            body:
+                                JSON.stringify(
+                                    telegramUser
+                                )
+                        }
+                    );
+
+
+                if (
+                    !result.data ||
+                    !result.data.ok
+                ) {
+
+                    setTelegramStatus(
+                        result.data?.error ||
+                        TEXT.error,
+                        "error"
+                    );
+
+                    return;
+                }
+
+
+                saveToken(
+                    result.data.token
+                );
+
+
+                currentUser =
+                    result.data.user;
+
+
+                closeTelegramBrowserLogin();
+
+
+                openApp();
+
+            } catch (error) {
+
+                console.error(
+                    "Telegram browser login:",
+                    error
+                );
+
+
+                setTelegramStatus(
+                    TEXT.error,
+                    "error"
+                );
+            }
+        };
+
+
+    /*
+     * Заменяем старое поведение:
+     *
+     * Mini App -> initData
+     * Browser  -> Login Widget
+     */
+
+    window.telegramLogin =
+        async function () {
+
+            hideError();
+
+
+            const tg =
+                window.Telegram &&
+                window.Telegram.WebApp
+                    ? window.Telegram.WebApp
+                    : null;
+
+
+            const initData =
+                tg &&
+                typeof tg.initData ===
+                    "string"
+                    ? tg.initData.trim()
+                    : "";
+
+
+            /*
+             * Внутри Telegram Mini App.
+             */
+
+            if (initData) {
+
+                try {
+
+                    const result =
+                        await api(
+                            "/auth/telegram",
+                            {
+                                method:
+                                    "POST",
+
+                                body:
+                                    JSON.stringify({
+                                        initData
+                                    })
+                            }
+                        );
+
+
+                    if (
+                        !result.data ||
+                        !result.data.ok
+                    ) {
+
+                        showError(
+                            result.data?.error ||
+                            "Не удалось войти через Telegram"
+                        );
+
+                        return;
+                    }
+
+
+                    saveToken(
+                        result.data.token
+                    );
+
+
+                    currentUser =
+                        result.data.user;
+
+
+                    openApp();
+
+
+                } catch (error) {
+
+                    showError(
+                        "Не удалось войти через Telegram"
+                    );
+                }
+
+
+                return;
+            }
+
+
+            /*
+             * Обычный браузер.
+             */
+
+            openTelegramBrowserLogin();
+        };
+
+
+    function buildTelegramBrowserLogin() {
+
+        if (
+            document.getElementById(
+                "telegramBrowserOverlay"
+            )
+        ) {
+            return;
+        }
+
+
+        const overlay =
+            document.createElement(
+                "div"
+            );
+
+
+        overlay.id =
+            "telegramBrowserOverlay";
+
+
+        overlay.className =
+            "telegram-login-overlay";
+
+
+        overlay.innerHTML = `
+
+            <div
+                class="telegram-login-card"
+            >
+
+                <button
+                    type="button"
+                    class="telegram-login-close"
+                    onclick="closeTelegramBrowserLogin()"
+                >
+                    &times;
+                </button>
+
+
+                <div
+                    class="telegram-login-logo"
+                >
+                    <img
+                        src="/logo.png"
+                        alt="RAUDA ILM"
+                    >
+                </div>
+
+
+                <div
+                    class="telegram-login-title"
+                >
+                    ${TEXT.title}
+                </div>
+
+
+                <div
+                    class="telegram-login-description"
+                >
+                    ${TEXT.description}
+                </div>
+
+
+                <div
+                    id="telegramWidgetContainer"
+                ></div>
+
+
+                <div
+                    id="telegramBrowserStatus"
+                    class="telegram-login-status"
+                ></div>
+
+            </div>
+        `;
+
+
+        overlay.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target ===
+                    overlay
+                ) {
+
+                    closeTelegramBrowserLogin();
+                }
+            }
+        );
+
+
+        document.body.appendChild(
+            overlay
+        );
+    }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        buildTelegramBrowserLogin
+    );
+
+})();
+
+</script>
+
+
+<script id="rauda-telegram-browser-v2-script">
+
+(function () {
+
+    function tgStatus(
+        message,
+        type
+    ) {
+        const element =
+            document.getElementById(
+                "telegramBrowserStatus"
+            );
+
+        if (!element) {
+            return;
+        }
+
+        if (!message) {
+            element.textContent = "";
+            element.className =
+                "telegram-browser-status";
+            return;
+        }
+
+        element.textContent =
+            message;
+
+        element.className =
+            "telegram-browser-status show " +
+            (type || "loading");
+    }
+
+
+    window.closeTelegramBrowserLogin =
+        function () {
+
+            document
+                .getElementById(
+                    "telegramBrowserOverlay"
+                )
+                ?.classList
+                .remove("active");
+        };
+
+
+    window.telegramBrowserAuthorized =
+        async function (user) {
+
+            tgStatus(
+                "\u0412\u0445\u043e\u0434\u0438\u043c\u2026",
+                "loading"
+            );
+
+            try {
+
+                const result =
+                    await api(
+                        "/auth/telegram-widget",
+                        {
+                            method: "POST",
+
+                            body:
+                                JSON.stringify(
+                                    user
+                                )
+                        }
+                    );
+
+                if (
+                    !result.data ||
+                    !result.data.ok
+                ) {
+                    tgStatus(
+                        result.data?.error ||
+                        "\u041e\u0448\u0438\u0431\u043a\u0430 Telegram \u0430\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u0438",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                saveToken(
+                    result.data.token
+                );
+
+                currentUser =
+                    result.data.user;
+
+                closeTelegramBrowserLogin();
+
+                openApp();
+
+            } catch (error) {
+
+                console.error(
+                    "Telegram browser auth:",
+                    error
+                );
+
+                tgStatus(
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0432\u043e\u0439\u0442\u0438 \u0447\u0435\u0440\u0435\u0437 Telegram",
+                    "error"
+                );
+            }
+        };
+
+
+    function loadTelegramWidget() {
+
+        const container =
+            document.getElementById(
+                "telegramBrowserWidget"
+            );
+
+        if (
+            !container ||
+            container.dataset.loaded === "1"
+        ) {
+            return;
+        }
+
+        container.dataset.loaded =
+            "1";
+
+        const script =
+            document.createElement(
+                "script"
+            );
+
+        script.async = true;
+
+        script.src =
+            "https://telegram.org/js/telegram-widget.js?22";
+
+        script.setAttribute(
+            "data-telegram-login",
+            "Rauda_ilmapp_bot"
+        );
+
+        script.setAttribute(
+            "data-size",
+            "large"
+        );
+
+        script.setAttribute(
+            "data-radius",
+            "10"
+        );
+
+        script.setAttribute(
+            "data-userpic",
+            "false"
+        );
+
+        script.setAttribute(
+            "data-onauth",
+            "telegramBrowserAuthorized(user)"
+        );
+
+        container.appendChild(
+            script
+        );
+    }
+
+
+    function openTelegramBrowserLogin() {
+
+        tgStatus("", "");
+
+        const overlay =
+            document.getElementById(
+                "telegramBrowserOverlay"
+            );
+
+        overlay?.classList.add(
+            "active"
+        );
+
+        loadTelegramWidget();
+    }
+
+
+    /*
+     * Переопределяем старый Telegram вход.
+     *
+     * Telegram Mini App:
+     * initData
+     *
+     * Обычный браузер:
+     * Telegram Login Widget
+     */
+
+    window.telegramLogin =
+        async function () {
+
+            hideError();
+
+            const tg =
+                window.Telegram &&
+                window.Telegram.WebApp
+                    ? window.Telegram.WebApp
+                    : null;
+
+            const initData =
+                tg &&
+                typeof tg.initData ===
+                    "string"
+                    ? tg.initData.trim()
+                    : "";
+
+            if (initData) {
+
+                const result =
+                    await api(
+                        "/auth/telegram",
+                        {
+                            method: "POST",
+
+                            body:
+                                JSON.stringify({
+                                    initData
+                                })
+                        }
+                    );
+
+                if (
+                    !result.data ||
+                    !result.data.ok
+                ) {
+                    showError(
+                        result.data?.error ||
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0432\u043e\u0439\u0442\u0438 \u0447\u0435\u0440\u0435\u0437 Telegram"
+                    );
+
+                    return;
+                }
+
+                saveToken(
+                    result.data.token
+                );
+
+                currentUser =
+                    result.data.user;
+
+                openApp();
+
+                return;
+            }
+
+            openTelegramBrowserLogin();
+        };
+
+
+    function buildTelegramLogin() {
+
+        if (
+            document.getElementById(
+                "telegramBrowserOverlay"
+            )
+        ) {
+            return;
+        }
+
+        const overlay =
+            document.createElement(
+                "div"
+            );
+
+        overlay.id =
+            "telegramBrowserOverlay";
+
+        overlay.className =
+            "telegram-browser-overlay";
+
+        overlay.innerHTML = `
+
+            <div class="telegram-browser-card">
+
+                <button
+                    type="button"
+                    class="telegram-browser-close"
+                    onclick="closeTelegramBrowserLogin()"
+                >
+                    &times;
+                </button>
+
+                <div
+                    class="telegram-browser-logo"
+                >
+                    <img
+                        src="/logo.png"
+                        alt="RAUDA ILM"
+                    >
+                </div>
+
+                <div
+                    class="telegram-browser-title"
+                >
+                    \u0412\u0445\u043e\u0434 \u0447\u0435\u0440\u0435\u0437 Telegram
+                </div>
+
+                <div
+                    class="telegram-browser-text"
+                >
+                    \u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 Telegram-\u0430\u043a\u043a\u0430\u0443\u043d\u0442 \u0434\u043b\u044f \u0432\u0445\u043e\u0434\u0430 \u0432 RAUDA ILM
+                </div>
+
+                <div
+                    id="telegramBrowserWidget"
+                ></div>
+
+                <div
+                    id="telegramBrowserStatus"
+                    class="telegram-browser-status"
+                ></div>
+
+            </div>
+        `;
+
+        overlay.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target === overlay
+                ) {
+                    closeTelegramBrowserLogin();
+                }
+            }
+        );
+
+        document.body.appendChild(
+            overlay
+        );
+    }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        buildTelegramLogin
     );
 
 })();
