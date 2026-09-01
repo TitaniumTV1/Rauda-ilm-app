@@ -188,7 +188,14 @@
       background: #252d27;
       font-weight: 700;
     }
-
+    
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
     .button.primary { color: #142210; border-color: var(--green); background: var(--green); }
     .button.ghost { background: transparent; }
     .button:disabled { cursor: wait; opacity: .55; }
@@ -296,11 +303,19 @@
         </div>
       </div>
 
-      <div class="user-actions">
-        <span id="user-name"></span>
-        <button id="logout-button" class="button ghost hidden" type="button">Выйти</button>
-      </div>
-    </header>
+   <div class="user-actions">
+  <a class="button ghost back-button" href="/">← Назад</a>
+
+  <span id="user-name"></span>
+
+  <button
+    id="logout-button"
+    class="button ghost hidden"
+    type="button"
+  >
+    Выйти
+  </button>
+</div>
 
     <section id="login-view" class="card login-card">
       <h2>Вход в админку</h2>
