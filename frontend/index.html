@@ -4434,6 +4434,29 @@ a:focus:not(:focus-visible) {
 
 </style>
 
+
+<style id="rauda-side-menu-black-strip-fix">
+
+/* Закрытое меню полностью убираем за экран */
+.side-menu:not(.active) {
+    transform: translateX(-110%) !important;
+    box-shadow: none !important;
+}
+
+/* Тень появляется только когда меню реально открыто */
+.side-menu.active {
+    transform: translateX(0) !important;
+    box-shadow:
+        18px 0 50px rgba(0,0,0,.30) !important;
+}
+
+html,
+body {
+    overflow-x: hidden !important;
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
