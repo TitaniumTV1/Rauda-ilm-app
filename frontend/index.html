@@ -641,154 +641,110 @@
     </section>
 
 
-    <!-- PROFILE -->
+<!-- PROFILE -->
 
-    <section
-        id="profileScreen"
-        class="screen"
+<section
+    id="profileScreen"
+    class="screen"
+>
+
+    <button
+        class="back-button"
+        onclick="showScreen('homeScreen')"
     >
+        ← Назад
+    </button>
 
-        <button
-            class="back-button"
-            onclick="showScreen('homeScreen')"
-        >
-            ← Назад
-        </button>
+    <div class="card">
 
-        <div class="card">
+        <div class="profile-header">
 
-            <div class="profile-header">
-
-                <div
-                    id="profileAvatar"
-                    class="avatar"
-                >
-                    С
-                </div>
-
-                <div
-                    id="profileName"
-                    class="profile-name"
-                >
-                    Студент
-                </div>
-
-                <div
-                    id="profileRole"
-                    class="profile-role"
-                >
-                    Студент
-                </div>
-
+            <div
+                id="profileAvatar"
+                class="avatar"
+            >
+                С
             </div>
 
+            <div
+                id="profileName"
+                class="profile-name"
+            >
+                Студент
+            </div>
 
-  <div style="margin-top:16px">
-
-    <label>Ник</label>
-    <input
-        id="profileUsernameInput"
-        class="input"
-        type="text"
-        placeholder="Ник"
-        maxlength="64"
-    >
-
-    <label>Имя</label>
-    <input
-        id="profileFirstNameInput"
-        class="input"
-        type="text"
-        placeholder="Имя"
-        maxlength="64"
-    >
-
-    <label>Фамилия</label>
-    <input
-        id="profileLastNameInput"
-        class="input"
-        type="text"
-        placeholder="Фамилия"
-        maxlength="64"
-    >
-
-</div>
-<div style="margin-top:16px">
-
-    <label>Ник</label>
-    <input
-        id="profileUsernameInput"
-        class="input"
-        type="text"
-        placeholder="Ник"
-        maxlength="64"
-    >
-
-    <label>Имя</label>
-    <input
-        id="profileFirstNameInput"
-        class="input"
-        type="text"
-        placeholder="Имя"
-        maxlength="64"
-    >
-
-    <label>Фамилия</label>
-    <input
-        id="profileLastNameInput"
-        class="input"
-        type="text"
-        placeholder="Фамилия"
-        maxlength="64"
-    >
-
-</div>
-
-<div class="profile-row">
-    <span>Логин</span>
-    <span id="profileLogin">—</span>
-</div>
-
-<div class="profile-row">
-    <span>Telegram</span>
-    <span id="profileTelegramId">—</span>
-</div>
-
-<div class="profile-row">
-    <span>Роль</span>
-    <span id="profileRoleValue">—</span>
-</div>
-
-<button
-    class="primary-button"
-    onclick="saveProfile()"
->
-    Сохранить изменения
-</button>
-            
-<div class="profile-row">
-    <span>Роль</span>
-    <span id="profileRoleValue">—</span>
-</div>
-
-<button
-    class="primary-button"
-    onclick="saveProfile()"
->
-    Сохранить изменения
-</button>
+            <div
+                id="profileRole"
+                class="profile-role"
+            >
+                Студент
+            </div>
 
         </div>
 
+        <div style="margin-top:16px">
+
+            <label>Ник</label>
+            <input
+                id="profileUsernameInput"
+                class="input"
+                type="text"
+                placeholder="Ник"
+                maxlength="64"
+            >
+
+            <label>Имя</label>
+            <input
+                id="profileFirstNameInput"
+                class="input"
+                type="text"
+                placeholder="Имя"
+                maxlength="64"
+            >
+
+            <label>Фамилия</label>
+            <input
+                id="profileLastNameInput"
+                class="input"
+                type="text"
+                placeholder="Фамилия"
+                maxlength="64"
+            >
+
+        </div>
+
+        <div class="profile-row">
+            <span>Логин</span>
+            <span id="profileLogin">—</span>
+        </div>
+
+        <div class="profile-row">
+            <span>Telegram</span>
+            <span id="profileTelegramId">—</span>
+        </div>
+
+        <div class="profile-row">
+            <span>Роль</span>
+            <span id="profileRoleValue">—</span>
+        </div>
+
         <button
-            class="secondary-button"
-            onclick="logout()"
+            class="primary-button"
+            onclick="saveProfile()"
         >
-            Выйти из аккаунта
+            Сохранить изменения
         </button>
 
-    </section>
+    </div>
 
+    <button
+        class="secondary-button"
+        onclick="logout()"
+    >
+        Выйти из аккаунта
+    </button>
+
+</section>
 
     <!-- LESSONS -->
 
