@@ -488,7 +488,41 @@
         >
             Войти через Telegram
         </button>
+<div style="text-align:center;color:#788296;margin:18px 0 12px;">
+    или войти по почте
+</div>
 
+<input
+    id="emailLoginEmail"
+    class="input"
+    type="email"
+    placeholder="Электронная почта"
+    autocomplete="email"
+>
+
+<button
+    class="secondary-button"
+    onclick="sendEmailCode('login')"
+>
+    Получить код
+</button>
+
+<input
+    id="emailLoginCode"
+    class="input"
+    type="text"
+    inputmode="numeric"
+    maxlength="6"
+    placeholder="6-значный код"
+    style="margin-top:10px;"
+>
+
+<button
+    class="primary-button"
+    onclick="emailLogin()"
+>
+    Войти по почте
+</button>
         <a class="admin-link" href="/admin/">
             ⚙ Войти в админ-панель
         </a>
@@ -549,7 +583,41 @@
         >
             Создать аккаунт
         </button>
+<div style="text-align:center;color:#788296;margin:18px 0 12px;">
+    или регистрация по почте
+</div>
 
+<input
+    id="registerEmail"
+    class="input"
+    type="email"
+    placeholder="Электронная почта"
+    autocomplete="email"
+>
+
+<button
+    class="secondary-button"
+    onclick="sendEmailCode('register')"
+>
+    Получить код
+</button>
+
+<input
+    id="registerEmailCode"
+    class="input"
+    type="text"
+    inputmode="numeric"
+    maxlength="6"
+    placeholder="6-значный код"
+    style="margin-top:10px;"
+>
+
+<button
+    class="primary-button"
+    onclick="emailRegister()"
+>
+    Зарегистрироваться по почте
+</button>
         <div class="auth-switch">
             Уже есть аккаунт?
             <button onclick="showLogin()">
@@ -2373,7 +2441,215 @@ async function saveProfile() {
     }
 
     start();
+async function emailAuthRequest(path, body) {
+    try {
+        const response = await fetch(
+            API + path,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            }
+        );
 
+        let data = {};
+
+        try {
+            data = await response.json();
+        } catch {}
+
+        return {
+            ok: response.ok,
+            status: response.status,
+            data
+        };
+
+    } catch (error) {
+        console.error(
+            "Email auth request error:",
+            error
+        );
+
+        return {
+            ok: false,
+            status: 0,
+            data: {
+                error: "Нет соединения с сервером"
+            }
+        };
+    }
+}
+
+
+async function sendEmailCode(purpose) {
+    hideError();
+
+    const email =
+        purpose === "register"
+            ? document
+                .getElementById("registerEmail")
+                .value
+                .trim()
+            : document
+                .getElementById("emailLoginEmail")
+                .value
+                .trim();
+
+    if (!email) {
+        showError(
+            "Введите электронную почту"
+        );
+        return;
+    }
+
+    const result =
+        await emailAuthRequest(
+            "/auth/email/send-code",
+            {
+                email,
+                purpose
+            }
+        );
+
+    if (!result.ok) {
+        showError(
+            result.data?.error ||
+            "Не удалось отправить код"
+        );
+        return;
+    }
+
+    alert(
+        "Код отправлен на почту"
+    );
+}
+
+
+async function emailLogin() {
+    hideError();
+
+    const email =
+        document
+            .getElementById("emailLoginEmail")
+            .value
+            .trim();
+
+    const code =
+        document
+            .getElementById("emailLoginCode")
+            .value
+            .trim();
+
+    if (!email || !code) {
+        showError(
+            "Введите почту и код"
+        );
+        return;
+    }
+
+    const result =
+        await emailAuthRequest(
+            "/auth/email/login",
+            {
+                email,
+                code
+            }
+        );
+
+    if (!result.ok) {
+        showError(
+            result.data?.error ||
+            "Не удалось войти"
+        );
+        return;
+    }
+
+    saveToken(
+        result.data.token
+    );
+
+    currentUser =
+        result.data.user;
+
+    openApp();
+}
+
+
+async function emailRegister() {
+    hideError();
+
+    const email =
+        document
+            .getElementById("registerEmail")
+            .value
+            .trim();
+
+    const code =
+        document
+            .getElementById("registerEmailCode")
+            .value
+            .trim();
+
+    const login =
+        document
+            .getElementById("registerLogin")
+            .value
+            .trim();
+
+    const firstName =
+        document
+            .getElementById("registerFirstName")
+            .value
+            .trim();
+
+    const lastName =
+        document
+            .getElementById("registerLastName")
+            .value
+            .trim();
+
+    if (
+        !email ||
+        !code ||
+        !login
+    ) {
+        showError(
+            "Введите логин, почту и код"
+        );
+        return;
+    }
+
+    const result =
+        await emailAuthRequest(
+            "/auth/email/register",
+            {
+                email,
+                code,
+                login,
+                first_name: firstName,
+                last_name: lastName
+            }
+        );
+
+    if (!result.ok) {
+        showError(
+            result.data?.error ||
+            "Не удалось зарегистрироваться"
+        );
+        return;
+    }
+
+    saveToken(
+        result.data.token
+    );
+
+    currentUser =
+        result.data.user;
+
+    openApp();
+}
 </script><!-- Telegram Mini App SDK --><script src="https://telegram.org/js/telegram-web-app.js"></script></body>
 </html>
 
