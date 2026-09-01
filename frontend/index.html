@@ -1208,203 +1208,1301 @@ th {
 
 /* RAUDA GOLD GREEN THEME END */
 
+
+/* RAUDA V3 DESIGN START */
+
+:root {
+    --green-950: #10291f;
+    --green-900: #15382a;
+    --green-800: #1d4936;
+    --green-700: #285b44;
+
+    --gold-600: #aa8745;
+    --gold-500: #c1a05f;
+    --gold-300: #dfc995;
+    --gold-100: #f3ead5;
+
+    --cream-50: #fbf9f3;
+    --cream-100: #f6f1e6;
+
+    --surface: #fffdf8;
+
+    --text: #1b2821;
+    --muted: #777a70;
+
+    --line: #e4dccb;
+}
+
+
+/* RESET PRESS EFFECTS */
+
+button,
+a,
+.admin-link,
+.primary-button,
+.secondary-button,
+.menu-button,
+.menu-item,
+.menu-close,
+.back-button,
+.auth-tab,
+.code-button,
+.telegram-button {
+    transform: none !important;
+    animation: none !important;
+
+    transition:
+        background-color .1s ease,
+        border-color .1s ease,
+        color .1s ease,
+        box-shadow .1s ease,
+        opacity .1s ease !important;
+}
+
+button:hover,
+button:active,
+a:hover,
+a:active {
+    transform: none !important;
+}
+
+
+/* PAGE */
+
+body {
+    color: var(--text) !important;
+
+    background:
+        radial-gradient(
+            circle at 50% -100px,
+            rgba(193,160,95,.12),
+            transparent 360px
+        ),
+        var(--cream-100) !important;
+}
+
+
+/* AUTH */
+
+.auth-screen {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 28px 16px !important;
+
+    background:
+        radial-gradient(
+            circle at 50% 0,
+            rgba(193,160,95,.13),
+            transparent 380px
+        ),
+        var(--cream-100) !important;
+}
+
+.auth-shell {
+    width: 100%;
+    max-width: 390px;
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    margin-bottom: 18px;
+}
+
+.auth-emblem {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    background: var(--green-900);
+    color: #fffaf0;
+
+    border: 1px solid #315640;
+
+    box-shadow: none;
+
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.auth-brand-name {
+    color: var(--green-900);
+
+    font-size: 18px;
+    font-weight: 800;
+
+    letter-spacing: .7px;
+}
+
+.auth-brand-subtitle {
+    margin-top: 2px;
+
+    color: #89887f;
+
+    font-size: 12px;
+}
+
+.auth-card {
+    width: 100% !important;
+    max-width: none !important;
+
+    padding: 22px !important;
+
+    border-radius: 16px !important;
+
+    background: var(--surface) !important;
+
+    border:
+        1px solid
+        var(--line) !important;
+
+    box-shadow:
+        0 10px 30px
+        rgba(27,40,33,.055) !important;
+}
+
+.auth-heading {
+    color: var(--green-950);
+
+    font-size: 21px;
+    font-weight: 800;
+
+    margin-bottom: 4px;
+}
+
+.auth-description {
+    color: var(--muted);
+
+    font-size: 13px;
+
+    margin-bottom: 18px;
+}
+
+
+/* TABS */
+
+.auth-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 4px;
+
+    padding: 4px;
+
+    margin-bottom: 18px;
+
+    border-radius: 10px;
+
+    background: #f1ecdf;
+
+    border: 1px solid #e8dfcb;
+}
+
+.auth-tab {
+    height: 34px;
+
+    padding: 0 10px;
+
+    border: 0;
+    border-radius: 7px;
+
+    background: transparent;
+    color: #77766d;
+
+    font-size: 13px;
+    font-weight: 650;
+
+    cursor: pointer;
+}
+
+.auth-tab:hover {
+    background: rgba(255,255,255,.55);
+}
+
+.auth-tab.active {
+    background: var(--surface);
+
+    color: var(--green-900);
+
+    box-shadow:
+        0 1px 3px
+        rgba(20,35,27,.08);
+}
+
+.auth-tab:active {
+    background: #eee6d6 !important;
+}
+
+
+/* METHODS */
+
+.auth-method {
+    display: none;
+}
+
+.auth-method.active {
+    display: block;
+}
+
+
+/* FIELDS */
+
+.field-label {
+    display: block;
+
+    margin:
+        0 0 6px;
+
+    color: #62665f;
+
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.input,
+input.input {
+    width: 100% !important;
+    min-height: 42px !important;
+
+    margin-bottom: 13px !important;
+
+    padding:
+        10px 12px !important;
+
+    border-radius: 9px !important;
+
+    border:
+        1px solid
+        #ddd5c4 !important;
+
+    background:
+        #fffefb !important;
+
+    color:
+        var(--text) !important;
+
+    font-size: 14px !important;
+
+    box-shadow: none !important;
+
+    transform: none !important;
+}
+
+.input:hover {
+    border-color:
+        #cfc2a7 !important;
+}
+
+.input:focus {
+    border-color:
+        var(--gold-500) !important;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(193,160,95,.11) !important;
+
+    outline: none !important;
+}
+
+::placeholder {
+    color: #aaa79d !important;
+}
+
+
+/* BUTTONS */
+
+.primary-button {
+    width: 100% !important;
+
+    min-height: 42px !important;
+
+    margin-top: 3px !important;
+
+    padding:
+        9px 13px !important;
+
+    border-radius:
+        9px !important;
+
+    border:
+        1px solid
+        #1a4432 !important;
+
+    background:
+        var(--green-900) !important;
+
+    color:
+        #fffdf7 !important;
+
+    font-size:
+        13.5px !important;
+
+    font-weight:
+        700 !important;
+
+    box-shadow:
+        none !important;
+}
+
+.primary-button:hover {
+    background:
+        var(--green-800) !important;
+}
+
+.primary-button:active {
+    background:
+        var(--green-950) !important;
+
+    box-shadow:
+        inset 0 1px 2px
+        rgba(0,0,0,.12) !important;
+}
+
+
+.secondary-button,
+.admin-link {
+    min-height: 40px !important;
+
+    padding:
+        9px 12px !important;
+
+    border-radius:
+        9px !important;
+
+    border:
+        1px solid
+        #d9cba9 !important;
+
+    background:
+        #faf5e9 !important;
+
+    color:
+        var(--green-900) !important;
+
+    font-size:
+        13px !important;
+
+    font-weight:
+        650 !important;
+
+    box-shadow:
+        none !important;
+}
+
+.secondary-button:hover,
+.admin-link:hover {
+    background:
+        var(--gold-100) !important;
+}
+
+.secondary-button:active,
+.admin-link:active {
+    background:
+        #eadcbf !important;
+
+    box-shadow:
+        inset 0 1px 2px
+        rgba(70,55,25,.08) !important;
+}
+
+
+.code-row {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0,1fr) auto;
+
+    gap: 8px;
+
+    align-items: start;
+
+    margin-bottom: 13px;
+}
+
+.code-row .input {
+    margin-bottom: 0 !important;
+}
+
+.code-button {
+    height: 42px;
+
+    padding:
+        0 12px;
+
+    border-radius:
+        9px;
+
+    border:
+        1px solid
+        #d7c69f;
+
+    background:
+        #f8f1e2;
+
+    color:
+        var(--green-900);
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+
+    white-space: nowrap;
+}
+
+.code-button:hover {
+    background:
+        var(--gold-100);
+}
+
+.code-button:active {
+    background:
+        #e9dbbb;
+}
+
+
+.telegram-button {
+    width: 100%;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    border-radius: 9px;
+
+    border:
+        1px solid
+        #d5dbd4;
+
+    background:
+        #f5f7f4;
+
+    color:
+        var(--green-900);
+
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.telegram-button:hover {
+    background:
+        #edf2ee;
+}
+
+.telegram-button:active {
+    background:
+        #e3ebe5;
+}
+
+.telegram-mark {
+    width: 20px;
+    height: 20px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 6px;
+
+    background:
+        var(--green-900);
+
+    color: white;
+
+    font-size: 10px;
+    font-weight: 800;
+}
+
+
+/* DIVIDER */
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    margin:
+        17px 0 13px;
+
+    color: #9a978d;
+
+    font-size: 11px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+
+    height: 1px;
+    flex: 1;
+
+    background:
+        #e6dfd1;
+}
+
+
+/* ADMIN LINK */
+
+.admin-link {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+
+    width: 100% !important;
+
+    margin-top: 8px !important;
+
+    text-decoration:
+        none !important;
+}
+
+
+/* REGISTER */
+
+.name-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 9px;
+}
+
+
+/* SWITCH */
+
+.auth-switch {
+    margin-top: 18px !important;
+
+    text-align: center;
+
+    color:
+        #88877f !important;
+
+    font-size:
+        12px !important;
+}
+
+.auth-switch button {
+    padding: 4px 6px !important;
+
+    border: 0 !important;
+
+    background:
+        transparent !important;
+
+    color:
+        var(--green-800) !important;
+
+    font-size:
+        12px !important;
+
+    font-weight:
+        750 !important;
+}
+
+.auth-switch button:hover {
+    background:
+        var(--gold-100) !important;
+}
+
+.auth-switch button:active {
+    background:
+        #eadcbf !important;
+}
+
+
+/* STATUS */
+
+.error,
+.email-status {
+    border-radius:
+        8px !important;
+
+    font-size:
+        12px !important;
+}
+
+.email-status {
+    margin-top: 10px;
+}
+
+
+/* MAIN APP */
+
+.header {
+    height:
+        56px !important;
+
+    padding:
+        0 16px !important;
+
+    background:
+        rgba(255,253,248,.96) !important;
+
+    border-bottom:
+        1px solid
+        var(--line) !important;
+
+    box-shadow:
+        none !important;
+}
+
+.logo {
+    color:
+        var(--green-900) !important;
+
+    font-size:
+        17px !important;
+}
+
+.content {
+    max-width:
+        860px !important;
+
+    padding:
+        20px 14px 36px !important;
+}
+
+.card {
+    padding:
+        17px !important;
+
+    border-radius:
+        13px !important;
+
+    background:
+        var(--surface) !important;
+
+    border:
+        1px solid
+        var(--line) !important;
+
+    box-shadow:
+        0 4px 14px
+        rgba(30,45,36,.035) !important;
+}
+
+.welcome-title,
+.program-title,
+.profile-name,
+.lesson-title {
+    color:
+        var(--green-900) !important;
+}
+
+.semester {
+    padding:
+        6px 9px !important;
+
+    border-radius:
+        7px !important;
+
+    background:
+        var(--gold-100) !important;
+
+    color:
+        #725b2f !important;
+
+    border:
+        1px solid
+        #e2d2ae !important;
+
+    font-size:
+        11px !important;
+}
+
+
+/* MENU */
+
+.menu-button {
+    width:
+        38px !important;
+
+    height:
+        38px !important;
+
+    border-radius:
+        9px !important;
+
+    border:
+        1px solid
+        #d7dfd8 !important;
+
+    background:
+        #edf2ee !important;
+
+    color:
+        var(--green-900) !important;
+
+    box-shadow:
+        none !important;
+}
+
+.menu-button:active {
+    background:
+        #dce8df !important;
+}
+
+.menu-item {
+    padding:
+        11px 10px !important;
+
+    border-radius:
+        8px !important;
+
+    color:
+        var(--green-900) !important;
+
+    font-size:
+        13px !important;
+}
+
+.menu-item:hover,
+.menu-item:active {
+    background:
+        #edf2ee !important;
+}
+
+
+/* PROFILE */
+
+.avatar {
+    width:
+        68px !important;
+
+    height:
+        68px !important;
+
+    background:
+        var(--green-900) !important;
+
+    border:
+        2px solid
+        var(--gold-500) !important;
+
+    box-shadow:
+        none !important;
+
+    font-size:
+        23px !important;
+}
+
+.profile-row {
+    padding:
+        11px 0 !important;
+
+    border-bottom:
+        1px solid
+        #eee7d9 !important;
+
+    font-size:
+        13px !important;
+}
+
+
+/* UNIVERSAL ACTIVE */
+
+button:active,
+.primary-button:active,
+.secondary-button:active,
+.code-button:active,
+.telegram-button:active,
+.menu-button:active,
+.menu-item:active,
+.menu-close:active,
+.back-button:active,
+.auth-tab:active {
+    transform:
+        none !important;
+
+    scale:
+        1 !important;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 520px) {
+
+    .auth-screen {
+        align-items:
+            flex-start !important;
+
+        padding:
+            18px 12px !important;
+    }
+
+    .auth-shell {
+        max-width:
+            none;
+    }
+
+    .auth-card {
+        padding:
+            18px !important;
+
+        border-radius:
+            14px !important;
+    }
+
+    .name-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+    .code-row {
+        grid-template-columns:
+            1fr;
+    }
+
+    .code-button {
+        width:
+            100%;
+
+        height:
+            38px;
+    }
+
+}
+
+/* RAUDA V3 DESIGN END */
+
 </style>
 
-</head><body><div id="authApp" class="auth-screen"><div class="auth-card">
+</head><body>
+<div id="authApp" class="auth-screen">
 
-    <div class="auth-logo">RAUDA ILM</div>
+    <div class="auth-shell">
 
-    <div class="auth-subtitle">
-        Образовательная платформа
-    </div>
+        <div class="auth-brand">
+            <div class="auth-emblem">R</div>
 
-    <div id="authError" class="error"></div>
+            <div>
+                <div class="auth-brand-name">
+                    RAUDA ILM
+                </div>
 
-    <!-- LOGIN -->
+                <div class="auth-brand-subtitle">
+                    Образовательная платформа
+                </div>
+            </div>
+        </div>
 
-    <div id="loginForm">
 
-        <input
-            id="loginInput"
-            class="input"
-            type="text"
-            placeholder="Логин"
-            autocomplete="username"
-        >
+        <div class="auth-card">
 
-        <input
-            id="loginPassword"
-            class="input"
-            type="password"
-            placeholder="Пароль"
-            autocomplete="current-password"
-        >
+            <div
+                id="authError"
+                class="error"
+            ></div>
 
-        <button
-            class="primary-button"
-            onclick="login()"
-        >
-            Войти
-        </button>
 
-        <button
-            class="secondary-button"
-            onclick="telegramLogin()"
-        >
-            Войти через Telegram
-        </button>
-<div style="text-align:center;color:#788296;margin:18px 0 12px;">
-    или войти по почте
-</div>
+            <!-- LOGIN -->
 
-<input
-    id="emailLoginEmail"
-    class="input"
-    type="email"
-    placeholder="Электронная почта"
-    autocomplete="email"
->
+            <div id="loginForm">
 
-<button
-    class="secondary-button"
-    onclick="sendEmailCode('login')"
->
-    Получить код
-</button>
+                <div class="auth-heading">
+                    Вход
+                </div>
 
-<input
-    id="emailLoginCode"
-    class="input"
-    type="text"
-    inputmode="numeric"
-    maxlength="6"
-    placeholder="6-значный код"
-    style="margin-top:10px;"
->
+                <div class="auth-description">
+                    Выберите удобный способ входа
+                </div>
 
-<button
-    class="primary-button"
-    onclick="emailLogin()"
->
-    Войти по почте
-</button>
 
-<div
-    id="emailLoginStatus"
-    class="email-status"
-></div>
-        <a class="admin-link" href="/admin/">
-            ⚙ Войти в админ-панель
-        </a>
+                <div class="auth-tabs">
 
-        <div class="auth-switch">
-            Нет аккаунта?
-            <button onclick="showRegister()">
-                Регистрация
-            </button>
+                    <button
+                        type="button"
+                        class="auth-tab login-method-tab active"
+                        data-method="password"
+                        onclick="setLoginMethod('password')"
+                    >
+                        Логин
+                    </button>
+
+                    <button
+                        type="button"
+                        class="auth-tab login-method-tab"
+                        data-method="email"
+                        onclick="setLoginMethod('email')"
+                    >
+                        Почта
+                    </button>
+
+                </div>
+
+
+                <!-- LOGIN PASSWORD -->
+
+                <div
+                    id="loginPasswordPanel"
+                    class="auth-method active"
+                >
+
+                    <label class="field-label">
+                        Логин
+                    </label>
+
+                    <input
+                        id="loginInput"
+                        class="input"
+                        type="text"
+                        placeholder="Введите логин"
+                        autocomplete="username"
+                    >
+
+
+                    <label class="field-label">
+                        Пароль
+                    </label>
+
+                    <input
+                        id="loginPassword"
+                        class="input"
+                        type="password"
+                        placeholder="Введите пароль"
+                        autocomplete="current-password"
+                    >
+
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        onclick="login()"
+                    >
+                        Войти
+                    </button>
+
+                </div>
+
+
+                <!-- LOGIN EMAIL -->
+
+                <div
+                    id="loginEmailPanel"
+                    class="auth-method"
+                >
+
+                    <label class="field-label">
+                        Электронная почта
+                    </label>
+
+                    <input
+                        id="emailLoginEmail"
+                        class="input"
+                        type="email"
+                        placeholder="name@example.com"
+                        autocomplete="email"
+                    >
+
+
+                    <label class="field-label">
+                        Код подтверждения
+                    </label>
+
+                    <div class="code-row">
+
+                        <input
+                            id="emailLoginCode"
+                            class="input code-input"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="6"
+                            placeholder="000000"
+                        >
+
+                        <button
+                            type="button"
+                            class="code-button"
+                            onclick="sendEmailCode('login')"
+                        >
+                            Получить код
+                        </button>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        onclick="emailLogin()"
+                    >
+                        Войти по почте
+                    </button>
+
+
+                    <div
+                        id="emailLoginStatus"
+                        class="email-status"
+                    ></div>
+
+                </div>
+
+
+                <div class="auth-divider">
+                    <span>или</span>
+                </div>
+
+
+                <button
+                    type="button"
+                    class="telegram-button"
+                    onclick="telegramLogin()"
+                >
+                    <span class="telegram-mark">T</span>
+                    Войти через Telegram
+                </button>
+
+
+                <a
+                    class="admin-link"
+                    href="/admin/"
+                >
+                    Админ-панель
+                </a>
+
+
+                <div class="auth-switch">
+                    Нет аккаунта?
+
+                    <button
+                        type="button"
+                        onclick="showRegister()"
+                    >
+                        Зарегистрироваться
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- REGISTER -->
+
+            <div
+                id="registerForm"
+                style="display:none"
+            >
+
+                <div class="auth-heading">
+                    Регистрация
+                </div>
+
+                <div class="auth-description">
+                    Создайте аккаунт RAUDA ILM
+                </div>
+
+
+                <label class="field-label">
+                    Логин
+                </label>
+
+                <input
+                    id="registerLogin"
+                    class="input"
+                    type="text"
+                    placeholder="Придумайте логин"
+                    autocomplete="username"
+                >
+
+
+                <div class="name-grid">
+
+                    <div>
+                        <label class="field-label">
+                            Имя
+                        </label>
+
+                        <input
+                            id="registerFirstName"
+                            class="input"
+                            type="text"
+                            placeholder="Имя"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="field-label">
+                            Фамилия
+                        </label>
+
+                        <input
+                            id="registerLastName"
+                            class="input"
+                            type="text"
+                            placeholder="Фамилия"
+                        >
+                    </div>
+
+                </div>
+
+
+                <div class="auth-tabs">
+
+                    <button
+                        type="button"
+                        class="auth-tab register-method-tab active"
+                        data-method="email"
+                        onclick="setRegisterMethod('email')"
+                    >
+                        По почте
+                    </button>
+
+                    <button
+                        type="button"
+                        class="auth-tab register-method-tab"
+                        data-method="password"
+                        onclick="setRegisterMethod('password')"
+                    >
+                        С паролем
+                    </button>
+
+                </div>
+
+
+                <!-- REGISTER EMAIL -->
+
+                <div
+                    id="registerEmailPanel"
+                    class="auth-method active"
+                >
+
+                    <label class="field-label">
+                        Электронная почта
+                    </label>
+
+                    <input
+                        id="registerEmail"
+                        class="input"
+                        type="email"
+                        placeholder="name@example.com"
+                        autocomplete="email"
+                    >
+
+
+                    <label class="field-label">
+                        Код подтверждения
+                    </label>
+
+                    <div class="code-row">
+
+                        <input
+                            id="registerEmailCode"
+                            class="input code-input"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="6"
+                            placeholder="000000"
+                        >
+
+                        <button
+                            type="button"
+                            class="code-button"
+                            onclick="sendEmailCode('register')"
+                        >
+                            Получить код
+                        </button>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        onclick="emailRegister()"
+                    >
+                        Создать аккаунт
+                    </button>
+
+
+                    <div
+                        id="emailRegisterStatus"
+                        class="email-status"
+                    ></div>
+
+                </div>
+
+
+                <!-- REGISTER PASSWORD -->
+
+                <div
+                    id="registerPasswordPanel"
+                    class="auth-method"
+                >
+
+                    <label class="field-label">
+                        Пароль
+                    </label>
+
+                    <input
+                        id="registerPassword"
+                        class="input"
+                        type="password"
+                        placeholder="Минимум 8 символов"
+                        autocomplete="new-password"
+                    >
+
+
+                    <label class="field-label">
+                        Телефон
+                    </label>
+
+                    <input
+                        id="registerPhone"
+                        class="input"
+                        type="tel"
+                        placeholder="Необязательно"
+                    >
+
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        onclick="register()"
+                    >
+                        Создать аккаунт
+                    </button>
+
+                </div>
+
+
+                <div class="auth-switch">
+                    Уже есть аккаунт?
+
+                    <button
+                        type="button"
+                        onclick="showLogin()"
+                    >
+                        Войти
+                    </button>
+                </div>
+
+            </div>
+
         </div>
 
     </div>
 
-    <!-- REGISTER -->
-
-    <div id="registerForm" style="display:none">
-
-        <input
-            id="registerLogin"
-            class="input"
-            type="text"
-            placeholder="Придумайте логин"
-            autocomplete="username"
-        >
-
-        <input
-            id="registerPassword"
-            class="input"
-            type="password"
-            placeholder="Пароль минимум 8 символов"
-            autocomplete="new-password"
-        >
-
-        <input
-            id="registerFirstName"
-            class="input"
-            type="text"
-            placeholder="Имя"
-        >
-
-        <input
-            id="registerLastName"
-            class="input"
-            type="text"
-            placeholder="Фамилия"
-        >
-
-        <input
-            id="registerPhone"
-            class="input"
-            type="tel"
-            placeholder="Телефон"
-        >
-
-        <button
-            class="primary-button"
-            onclick="register()"
-        >
-            Создать аккаунт
-        </button>
-<div style="text-align:center;color:#788296;margin:18px 0 12px;">
-    или регистрация по почте
-</div>
-
-<input
-    id="registerEmail"
-    class="input"
-    type="email"
-    placeholder="Электронная почта"
-    autocomplete="email"
->
-
-<button
-    class="secondary-button"
-    onclick="sendEmailCode('register')"
->
-    Получить код
-</button>
-
-<input
-    id="registerEmailCode"
-    class="input"
-    type="text"
-    inputmode="numeric"
-    maxlength="6"
-    placeholder="6-значный код"
-    style="margin-top:10px;"
->
-
-<button
-    class="primary-button"
-    onclick="emailRegister()"
->
-    Зарегистрироваться по почте
-</button>
-
-<div
-    id="emailRegisterStatus"
-    class="email-status"
-></div>
-        <div class="auth-switch">
-            Уже есть аккаунт?
-            <button onclick="showLogin()">
-                Войти
-            </button>
-        </div>
-
-    </div>
-
-</div>
-
-</div><!-- APP --><div id="app" class="app" style="display:none"><header class="header">
+</div><!-- APP -->
+<div id="app" class="app" style="display:none"><header class="header">
 
     <div class="logo">
         RАUDA ILM
@@ -3850,6 +4948,94 @@ async function emailLogin() {
         result.data.user;
 
     openApp();
+}
+
+
+
+
+function setLoginMethod(method) {
+
+    document
+        .querySelectorAll(
+            ".login-method-tab"
+        )
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.method === method
+            );
+
+        });
+
+    const passwordPanel =
+        document.getElementById(
+            "loginPasswordPanel"
+        );
+
+    const emailPanel =
+        document.getElementById(
+            "loginEmailPanel"
+        );
+
+    if (passwordPanel) {
+        passwordPanel.classList.toggle(
+            "active",
+            method === "password"
+        );
+    }
+
+    if (emailPanel) {
+        emailPanel.classList.toggle(
+            "active",
+            method === "email"
+        );
+    }
+
+    hideError();
+}
+
+
+function setRegisterMethod(method) {
+
+    document
+        .querySelectorAll(
+            ".register-method-tab"
+        )
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.method === method
+            );
+
+        });
+
+    const emailPanel =
+        document.getElementById(
+            "registerEmailPanel"
+        );
+
+    const passwordPanel =
+        document.getElementById(
+            "registerPasswordPanel"
+        );
+
+    if (emailPanel) {
+        emailPanel.classList.toggle(
+            "active",
+            method === "email"
+        );
+    }
+
+    if (passwordPanel) {
+        passwordPanel.classList.toggle(
+            "active",
+            method === "password"
+        );
+    }
+
+    hideError();
 }
 
 
