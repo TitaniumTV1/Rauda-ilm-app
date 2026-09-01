@@ -196,25 +196,201 @@ async function handleLogin(request, env) {
         return json({ ok: false, error: "Не удалось выполнить вход" }, 500, env);
     }
 }
-
 async function handleTelegramAuth(request, env) {
-    if (!env.DB) return databaseMissing(env);
+    if (!env.DB) {
+        return databaseMissing(env);
+    }
+
     if (!env.TELEGRAM_BOT_TOKEN) {
-        return json({ ok: false, error: "Telegram bot token is not configured" }, 500, env);
+        return json(
+            {
+                ok: false,
+                error: "Telegram bot token is not configured"
+            },
+            500,
+            env
+        );
     }
 
     try {
         await ensureAuthSessionsTable(env.DB);
+
         const body = await readJson(request);
+
         if (!body?.initData) {
-            return json({ ok: false, error: "Telegram initData is missing" }, 400, env);
+            return json(
+                {
+                    ok: false,
+                    error: "Telegram initData is missing"
+                },
+                400,
+                env
+            );
         }
 
-        const verification = await verifyTelegramInitData(body.initData, env.TELEGRAM_BOT_TOKEN);
+        const verification =
+            await verifyTelegramInitData(
+                body.initData,
+                env.TELEGRAM_BOT_TOKEN
+            );
+
         if (!verification?.ok) {
-            return json({ ok: false, error: verification?.error || "Telegram authentication failed" }, 401, env);
+            return json(
+                {
+                    ok: false,
+                    error:
+                        verification?.error ||
+                        "Telegram authentication failed"
+                },
+                401,
+                env
+            );
         }
 
+        const telegramUser =
+            verification.user || {};
+
+        const telegramId =
+            Number(telegramUser.id);
+
+        if (
+            !Number.isSafeInteger(telegramId) ||
+            telegramId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error: "Invalid Telegram user ID"
+                },
+                401,
+                env
+            );
+        }
+
+        let user = await first(
+            env.DB,
+            `
+            SELECT *
+            FROM users
+            WHERE telegram_id = ?
+            LIMIT 1
+            `,
+            [telegramId]
+        );
+
+        /*
+         * Первый вход через Telegram
+         */
+        if (!user) {
+
+            const result = await run(
+                env.DB,
+                `
+                INSERT INTO users (
+                    telegram_id,
+                    username,
+                    first_name,
+                    last_name,
+                    role,
+                    status
+                )
+                VALUES (?, ?, ?, ?, 'student', 'active')
+                `,
+                [
+                    telegramId,
+                    telegramUser.username || null,
+                    telegramUser.first_name || null,
+                    telegramUser.last_name || null
+                ]
+            );
+
+            user = await getUserById(
+                env.DB,
+                Number(result.meta.last_row_id)
+            );
+
+        } else {
+
+            /*
+             * Пользователь уже существует.
+             *
+             * Не заменяем username,
+             * имя и фамилию данными Telegram,
+             * потому что пользователь может
+             * изменить их вручную в профиле.
+             */
+
+            await run(
+                env.DB,
+                `
+                UPDATE users
+                SET updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                `,
+                [user.id]
+            );
+
+            user = await getUserById(
+                env.DB,
+                user.id
+            );
+        }
+
+        /*
+         * Заблокированным пользователям
+         * запрещаем получать новую сессию.
+         */
+        if (user.status !== "active") {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        user.blocked_reason ||
+                        "Ваш аккаунт заблокирован"
+                },
+                403,
+                env
+            );
+        }
+
+        /*
+         * Только после проверки блокировки
+         * создаём сессию.
+         */
+        const session =
+            await createSession(
+                env.DB,
+                user.id
+            );
+
+        return json(
+            {
+                ok: true,
+                user,
+                token: session.token,
+                expires_at: session.expiresAt
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Telegram auth error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error: "Telegram authentication failed"
+            },
+            500,
+            env
+        );
+    }
+}
         const telegramUser = verification.user || {};
         const telegramId = Number(telegramUser.id);
         if (!Number.isSafeInteger(telegramId) || telegramId <= 0) {
@@ -1089,14 +1265,21 @@ function bearerFromHeader(value) {
 
 function corsHeaders(env) {
     return {
-        "Access-Control-Allow-Origin": env.CORS_ORIGIN || "*",
-        "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Authorization, Content-Type, Range, X-Session-Token, X-Tribute-Webhook-Secret, X-Webhook-Secret",
-        "Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range, Content-Disposition, ETag",
+        "Access-Control-Allow-Origin":
+            env.CORS_ORIGIN || "*",
+
+        "Access-Control-Allow-Methods":
+            "GET, POST, PATCH, DELETE, OPTIONS",
+
+        "Access-Control-Allow-Headers":
+            "Authorization, Content-Type, Range, X-Session-Token, X-Tribute-Webhook-Secret, X-Webhook-Secret",
+
+        "Access-Control-Expose-Headers":
+            "Accept-Ranges, Content-Length, Content-Range, Content-Disposition, ETag",
+
         "Vary": "Origin"
     };
 }
-
 function withCors(response, env) {
     const headers = new Headers(response.headers);
     for (const [key, value] of Object.entries(corsHeaders(env))) headers.set(key, value);
