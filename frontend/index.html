@@ -683,40 +683,100 @@
             </div>
 
 
-            <div class="profile-row">
-                <span>Имя</span>
-                <span id="profileFirstName">—</span>
-            </div>
+  <div style="margin-top:16px">
 
-            <div class="profile-row">
-                <span>Фамилия</span>
-                <span id="profileLastName">—</span>
-            </div>
+    <label>Ник</label>
+    <input
+        id="profileUsernameInput"
+        class="input"
+        type="text"
+        placeholder="Ник"
+        maxlength="64"
+    >
 
-            <div class="profile-row">
-                <span>Логин</span>
-                <span id="profileLogin">—</span>
-            </div>
+    <label>Имя</label>
+    <input
+        id="profileFirstNameInput"
+        class="input"
+        type="text"
+        placeholder="Имя"
+        maxlength="64"
+    >
 
-            <div class="profile-row">
-                <span>Telegram</span>
-                <span id="profileUsername">—</span>
-            </div>
+    <label>Фамилия</label>
+    <input
+        id="profileLastNameInput"
+        class="input"
+        type="text"
+        placeholder="Фамилия"
+        maxlength="64"
+    >
 
-            <div class="profile-row">
-                <span>Телефон</span>
-                <span id="profilePhone">—</span>
-            </div>
+</div>
+<div style="margin-top:16px">
 
-            <div class="profile-row">
-                <span>Роль</span>
-                <span id="profileRoleValue">—</span>
-            </div>
+    <label>Ник</label>
+    <input
+        id="profileUsernameInput"
+        class="input"
+        type="text"
+        placeholder="Ник"
+        maxlength="64"
+    >
 
-            <div class="profile-row">
-                <span>Статус</span>
-                <span id="profileStatus">—</span>
-            </div>
+    <label>Имя</label>
+    <input
+        id="profileFirstNameInput"
+        class="input"
+        type="text"
+        placeholder="Имя"
+        maxlength="64"
+    >
+
+    <label>Фамилия</label>
+    <input
+        id="profileLastNameInput"
+        class="input"
+        type="text"
+        placeholder="Фамилия"
+        maxlength="64"
+    >
+
+</div>
+
+<div class="profile-row">
+    <span>Логин</span>
+    <span id="profileLogin">—</span>
+</div>
+
+<div class="profile-row">
+    <span>Telegram</span>
+    <span id="profileTelegramId">—</span>
+</div>
+
+<div class="profile-row">
+    <span>Роль</span>
+    <span id="profileRoleValue">—</span>
+</div>
+
+<button
+    class="primary-button"
+    onclick="saveProfile()"
+>
+    Сохранить изменения
+</button>
+            
+<div class="profile-row">
+    <span>Роль</span>
+    <span id="profileRoleValue">—</span>
+</div>
+
+<button
+    class="primary-button"
+    onclick="saveProfile()"
+>
+    Сохранить изменения
+</button>
 
         </div>
 
@@ -873,7 +933,7 @@
     class="menu-item"
     onclick="openProfile()"
 >
-    👤 Студент
+    👤 Профиль
 </button>
 
 <button
@@ -1337,127 +1397,380 @@
      * ============================
      */
 
-    function updateProfile() {
+ function updateProfile() {
 
-        if (!currentUser) {
-            return;
-        }
+    if (!currentUser) {
+        return;
+    }
 
-        const firstName =
-            currentUser.first_name ||
-            "";
+    const firstName =
+        currentUser.first_name || "";
 
-        const lastName =
-            currentUser.last_name ||
-            "";
+    const lastName =
+        currentUser.last_name || "";
 
-        const fullName =
-            (
-                firstName +
-                " " +
-                lastName
-            ).trim() ||
-            currentUser.username ||
-            currentUser.login ||
-            "Студент";
+    const username =
+        currentUser.username || "";
 
-        document
-            .getElementById(
-                "welcomeName"
-            )
-            .textContent =
+    const fullName =
+        (
+            firstName +
+            " " +
+            lastName
+        ).trim() ||
+        username ||
+        currentUser.login ||
+        "Студент";
+
+
+    /* Имя сверху профиля */
+
+    const profileName =
+        document.getElementById(
+            "profileName"
+        );
+
+    if (profileName) {
+        profileName.textContent =
             fullName;
-
-        document
-            .getElementById(
-                "profileName"
-            )
-            .textContent =
-            fullName;
-
-        document
-            .getElementById(
-                "profileFirstName"
-            )
-            .textContent =
-            firstName || "—";
-
-        document
-            .getElementById(
-                "profileLastName"
-            )
-            .textContent =
-            lastName || "—";
-
-        document
-            .getElementById(
-                "profileLogin"
-            )
-            .textContent =
-            currentUser.login ||
-            "—";
-
-        document
-            .getElementById(
-                "profileUsername"
-            )
-            .textContent =
-            currentUser.username
-                ? "@" +
-                  currentUser.username
-                : "—";
-
-        document
-            .getElementById(
-                "profilePhone"
-            )
-            .textContent =
-            currentUser.phone ||
-            "—";
-
-        document
-            .getElementById(
-                "profileRole"
-            )
-            .textContent =
-            translateRole(
-                currentUser.role
-            );
-
-        document
-            .getElementById(
-                "profileRoleValue"
-            )
-            .textContent =
-            translateRole(
-                currentUser.role
-            );
-
-        document
-            .getElementById(
-                "profileStatus"
-            )
-            .textContent =
-            currentUser.status ===
-            "active"
-                ? "Активен"
-                : currentUser.status;
-
-        const avatar =
-            fullName
-                .charAt(0)
-                .toUpperCase();
-
-        document
-            .getElementById(
-                "profileAvatar"
-            )
-            .textContent =
-            avatar;
-
     }
 
 
+    /* Ник */
+
+    const usernameInput =
+        document.getElementById(
+            "profileUsernameInput"
+        );
+
+    if (usernameInput) {
+        usernameInput.value =
+            username;
+    }
+
+
+    /* Имя */
+
+    const firstNameInput =
+        document.getElementById(
+            "profileFirstNameInput"
+        );
+
+    if (firstNameInput) {
+        firstNameInput.value =
+            firstName;
+    }
+
+
+    /* Фамилия */
+
+    const lastNameInput =
+        document.getElementById(
+            "profileLastNameInput"
+        );
+
+    if (lastNameInput) {
+        lastNameInput.value =
+            lastName;
+    }
+
+
+    /* Логин */
+
+    const profileLogin =
+        document.getElementById(
+            "profileLogin"
+        );
+
+    if (profileLogin) {
+        profileLogin.textContent =
+            currentUser.login ||
+            "—";
+    }
+
+
+    /* Telegram ID */
+
+    const telegramId =
+        Number(
+            currentUser.telegram_id
+        );
+
+    const profileTelegramId =
+        document.getElementById(
+            "profileTelegramId"
+        );
+
+    if (profileTelegramId) {
+
+        profileTelegramId.textContent =
+            Number.isSafeInteger(
+                telegramId
+            ) &&
+            telegramId > 0
+                ? String(telegramId)
+                : "Не привязан";
+    }
+
+
+    /* Роль */
+
+    const role =
+        translateRole(
+            currentUser.role
+        );
+
+    const profileRole =
+        document.getElementById(
+            "profileRole"
+        );
+
+    if (profileRole) {
+        profileRole.textContent =
+            role;
+    }
+
+    const profileRoleValue =
+        document.getElementById(
+            "profileRoleValue"
+        );
+
+    if (profileRoleValue) {
+        profileRoleValue.textContent =
+            role;
+    }
+
+
+    /* Аватар */
+
+    let avatar = "";
+
+    if (firstName) {
+        avatar +=
+            firstName.charAt(0);
+    }
+
+    if (lastName) {
+        avatar +=
+            lastName.charAt(0);
+    }
+
+    if (!avatar && username) {
+        avatar =
+            username.charAt(0);
+    }
+
+    if (
+        !avatar &&
+        currentUser.login
+    ) {
+        avatar =
+            currentUser.login.charAt(0);
+    }
+
+    if (!avatar) {
+        avatar = "RI";
+    }
+
+    const profileAvatar =
+        document.getElementById(
+            "profileAvatar"
+        );
+
+    if (profileAvatar) {
+        profileAvatar.textContent =
+            avatar.toUpperCase();
+    }
+
+}
+
+    function updateProfile() {
+
+    if (!currentUser) {
+        return;
+    }
+
+    const firstName =
+        currentUser.first_name || "";
+
+    const lastName =
+        currentUser.last_name || "";
+
+    const username =
+        currentUser.username || "";
+
+    const fullName =
+        (
+            firstName +
+            " " +
+            lastName
+        ).trim() ||
+        username ||
+        currentUser.login ||
+        "Студент";
+
+
+    /* Имя сверху профиля */
+
+    const profileName =
+        document.getElementById(
+            "profileName"
+        );
+
+    if (profileName) {
+        profileName.textContent =
+            fullName;
+    }
+
+
+    /* Ник */
+
+    const usernameInput =
+        document.getElementById(
+            "profileUsernameInput"
+        );
+
+    if (usernameInput) {
+        usernameInput.value =
+            username;
+    }
+
+
+    /* Имя */
+
+    const firstNameInput =
+        document.getElementById(
+            "profileFirstNameInput"
+        );
+
+    if (firstNameInput) {
+        firstNameInput.value =
+            firstName;
+    }
+
+
+    /* Фамилия */
+
+    const lastNameInput =
+        document.getElementById(
+            "profileLastNameInput"
+        );
+
+    if (lastNameInput) {
+        lastNameInput.value =
+            lastName;
+    }
+
+
+    /* Логин */
+
+    const profileLogin =
+        document.getElementById(
+            "profileLogin"
+        );
+
+    if (profileLogin) {
+        profileLogin.textContent =
+            currentUser.login ||
+            "—";
+    }
+
+
+    /* Telegram ID */
+
+    const telegramId =
+        Number(
+            currentUser.telegram_id
+        );
+
+    const profileTelegramId =
+        document.getElementById(
+            "profileTelegramId"
+        );
+
+    if (profileTelegramId) {
+
+        profileTelegramId.textContent =
+            Number.isSafeInteger(
+                telegramId
+            ) &&
+            telegramId > 0
+                ? String(telegramId)
+                : "Не привязан";
+    }
+
+
+    /* Роль */
+
+    const role =
+        translateRole(
+            currentUser.role
+        );
+
+    const profileRole =
+        document.getElementById(
+            "profileRole"
+        );
+
+    if (profileRole) {
+        profileRole.textContent =
+            role;
+    }
+
+    const profileRoleValue =
+        document.getElementById(
+            "profileRoleValue"
+        );
+
+    if (profileRoleValue) {
+        profileRoleValue.textContent =
+            role;
+    }
+
+
+    /* Аватар */
+
+    let avatar = "";
+
+    if (firstName) {
+        avatar +=
+            firstName.charAt(0);
+    }
+
+    if (lastName) {
+        avatar +=
+            lastName.charAt(0);
+    }
+
+    if (!avatar && username) {
+        avatar =
+            username.charAt(0);
+    }
+
+    if (
+        !avatar &&
+        currentUser.login
+    ) {
+        avatar =
+            currentUser.login.charAt(0);
+    }
+
+    if (!avatar) {
+        avatar = "RI";
+    }
+
+    const profileAvatar =
+        document.getElementById(
+            "profileAvatar"
+        );
+
+    if (profileAvatar) {
+        profileAvatar.textContent =
+            avatar.toUpperCase();
+    }
+
+}
+    
     function translateRole(role) {
 
         const roles = {
