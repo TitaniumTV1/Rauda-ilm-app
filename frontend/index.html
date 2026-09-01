@@ -1640,7 +1640,81 @@ function updateProfile() {
     }
 }
 
+function updateSettings() {
+    if (!currentUser) {
+        return;
+    }
 
+    const userId =
+        document.getElementById(
+            "settingsUserId"
+        );
+
+    if (userId) {
+        userId.textContent =
+            currentUser.id ?? "—";
+    }
+
+    const telegramId =
+        Number(
+            currentUser.telegram_id
+        );
+
+    const telegramElement =
+        document.getElementById(
+            "settingsTelegramId"
+        );
+
+    if (telegramElement) {
+        telegramElement.textContent =
+            Number.isSafeInteger(telegramId) &&
+            telegramId > 0
+                ? String(telegramId)
+                : "Не привязан";
+    }
+
+    const login =
+        currentUser.login || "";
+
+    const loginElement =
+        document.getElementById(
+            "settingsLogin"
+        );
+
+    if (loginElement) {
+        loginElement.textContent =
+            login || "Не привязан";
+    }
+
+    const linkBlock =
+        document.getElementById(
+            "linkLoginBlock"
+        );
+
+    const linkedBlock =
+        document.getElementById(
+            "linkedLoginBlock"
+        );
+
+    const telegramAccount =
+        Number.isSafeInteger(telegramId) &&
+        telegramId > 0;
+
+    if (linkBlock) {
+        linkBlock.style.display =
+            !login && telegramAccount
+                ? "block"
+                : "none";
+    }
+
+    if (linkedBlock) {
+        linkedBlock.style.display =
+            login
+                ? "block"
+                : "none";
+    }
+}
+    
 async function saveProfile() {
 
     if (!currentUser) {
