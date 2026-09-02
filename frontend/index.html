@@ -5795,31 +5795,40 @@ a:active,
 ========================= */
 
 .auth-method.active {
-    animation:
-        raudaAuthIn .26s ease
-        both;
+    animation: none !important;
 
-    transform:
-        none !important;
+    opacity: 1 !important;
 
-    -webkit-transform:
-        none !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+
+    filter: none !important;
+
+    will-change: auto !important;
 }
 
-@keyframes raudaAuthIn {
+        /* Telegram WebView:
+   auth-страница не должна
+   создавать отдельный GPU-слой */
 
-    from {
-        opacity: 0;
-        transform: none;
-    }
+.auth-screen,
+.auth-shell,
+.auth-card,
+#loginForm,
+#registerForm,
+.auth-method {
+    animation: none !important;
 
-    to {
-        opacity: 1;
-        transform: none;
-    }
+    transform: none !important;
+    -webkit-transform: none !important;
+
+    filter: none !important;
+
+    will-change: auto !important;
+
+    backface-visibility: visible !important;
+    -webkit-backface-visibility: visible !important;
 }
-
-
 /* Telegram WebView:
    убираем чёрные press-блоки
    именно на экране авторизации */
