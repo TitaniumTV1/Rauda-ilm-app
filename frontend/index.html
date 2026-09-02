@@ -5413,6 +5413,181 @@ body {
 
 </style>
 
+
+<style id="rauda-detailed-grades-v2">
+
+.rauda-assessment-card {
+    margin-bottom: 11px;
+    padding: 16px;
+
+    border: 1px solid #e5dcc8;
+    border-radius: 14px;
+
+    background: #fffdf8;
+}
+
+.rauda-assessment-kind {
+    color: #a18348;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: .6px;
+    text-transform: uppercase;
+}
+
+.rauda-assessment-title {
+    margin-top: 4px;
+
+    color: #183d2c;
+
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.rauda-assessment-path {
+    display: grid;
+    gap: 3px;
+
+    margin-top: 10px;
+    padding: 10px 11px;
+
+    border-radius: 10px;
+
+    background: #f7f1e4;
+}
+
+.rauda-assessment-path-row {
+    display: flex;
+    gap: 7px;
+
+    font-size: 11px;
+}
+
+.rauda-assessment-path-label {
+    min-width: 58px;
+    color: #959187;
+}
+
+.rauda-assessment-path-value {
+    color: #5c584e;
+    font-weight: 650;
+}
+
+.rauda-best-grade {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-top: 12px;
+}
+
+.rauda-best-grade-number {
+    color: #183d2c;
+
+    font-size: 26px;
+    font-weight: 850;
+}
+
+.rauda-best-grade-name {
+    padding: 5px 8px;
+
+    border-radius: 8px;
+
+    background: #e8f0e9;
+    color: #235a38;
+
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.rauda-attempt-info {
+    margin-top: 10px;
+
+    color: #827f76;
+
+    font-size: 11px;
+}
+
+.rauda-attempts-toggle {
+    width: 100%;
+
+    margin-top: 10px;
+    padding: 9px 11px;
+
+    border: 1px solid #e1d5bb !important;
+    border-radius: 9px !important;
+
+    background: #f8f3e8 !important;
+    color: #183d2c !important;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.rauda-attempt-history {
+    display: none;
+
+    margin-top: 9px;
+}
+
+.rauda-attempt-history.active {
+    display: grid;
+    gap: 6px;
+}
+
+.rauda-attempt-row {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 9px 10px;
+
+    border: 1px solid #ebe3d3;
+    border-radius: 9px;
+
+    background: #fcfaf4;
+
+    font-size: 11px;
+}
+
+.rauda-attempt-row-result {
+    font-weight: 750;
+    color: #183d2c;
+}
+
+.rauda-retake-box {
+    margin-top: 11px;
+    padding: 10px 11px;
+
+    border-radius: 10px;
+
+    font-size: 11px;
+}
+
+.rauda-retake-box.available {
+    border: 1px solid #c9ddcf;
+    background: #edf5ef;
+    color: #245b38;
+}
+
+.rauda-retake-box.closed {
+    border: 1px solid #e6d3cf;
+    background: #f8eeeb;
+    color: #8a4c43;
+}
+
+</style>
+
 </head><body>
 <div id="authApp" class="auth-screen">
 
@@ -13426,6 +13601,502 @@ function setRegisterMethod(method) {
 
         initGradingSystem();
     }
+
+})();
+
+</script>
+
+
+<script id="rauda-detailed-grades-v2-script">
+
+(function () {
+
+    function esc(value) {
+
+        return String(
+            value ?? ""
+        )
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+
+    function formatDate(value) {
+
+        if (!value) {
+            return "\u2014";
+        }
+
+        const date =
+            new Date(value);
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return "\u2014";
+        }
+
+        return date.toLocaleString(
+            "ru-RU",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }
+        );
+    }
+
+
+    window.toggleRaudaAttempts =
+        function (id) {
+
+            document
+                .getElementById(id)
+                ?.classList
+                .toggle("active");
+        };
+
+
+    window.loadRaudaGrades =
+        async function () {
+
+            const content =
+                document.getElementById(
+                    "raudaGradesContent"
+                );
+
+            if (!content) {
+                return;
+            }
+
+            content.className =
+                "rauda-grades-loading";
+
+            content.textContent =
+                "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043e\u0446\u0435\u043d\u043e\u043a\u2026";
+
+
+            try {
+
+                const result =
+                    await api(
+                        "/grades/details"
+                    );
+
+
+                if (
+                    !result.data ||
+                    !result.data.ok
+                ) {
+                    throw new Error(
+                        result.data?.error ||
+                        "Grades error"
+                    );
+                }
+
+
+                const summary =
+                    result.data.summary ||
+                    {};
+
+                const assessments =
+                    Array.isArray(
+                        result.data.assessments
+                    )
+                        ? result.data.assessments
+                        : [];
+
+
+                if (!assessments.length) {
+
+                    content.className =
+                        "rauda-grades-empty";
+
+                    content.textContent =
+                        "\u041e\u0446\u0435\u043d\u043e\u043a \u043f\u043e\u043a\u0430 \u043d\u0435\u0442.";
+
+                    return;
+                }
+
+
+                const cards =
+                    assessments.map(
+                        (
+                            item,
+                            index
+                        ) => {
+
+                            const best =
+                                item.best_attempt ||
+                                {};
+
+                            const access =
+                                item.access ||
+                                {};
+
+                            const attempts =
+                                Array.isArray(
+                                    item.attempts
+                                )
+                                    ? item.attempts
+                                    : [];
+
+                            const typeName =
+                                item.type === "exam"
+                                    ? "\u042d\u043a\u0437\u0430\u043c\u0435\u043d"
+                                    : "\u0422\u0435\u0441\u0442";
+
+                            const historyId =
+                                "raudaAttemptHistory" +
+                                index;
+
+
+                            const history =
+                                attempts.map(
+                                    attempt => `
+
+                                    <div
+                                        class="rauda-attempt-row"
+                                    >
+                                        <span>
+                                            \u041f\u043e\u043f\u044b\u0442\u043a\u0430
+                                            ${Number(
+                                                attempt.attempt_number
+                                            ) || 1}
+
+                                            \u00b7
+                                            ${formatDate(
+                                                attempt.submitted_at
+                                            )}
+                                        </span>
+
+                                        <span
+                                            class="rauda-attempt-row-result"
+                                        >
+                                            ${Math.round(
+                                                Number(
+                                                    attempt.percentage
+                                                ) || 0
+                                            )}%
+                                        </span>
+                                    </div>
+                                `
+                                )
+                                .join("");
+
+
+                            const remaining =
+                                Number(
+                                    access.attempts_remaining
+                                ) || 0;
+
+
+                            const retake =
+                                access.can_attempt
+                                    ? `
+                                        <div
+                                            class="rauda-retake-box available"
+                                        >
+                                            ${
+                                                access.is_retake
+                                                    ? "\u041f\u0435\u0440\u0435\u0441\u0434\u0430\u0447\u0430 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430."
+                                                    : "\u041c\u043e\u0436\u043d\u043e \u043f\u0440\u043e\u0439\u0442\u0438 \u0440\u0430\u0431\u043e\u0442\u0443."
+                                            }
+
+                                            \u041e\u0441\u0442\u0430\u043b\u043e\u0441\u044c \u043f\u043e\u043f\u044b\u0442\u043e\u043a:
+                                            <strong>${remaining}</strong>
+                                        </div>
+                                    `
+                                    : `
+                                        <div
+                                            class="rauda-retake-box closed"
+                                        >
+                                            \u0414\u043e\u0441\u0442\u0443\u043f \u043a \u043f\u0435\u0440\u0435\u0441\u0434\u0430\u0447\u0435 \u0437\u0430\u043a\u0440\u044b\u0442.
+                                        </div>
+                                    `;
+
+
+                            return `
+
+                                <div
+                                    class="rauda-assessment-card"
+                                >
+
+                                    <div
+                                        class="rauda-assessment-kind"
+                                    >
+                                        ${typeName}
+                                    </div>
+
+                                    <div
+                                        class="rauda-assessment-title"
+                                    >
+                                        ${esc(
+                                            item.title
+                                        )}
+                                    </div>
+
+
+                                    <div
+                                        class="rauda-assessment-path"
+                                    >
+
+                                        <div
+                                            class="rauda-assessment-path-row"
+                                        >
+                                            <span
+                                                class="rauda-assessment-path-label"
+                                            >
+                                                \u041a\u0443\u0440\u0441
+                                            </span>
+
+                                            <span
+                                                class="rauda-assessment-path-value"
+                                            >
+                                                ${esc(
+                                                    item.course?.name ||
+                                                    "\u2014"
+                                                )}
+                                            </span>
+                                        </div>
+
+
+                                        <div
+                                            class="rauda-assessment-path-row"
+                                        >
+                                            <span
+                                                class="rauda-assessment-path-label"
+                                            >
+                                                \u041f\u0440\u0435\u0434\u043c\u0435\u0442
+                                            </span>
+
+                                            <span
+                                                class="rauda-assessment-path-value"
+                                            >
+                                                ${esc(
+                                                    item.subject?.name ||
+                                                    "\u2014"
+                                                )}
+                                            </span>
+                                        </div>
+
+
+                                        <div
+                                            class="rauda-assessment-path-row"
+                                        >
+                                            <span
+                                                class="rauda-assessment-path-label"
+                                            >
+                                                \u041a\u043d\u0438\u0433\u0430
+                                            </span>
+
+                                            <span
+                                                class="rauda-assessment-path-value"
+                                            >
+                                                ${esc(
+                                                    item.book?.title ||
+                                                    "\u2014"
+                                                )}
+                                            </span>
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        class="rauda-best-grade"
+                                    >
+
+                                        <div
+                                            class="rauda-best-grade-number"
+                                        >
+                                            ${Math.round(
+                                                Number(
+                                                    best.percentage
+                                                ) || 0
+                                            )}%
+                                        </div>
+
+                                        <div
+                                            class="rauda-best-grade-name"
+                                        >
+                                            ${esc(
+                                                best.grade ||
+                                                "\u2014"
+                                            )}
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        class="rauda-attempt-info"
+                                    >
+                                        \u041b\u0443\u0447\u0448\u0438\u0439 \u0440\u0435\u0437\u0443\u043b\u044c\u0442:
+                                        ${Number(
+                                            best.score
+                                        ) || 0}
+                                        /
+                                        ${Number(
+                                            best.max_score
+                                        ) || 100}
+                                        \u0431\u0430\u043b\u043b\u043e\u0432
+                                    </div>
+
+
+                                    ${retake}
+
+
+                                    ${
+                                        attempts.length
+                                            ? `
+                                                <button
+                                                    type="button"
+                                                    class="rauda-attempts-toggle"
+                                                    onclick="toggleRaudaAttempts('${historyId}')"
+                                                >
+                                                    \u0412\u0441\u0435 \u043f\u043e\u043f\u044b\u0442\u043a\u0438 (${attempts.length})
+                                                </button>
+
+                                                <div
+                                                    id="${historyId}"
+                                                    class="rauda-attempt-history"
+                                                >
+                                                    ${history}
+                                                </div>
+                                            `
+                                            : ""
+                                    }
+
+                                </div>
+                            `;
+                        }
+                    )
+                    .join("");
+
+
+                content.className =
+                    "";
+
+                content.innerHTML = `
+
+                    <div
+                        class="rauda-grade-average"
+                    >
+                        <div
+                            class="rauda-grade-average-label"
+                        >
+                            \u0421\u0440\u0435\u0434\u043d\u0438\u0439 \u0440\u0435\u0437\u0443\u043b\u044c\u0442
+                        </div>
+
+                        <div
+                            class="rauda-grade-average-row"
+                        >
+                            <div
+                                class="rauda-grade-average-number"
+                            >
+                                ${Number(
+                                    summary.average_percentage
+                                ) || 0}%
+                            </div>
+
+                            <div
+                                class="rauda-grade-average-text"
+                            >
+                                ${esc(
+                                    summary.average_grade ||
+                                    "\u2014"
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div
+                        class="rauda-grades-summary"
+                    >
+
+                        <div
+                            class="rauda-grade-summary-card"
+                        >
+                            <div
+                                class="rauda-grade-summary-value"
+                            >
+                                ${Number(
+                                    summary.total
+                                ) || 0}
+                            </div>
+
+                            <div
+                                class="rauda-grade-summary-label"
+                            >
+                                \u0412\u0441\u0435\u0433\u043e
+                            </div>
+                        </div>
+
+
+                        <div
+                            class="rauda-grade-summary-card"
+                        >
+                            <div
+                                class="rauda-grade-summary-value"
+                            >
+                                ${Number(
+                                    summary.passed
+                                ) || 0}
+                            </div>
+
+                            <div
+                                class="rauda-grade-summary-label"
+                            >
+                                \u0421\u0434\u0430\u043d\u043e
+                            </div>
+                        </div>
+
+
+                        <div
+                            class="rauda-grade-summary-card"
+                        >
+                            <div
+                                class="rauda-grade-summary-value"
+                            >
+                                ${Number(
+                                    summary.failed
+                                ) || 0}
+                            </div>
+
+                            <div
+                                class="rauda-grade-summary-label"
+                            >
+                                \u041d\u0435 \u0441\u0434\u0430\u043d\u043e
+                            </div>
+                        </div>
+
+                    </div>
+
+                    ${cards}
+                `;
+
+
+            } catch (error) {
+
+                console.error(
+                    "Detailed grades:",
+                    error
+                );
+
+                content.className =
+                    "rauda-grades-empty";
+
+                content.textContent =
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043e\u0446\u0435\u043d\u043a\u0438.";
+            }
+        };
 
 })();
 

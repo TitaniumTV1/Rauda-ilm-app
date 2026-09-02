@@ -1,4 +1,5 @@
 import { verifyTelegramInitData } from "./telegram.js";
+import { handleAssessmentRequest } from "./assessment.js";
 
 const SESSION_DAYS = 30;
 const PASSWORD_ITERATIONS = 100000;
@@ -1277,6 +1278,26 @@ async function ensureEmailAuthSchema(db) {
             const deleteLessonFile = url.pathname.match(/^\/api\/admin\/lesson-files\/(\d+)$/);
             if (deleteLessonFile && request.method === "DELETE") {
                 return handleLessonFileDelete(request, env, Number(deleteLessonFile[1]));
+            }
+
+            /*
+             * RAUDA ASSESSMENT SYSTEM ROUTER
+             */
+
+            const assessmentResponse =
+                await handleAssessmentRequest(
+                    request,
+                    env,
+                    {
+                        requireUser,
+                        requireAdmin,
+                        authError,
+                        json
+                    }
+                );
+
+            if (assessmentResponse) {
+                return assessmentResponse;
             }
 
             if (url.pathname === "/api/progress" && request.method === "POST") {

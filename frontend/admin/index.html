@@ -1129,6 +1129,139 @@ a:focus:not(:focus-visible) {
 }
 </style>
 
+
+<style id="rauda-assessment-admin-v1">
+
+.rauda-assessment-admin {
+    margin-top: 18px;
+    padding: 22px;
+
+    border: 1px solid var(--rauda-border, #e5dbc4);
+    border-radius: 18px;
+
+    background: var(--rauda-surface, #fffdf8);
+}
+
+.rauda-assessment-admin h3 {
+    color: var(--rauda-green, #173d2c);
+}
+
+.rauda-assessment-admin-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 13px;
+
+    margin-top: 17px;
+}
+
+.rauda-assessment-admin-field {
+    display: grid;
+    gap: 6px;
+}
+
+.rauda-assessment-admin-field.full {
+    grid-column: 1 / -1;
+}
+
+.rauda-assessment-admin label {
+    color: var(--rauda-green, #173d2c);
+}
+
+.rauda-access-summary {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 8px;
+
+    margin-top: 15px;
+}
+
+.rauda-access-stat {
+    padding: 12px 8px;
+
+    border: 1px solid #e5dbc4;
+    border-radius: 10px;
+
+    background: #faf6ed;
+
+    text-align: center;
+}
+
+.rauda-access-stat strong {
+    display: block;
+
+    color: #173d2c;
+
+    font-size: 19px;
+}
+
+.rauda-access-stat span {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #857e70;
+
+    font-size: 10px;
+}
+
+.rauda-admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-top: 15px;
+}
+
+.rauda-admin-status {
+    display: none;
+
+    margin-top: 12px;
+    padding: 10px 11px;
+
+    border-radius: 9px;
+
+    font-size: 12px;
+}
+
+.rauda-admin-status.show {
+    display: block;
+}
+
+.rauda-admin-status.ok {
+    background: #e8f2e9;
+    color: #245b38;
+}
+
+.rauda-admin-status.error {
+    background: #f7e9e6;
+    color: #91483e;
+}
+
+@media (max-width: 700px) {
+
+    .rauda-assessment-admin-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rauda-assessment-admin-field.full {
+        grid-column: auto;
+    }
+
+    .rauda-access-summary {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+}
+
+</style>
+
 </head>
 <body>
   <main class="shell">
@@ -1752,6 +1885,1221 @@ $("#password-toggle").addEventListener("click", () => {
 
     initialise();
   </script>
+
+<script id="rauda-assessment-admin-v1-script">
+
+(function () {
+
+    let raudaAssessmentData = null;
+
+
+    function esc(value) {
+
+        return String(
+            value ?? ""
+        )
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+
+    function studentName(user) {
+
+        const name =
+            [
+                user.first_name,
+                user.last_name
+            ]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
+
+        return (
+            name ||
+            user.login ||
+            user.username ||
+            ("ID " + user.id)
+        );
+    }
+
+
+    function adminStatus(
+        text,
+        error = false
+    ) {
+
+        const element =
+            document.getElementById(
+                "raudaAssessmentAdminStatus"
+            );
+
+        if (!element) {
+            return;
+        }
+
+        element.textContent =
+            text;
+
+        element.className =
+            "rauda-admin-status show " +
+            (
+                error
+                    ? "error"
+                    : "ok"
+            );
+    }
+
+
+    function buildAssessmentAdmin() {
+
+        if (
+            document.getElementById(
+                "raudaAssessmentAdmin"
+            )
+        ) {
+            return;
+        }
+
+
+        const workspace =
+            document.querySelector(
+                ".workspace"
+            );
+
+        if (!workspace) {
+            return;
+        }
+
+
+        const block =
+            document.createElement(
+                "section"
+            );
+
+        block.id =
+            "raudaAssessmentAdmin";
+
+        block.className =
+            "rauda-assessment-admin";
+
+
+        block.innerHTML = `
+
+            <h3>
+                \u041e\u0446\u0435\u043d\u043a\u0438 \u0438 \u043f\u0435\u0440\u0435\u0441\u0434\u0430\u0447\u0438
+            </h3>
+
+            <p
+                class="section-copy"
+            >
+                \u0423\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043f\u043e\u043f\u044b\u0442\u043a\u0430\u043c\u0438, \u0434\u043e\u0441\u0442\u0443\u043f\u043e\u043c \u0438 \u043f\u0440\u0438\u0432\u044f\u0437\u043a\u043e\u0439 \u043a \u043a\u043d\u0438\u0433\u0435.
+            </p>
+
+
+            <div
+                class="rauda-assessment-admin-grid"
+            >
+
+                <div
+                    class="rauda-assessment-admin-field"
+                >
+                    <label>
+                        \u0423\u0447\u0435\u043d\u0438\u043a
+                    </label>
+
+                    <select
+                        id="raudaAssessmentStudent"
+                    ></select>
+                </div>
+
+
+                <div
+                    class="rauda-assessment-admin-field"
+                >
+                    <label>
+                        \u0422\u0438\u043f
+                    </label>
+
+                    <select
+                        id="raudaAssessmentType"
+                    >
+                        <option value="test">
+                            \u0422\u0435\u0441\u0442
+                        </option>
+
+                        <option value="exam">
+                            \u042d\u043a\u0437\u0430\u043c\u0435\u043d
+                        </option>
+                    </select>
+                </div>
+
+
+                <div
+                    class="rauda-assessment-admin-field full"
+                >
+                    <label>
+                        \u0420\u0430\u0431\u043e\u0442\u0430
+                    </label>
+
+                    <select
+                        id="raudaAssessmentItem"
+                    ></select>
+                </div>
+
+
+                <div
+                    class="rauda-assessment-admin-field"
+                >
+                    <label>
+                        \u0414\u043e\u0441\u0442\u0443\u043f
+                    </label>
+
+                    <select
+                        id="raudaAssessmentOpen"
+                    >
+                        <option value="">
+                            \u041f\u043e \u043e\u0431\u0449\u0438\u043c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430\u043c
+                        </option>
+
+                        <option value="1">
+                            \u041e\u0442\u043a\u0440\u044b\u0442\u044c
+                        </option>
+
+                        <option value="0">
+                            \u0417\u0430\u043a\u0440\u044b\u0442\u044c
+                        </option>
+                    </select>
+                </div>
+
+
+                <div
+                    class="rauda-assessment-admin-field"
+                >
+                    <label>
+                        \u0414\u043e\u043f. \u043f\u043e\u043f\u044b\u0442\u043a\u0438
+                    </label>
+
+                    <input
+                        id="raudaAssessmentExtraAttempts"
+                        type="number"
+                        min="0"
+                        max="20"
+                        value="0"
+                    >
+                </div>
+
+
+                <div
+                    class="rauda-assessment-admin-field"
+                >
+                    <label>
+                        \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0441
+                    </label>
+
+                    <input
+                        id="raudaAssessmentOpensAt"
+                        type="datetime-local"
+                    >
+                </div>
+
+
+                <div
+                    class="rauda-assessment-admin-field"
+                >
+                    <label>
+                        \u0417\u0430\u043a\u0440\u044b\u0442\u044c \u0432
+                    </label>
+
+                    <input
+                        id="raudaAssessmentClosesAt"
+                        type="datetime-local"
+                    >
+                </div>
+
+
+                <div
+                    class="rauda-assessment-admin-field full"
+                >
+                    <label>
+                        \u041f\u0440\u0438\u0447\u0438\u043d\u0430 / \u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439
+                    </label>
+
+                    <input
+                        id="raudaAssessmentReason"
+                        type="text"
+                        placeholder="\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u043f\u0435\u0440\u0435\u0441\u0434\u0430\u0447\u0430"
+                    >
+                </div>
+
+
+                <div
+                    class="rauda-assessment-admin-field full"
+                >
+                    <label>
+                        \u041a\u043d\u0438\u0433\u0430
+                    </label>
+
+                    <select
+                        id="raudaAssessmentBook"
+                    ></select>
+                </div>
+
+            </div>
+
+
+            <div
+                class="rauda-access-summary"
+            >
+
+                <div
+                    class="rauda-access-stat"
+                >
+                    <strong
+                        id="raudaAccessBase"
+                    >
+                        0
+                    </strong>
+
+                    <span>
+                        \u041e\u0441\u043d\u043e\u0432\u043d\u044b\u0445
+                    </span>
+                </div>
+
+
+                <div
+                    class="rauda-access-stat"
+                >
+                    <strong
+                        id="raudaAccessExtra"
+                    >
+                        0
+                    </strong>
+
+                    <span>
+                        \u0414\u043e\u043f.
+                    </span>
+                </div>
+
+
+                <div
+                    class="rauda-access-stat"
+                >
+                    <strong
+                        id="raudaAccessUsed"
+                    >
+                        0
+                    </strong>
+
+                    <span>
+                        \u0418\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u043e
+                    </span>
+                </div>
+
+
+                <div
+                    class="rauda-access-stat"
+                >
+                    <strong
+                        id="raudaAccessRemaining"
+                    >
+                        0
+                    </strong>
+
+                    <span>
+                        \u041e\u0441\u0442\u0430\u043b\u043e\u0441\u044c
+                    </span>
+                </div>
+
+            </div>
+
+
+            <div
+                class="rauda-admin-actions"
+            >
+
+                <button
+                    type="button"
+                    class="button primary"
+                    onclick="saveRaudaAssessmentAccess()"
+                >
+                    \u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c
+                </button>
+
+
+                <button
+                    type="button"
+                    class="button"
+                    onclick="openOneRaudaRetake()"
+                >
+                    +1 \u043f\u043e\u043f\u044b\u0442\u043a\u0430
+                </button>
+
+
+                <button
+                    type="button"
+                    class="button"
+                    onclick="setRaudaAssessmentGlobal(true)"
+                >
+                    \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0432\u0441\u0435\u043c
+                </button>
+
+
+                <button
+                    type="button"
+                    class="button"
+                    onclick="setRaudaAssessmentGlobal(false)"
+                >
+                    \u0417\u0430\u043a\u0440\u044b\u0442\u044c \u0432\u0441\u0435\u043c
+                </button>
+
+
+                <button
+                    type="button"
+                    class="button ghost"
+                    onclick="resetRaudaAssessmentOverride()"
+                >
+                    \u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c \u043b\u0438\u0447\u043d\u044b\u0435 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438
+                </button>
+
+            </div>
+
+
+            <div
+                id="raudaAssessmentAdminStatus"
+                class="rauda-admin-status"
+            ></div>
+        `;
+
+
+        workspace.appendChild(
+            block
+        );
+
+
+        document
+            .getElementById(
+                "raudaAssessmentType"
+            )
+            ?.addEventListener(
+                "change",
+                function () {
+
+                    fillAssessmentItems();
+
+                    loadRaudaAssessmentState();
+                }
+            );
+
+
+        document
+            .getElementById(
+                "raudaAssessmentStudent"
+            )
+            ?.addEventListener(
+                "change",
+                loadRaudaAssessmentState
+            );
+
+
+        document
+            .getElementById(
+                "raudaAssessmentItem"
+            )
+            ?.addEventListener(
+                "change",
+                loadRaudaAssessmentState
+            );
+
+
+        document
+            .getElementById(
+                "raudaAssessmentBook"
+            )
+            ?.addEventListener(
+                "change",
+                saveRaudaAssessmentBook
+            );
+    }
+
+
+    function fillAssessmentItems() {
+
+        if (!raudaAssessmentData) {
+            return;
+        }
+
+
+        const type =
+            document
+                .getElementById(
+                    "raudaAssessmentType"
+                )
+                ?.value;
+
+
+        const items =
+            type === "exam"
+                ? raudaAssessmentData.exams
+                : raudaAssessmentData.tests;
+
+
+        const select =
+            document.getElementById(
+                "raudaAssessmentItem"
+            );
+
+
+        if (!select) {
+            return;
+        }
+
+
+        select.innerHTML =
+            items.map(
+                item => {
+
+                    const path =
+                        [
+                            item.course_name,
+                            item.subject_name,
+                            item.book_title
+                        ]
+                        .filter(Boolean)
+                        .join(" / ");
+
+
+                    return `
+                        <option
+                            value="${item.id}"
+                        >
+                            ${esc(
+                                item.title
+                            )}
+                            ${
+                                path
+                                    ? " \u2014 " +
+                                      esc(path)
+                                    : ""
+                            }
+                        </option>
+                    `;
+                }
+            )
+            .join("");
+    }
+
+
+    function fillBooks(
+        assessment
+    ) {
+
+        const select =
+            document.getElementById(
+                "raudaAssessmentBook"
+            );
+
+
+        if (
+            !select ||
+            !raudaAssessmentData
+        ) {
+            return;
+        }
+
+
+        const courseId =
+            Number(
+                assessment?.course_id
+            );
+
+
+        const books =
+            raudaAssessmentData.books
+                .filter(
+                    book =>
+                        !courseId ||
+                        Number(
+                            book.course_id
+                        ) ===
+                        courseId
+                );
+
+
+        select.innerHTML =
+            `
+            <option value="">
+                \u0411\u0435\u0437 \u043a\u043d\u0438\u0433\u0438
+            </option>
+            ` +
+            books.map(
+                book => `
+                    <option
+                        value="${book.id}"
+                    >
+                        ${esc(
+                            book.title
+                        )}
+                    </option>
+                `
+            )
+            .join("");
+
+
+        select.value =
+            assessment?.book_id
+                ? String(
+                    assessment.book_id
+                )
+                : "";
+    }
+
+
+    window.loadRaudaAssessmentDashboard =
+        async function () {
+
+            try {
+
+                const result =
+                    await api(
+                        "/admin/assessment-dashboard"
+                    );
+
+
+                if (
+                    !result.data ||
+                    !result.data.ok
+                ) {
+                    throw new Error(
+                        result.data?.error ||
+                        "Dashboard error"
+                    );
+                }
+
+
+                raudaAssessmentData =
+                    result.data;
+
+
+                const studentSelect =
+                    document.getElementById(
+                        "raudaAssessmentStudent"
+                    );
+
+
+                studentSelect.innerHTML =
+                    raudaAssessmentData.students
+                        .map(
+                            user => `
+                                <option
+                                    value="${user.id}"
+                                >
+                                    ${esc(
+                                        studentName(
+                                            user
+                                        )
+                                    )}
+                                </option>
+                            `
+                        )
+                        .join("");
+
+
+                fillAssessmentItems();
+
+                await loadRaudaAssessmentState();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Assessment admin:",
+                    error
+                );
+
+
+                adminStatus(
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0434\u0430\u043d\u043d\u044b\u0435",
+                    true
+                );
+            }
+        };
+
+
+    window.loadRaudaAssessmentState =
+        async function () {
+
+            const userId =
+                document
+                    .getElementById(
+                        "raudaAssessmentStudent"
+                    )
+                    ?.value;
+
+
+            const type =
+                document
+                    .getElementById(
+                        "raudaAssessmentType"
+                    )
+                    ?.value;
+
+
+            const assessmentId =
+                document
+                    .getElementById(
+                        "raudaAssessmentItem"
+                    )
+                    ?.value;
+
+
+            if (
+                !userId ||
+                !assessmentId
+            ) {
+                return;
+            }
+
+
+            try {
+
+                const result =
+                    await api(
+                        "/admin/assessment-access-state" +
+                        "?user_id=" +
+                        encodeURIComponent(
+                            userId
+                        ) +
+                        "&type=" +
+                        encodeURIComponent(
+                            type
+                        ) +
+                        "&assessment_id=" +
+                        encodeURIComponent(
+                            assessmentId
+                        )
+                    );
+
+
+                if (
+                    !result.data ||
+                    !result.data.ok
+                ) {
+                    throw new Error(
+                        result.data?.error
+                    );
+                }
+
+
+                const access =
+                    result.data.access ||
+                    {};
+
+                const assessment =
+                    result.data.assessment ||
+                    {};
+
+
+                document
+                    .getElementById(
+                        "raudaAccessBase"
+                    )
+                    .textContent =
+                    access.base_attempts || 0;
+
+
+                document
+                    .getElementById(
+                        "raudaAccessExtra"
+                    )
+                    .textContent =
+                    access.extra_attempts || 0;
+
+
+                document
+                    .getElementById(
+                        "raudaAccessUsed"
+                    )
+                    .textContent =
+                    access.attempts_used || 0;
+
+
+                document
+                    .getElementById(
+                        "raudaAccessRemaining"
+                    )
+                    .textContent =
+                    access.attempts_remaining || 0;
+
+
+                document
+                    .getElementById(
+                        "raudaAssessmentExtraAttempts"
+                    )
+                    .value =
+                    access.extra_attempts || 0;
+
+
+                document
+                    .getElementById(
+                        "raudaAssessmentOpen"
+                    )
+                    .value =
+                    access.has_individual_override
+                        ? (
+                            access.is_open
+                                ? "1"
+                                : "0"
+                        )
+                        : "";
+
+
+                document
+                    .getElementById(
+                        "raudaAssessmentReason"
+                    )
+                    .value =
+                    access.reason || "";
+
+
+                fillBooks(
+                    assessment
+                );
+
+
+                adminStatus(
+                    access.can_attempt
+                        ? "\u0414\u043e\u0441\u0442\u0443\u043f \u043e\u0442\u043a\u0440\u044b\u0442. \u041e\u0441\u0442\u0430\u043b\u043e\u0441\u044c \u043f\u043e\u043f\u044b\u0442\u043e\u043a: " +
+                          access.attempts_remaining
+                        : "\u0414\u043e\u0441\u0442\u0443\u043f \u0441\u0435\u0439\u0447\u0430\u0441 \u0437\u0430\u043a\u0440\u044b\u0442.",
+                    !access.can_attempt
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+
+                adminStatus(
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0441\u0442\u0430\u0442\u0443\u0441",
+                    true
+                );
+            }
+        };
+
+
+    window.saveRaudaAssessmentAccess =
+        async function () {
+
+            const userId =
+                Number(
+                    document
+                        .getElementById(
+                            "raudaAssessmentStudent"
+                        )
+                        ?.value
+                );
+
+
+            const type =
+                document
+                    .getElementById(
+                        "raudaAssessmentType"
+                    )
+                    ?.value;
+
+
+            const assessmentId =
+                Number(
+                    document
+                        .getElementById(
+                            "raudaAssessmentItem"
+                        )
+                        ?.value
+                );
+
+
+            const openValue =
+                document
+                    .getElementById(
+                        "raudaAssessmentOpen"
+                    )
+                    ?.value;
+
+
+            const body = {
+                user_id:
+                    userId,
+
+                type,
+
+                assessment_id:
+                    assessmentId,
+
+                is_open:
+                    openValue === ""
+                        ? null
+                        : openValue === "1",
+
+                extra_attempts:
+                    Number(
+                        document
+                            .getElementById(
+                                "raudaAssessmentExtraAttempts"
+                            )
+                            ?.value
+                    ) || 0,
+
+                opens_at:
+                    document
+                        .getElementById(
+                            "raudaAssessmentOpensAt"
+                        )
+                        ?.value ||
+                    null,
+
+                closes_at:
+                    document
+                        .getElementById(
+                            "raudaAssessmentClosesAt"
+                        )
+                        ?.value ||
+                    null,
+
+                reason:
+                    document
+                        .getElementById(
+                            "raudaAssessmentReason"
+                        )
+                        ?.value ||
+                    ""
+            };
+
+
+            const result =
+                await api(
+                    "/admin/assessment-access",
+                    {
+                        method:
+                            "POST",
+
+                        body:
+                            JSON.stringify(
+                                body
+                            )
+                    }
+                );
+
+
+            if (
+                !result.data ||
+                !result.data.ok
+            ) {
+
+                adminStatus(
+                    result.data?.error ||
+                    "\u041e\u0448\u0438\u0431\u043a\u0430",
+                    true
+                );
+
+                return;
+            }
+
+
+            adminStatus(
+                "\u0414\u043e\u0441\u0442\u0443\u043f \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d"
+            );
+
+
+            await loadRaudaAssessmentState();
+        };
+
+
+    window.openOneRaudaRetake =
+        async function () {
+
+            const input =
+                document.getElementById(
+                    "raudaAssessmentExtraAttempts"
+                );
+
+
+            input.value =
+                (
+                    Number(
+                        input.value
+                    ) || 0
+                ) + 1;
+
+
+            document
+                .getElementById(
+                    "raudaAssessmentOpen"
+                )
+                .value =
+                "1";
+
+
+            await saveRaudaAssessmentAccess();
+        };
+
+
+    window.setRaudaAssessmentGlobal =
+        async function (open) {
+
+            const type =
+                document
+                    .getElementById(
+                        "raudaAssessmentType"
+                    )
+                    ?.value;
+
+
+            const assessmentId =
+                Number(
+                    document
+                        .getElementById(
+                            "raudaAssessmentItem"
+                        )
+                        ?.value
+                );
+
+
+            const result =
+                await api(
+                    "/admin/assessment-state",
+                    {
+                        method:
+                            "POST",
+
+                        body:
+                            JSON.stringify({
+                                type,
+                                assessment_id:
+                                    assessmentId,
+
+                                is_active:
+                                    Boolean(open)
+                            })
+                    }
+                );
+
+
+            if (
+                !result.data ||
+                !result.data.ok
+            ) {
+
+                adminStatus(
+                    result.data?.error ||
+                    "\u041e\u0448\u0438\u0431\u043a\u0430",
+                    true
+                );
+
+                return;
+            }
+
+
+            adminStatus(
+                open
+                    ? "\u0414\u043e\u0441\u0442\u0443\u043f \u043e\u0442\u043a\u0440\u044b\u0442 \u0434\u043b\u044f \u0432\u0441\u0435\u0445"
+                    : "\u0414\u043e\u0441\u0442\u0443\u043f \u0437\u0430\u043a\u0440\u044b\u0442 \u0434\u043b\u044f \u0432\u0441\u0435\u0445"
+            );
+
+
+            await loadRaudaAssessmentDashboard();
+        };
+
+
+    window.resetRaudaAssessmentOverride =
+        async function () {
+
+            const userId =
+                document
+                    .getElementById(
+                        "raudaAssessmentStudent"
+                    )
+                    ?.value;
+
+
+            const type =
+                document
+                    .getElementById(
+                        "raudaAssessmentType"
+                    )
+                    ?.value;
+
+
+            const assessmentId =
+                document
+                    .getElementById(
+                        "raudaAssessmentItem"
+                    )
+                    ?.value;
+
+
+            const result =
+                await api(
+                    "/admin/assessment-access" +
+                    "?user_id=" +
+                    encodeURIComponent(
+                        userId
+                    ) +
+                    "&type=" +
+                    encodeURIComponent(
+                        type
+                    ) +
+                    "&assessment_id=" +
+                    encodeURIComponent(
+                        assessmentId
+                    ),
+                    {
+                        method:
+                            "DELETE"
+                    }
+                );
+
+
+            if (
+                !result.data ||
+                !result.data.ok
+            ) {
+
+                adminStatus(
+                    result.data?.error ||
+                    "\u041e\u0448\u0438\u0431\u043a\u0430",
+                    true
+                );
+
+                return;
+            }
+
+
+            adminStatus(
+                "\u041b\u0438\u0447\u043d\u044b\u0435 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0441\u0431\u0440\u043e\u0448\u0435\u043d\u044b"
+            );
+
+
+            await loadRaudaAssessmentState();
+        };
+
+
+    window.saveRaudaAssessmentBook =
+        async function () {
+
+            const type =
+                document
+                    .getElementById(
+                        "raudaAssessmentType"
+                    )
+                    ?.value;
+
+
+            const assessmentId =
+                Number(
+                    document
+                        .getElementById(
+                            "raudaAssessmentItem"
+                        )
+                        ?.value
+                );
+
+
+            const bookValue =
+                document
+                    .getElementById(
+                        "raudaAssessmentBook"
+                    )
+                    ?.value;
+
+
+            const result =
+                await api(
+                    "/admin/assessment-book",
+                    {
+                        method:
+                            "POST",
+
+                        body:
+                            JSON.stringify({
+                                type,
+
+                                assessment_id:
+                                    assessmentId,
+
+                                book_id:
+                                    bookValue
+                                        ? Number(
+                                            bookValue
+                                        )
+                                        : null
+                            })
+                    }
+                );
+
+
+            if (
+                result.data?.ok
+            ) {
+
+                adminStatus(
+                    "\u041a\u043d\u0438\u0433\u0430 \u043f\u0440\u0438\u0432\u044f\u0437\u0430\u043d\u0430"
+                );
+
+
+                await loadRaudaAssessmentDashboard();
+
+            } else {
+
+                adminStatus(
+                    result.data?.error ||
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043f\u0440\u0438\u0432\u044f\u0437\u0430\u0442\u044c \u043a\u043d\u0438\u0433\u0443",
+                    true
+                );
+            }
+        };
+
+
+    function initAssessmentAdmin() {
+
+        buildAssessmentAdmin();
+
+
+        /*
+         * Если админ уже вошёл,
+         * dashboard загрузится сразу.
+         * Иначе повторяем после входа.
+         */
+
+        setTimeout(
+            loadRaudaAssessmentDashboard,
+            800
+        );
+    }
+
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initAssessmentAdmin
+        );
+
+    } else {
+
+        initAssessmentAdmin();
+    }
+
+})();
+
+</script>
+
 </body>
 </html>
 
