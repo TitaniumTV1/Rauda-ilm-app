@@ -1032,7 +1032,8 @@ async function verifyEmailCode(
     email,
     purpose,
     code,
-    env
+    env,
+    consume = true
 ) {
     const row = await first(
         db,
@@ -1105,6 +1106,7 @@ async function verifyEmailCode(
         };
     }
 
+   if (consume) {
     await run(
         db,
         `
@@ -1117,6 +1119,7 @@ async function verifyEmailCode(
             row.id
         ]
     );
+}
 
     return {
         ok: true
