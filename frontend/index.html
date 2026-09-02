@@ -13394,16 +13394,25 @@ function setRegisterMethod(method) {
 
 
                 setTimeout(
-                    function () {
+    function () {
 
-                        buildRaudaProfileStatistics();
+        buildRaudaProfileStatistics();
 
-                        switchRaudaProfileTab(
-                            "profile"
-                        );
-                    },
-                    0
-                );
+        if (
+            typeof window
+                .restoreRaudaGradesProfile ===
+            "function"
+        ) {
+            window
+                .restoreRaudaGradesProfile();
+        }
+
+        switchRaudaProfileTab(
+            "profile"
+        );
+    },
+    0
+);
 
 
                 return result;
@@ -14209,6 +14218,10 @@ function setRegisterMethod(method) {
         openGradesTab;
 
 
+    window.restoreRaudaGradesProfile =
+    restoreGradesProfile;
+
+    
     window.loadRaudaGrades =
         loadRaudaGrades;
 
