@@ -4428,7 +4428,7 @@ async function requireUser(request, env) {
     if (!token) return { ok: false, status: 401, error: "Authorization required" };
 
     const row = await first(env.DB, `
-        SELECT u.id, u.telegram_id, u.username, u.first_name, u.last_name, u.phone,
+        SELECT u.id, u.account_id, u.telegram_id, u.username, u.first_name, u.last_name, u.phone,
                u.role, u.status, u.blocked_reason, u.blocked_at, u.created_at,
                u.updated_at, u.login, s.expires_at
         FROM auth_sessions s JOIN users u ON u.id = s.user_id
