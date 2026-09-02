@@ -1400,7 +1400,7 @@ async function handleLogin(request, env) {
         }
 
         const user = await first(env.DB, `
-            SELECT id, telegram_id, username, first_name, last_name, phone,
+            SELECT id, account_id, telegram_id, username, first_name, last_name, phone,
                    role, status, blocked_reason, blocked_at, created_at, updated_at,
                    login, email, email_verified_at, avatar_key, avatar_source, password_hash
             FROM users WHERE login = ? LIMIT 1
