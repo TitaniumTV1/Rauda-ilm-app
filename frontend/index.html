@@ -11478,19 +11478,15 @@ function setRegisterMethod(method) {
                         await fetch(
                             API +
                             "/auth/avatar",
-                            {
-                                method:
-                                    "POST",
+                           {
+    method: "POST",
 
-                                headers: {
-                                    "Authorization":
-                                        "Bearer " +
-                                        getToken()
-                                },
+    credentials:
+        "same-origin",
 
-                                body:
-                                    form
-                            }
+    body:
+        form
+}
                         );
 
 
@@ -11650,12 +11646,9 @@ function setRegisterMethod(method) {
                     API +
                     "/auth/avatar",
                     {
-                        headers: {
-                            "Authorization":
-                                "Bearer " +
-                                getToken()
-                        }
-                    }
+    credentials:
+        "same-origin"
+}
                 );
 
 
