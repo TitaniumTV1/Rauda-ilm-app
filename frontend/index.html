@@ -6798,6 +6798,402 @@ a,
         height: 51px;
     }
 }
+
+<style id="rauda-lesson-page-v1">
+
+#lessonPlayerScreen {
+    padding-bottom: 32px;
+}
+
+.rauda-lesson-page {
+    width: 100%;
+}
+
+
+/* =========================
+   ШАПКА УРОКА
+   ========================= */
+
+.rauda-lesson-page-head {
+    margin-bottom: 16px;
+}
+
+.rauda-lesson-page-number {
+    margin-bottom: 5px;
+
+    color: #a18448;
+
+    font-size: 12px;
+    font-weight: 750;
+
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.rauda-lesson-page-title {
+    color: #183d2c;
+
+    font-size: 24px;
+    line-height: 1.3;
+    font-weight: 800;
+}
+
+
+/* =========================
+   ВКЛАДКИ
+   ========================= */
+
+.rauda-lesson-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 4px;
+
+    margin-bottom: 14px;
+    padding: 4px;
+
+    border: 1px solid #e2d7bf;
+    border-radius: 13px;
+
+    background: #f3eddf;
+}
+
+.rauda-lesson-tab {
+    min-height: 42px;
+
+    padding: 9px 12px;
+
+    border: 0 !important;
+    border-radius: 10px !important;
+
+    background: transparent !important;
+
+    color: #77766f !important;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.rauda-lesson-tab.active {
+    background: #183d2c !important;
+    color: #ffffff !important;
+
+    box-shadow:
+        0 3px 9px rgba(24,61,44,.12)
+        !important;
+}
+
+.rauda-lesson-tab:active {
+    transform: none !important;
+}
+
+
+/* =========================
+   ПАНЕЛИ
+   ========================= */
+
+.rauda-lesson-panel {
+    display: none;
+}
+
+.rauda-lesson-panel.active {
+    display: block;
+}
+
+
+/* =========================
+   MEDIA
+   ========================= */
+
+.rauda-lesson-media {
+    display: grid;
+    gap: 12px;
+
+    margin-bottom: 14px;
+}
+
+.rauda-lesson-media:empty {
+    display: none;
+}
+
+.rauda-lesson-media video {
+    display: block;
+
+    width: 100%;
+    max-height: 480px;
+
+    border-radius: 17px;
+
+    background: #111713;
+}
+
+.rauda-lesson-media audio {
+    display: block;
+
+    width: 100%;
+}
+
+.rauda-video-wrap {
+    overflow: hidden;
+
+    border: 1px solid #e1d7c2;
+    border-radius: 17px;
+
+    background: #101612;
+}
+
+.rauda-audio-wrap {
+    padding: 14px;
+
+    border: 1px solid #e3dac6;
+    border-radius: 15px;
+
+    background: #fffdf8;
+}
+
+.rauda-media-title {
+    margin-bottom: 9px;
+
+    color: #183d2c;
+
+    font-size: 13px;
+    font-weight: 750;
+}
+
+
+/* =========================
+   ТЕКСТ УРОКА
+   ========================= */
+
+.rauda-lesson-text {
+    padding: 17px;
+
+    border: 1px solid #e5dcc8;
+    border-radius: 15px;
+
+    background: #fffdf8;
+
+    color: #4f564f;
+
+    font-size: 14px;
+    line-height: 1.65;
+
+    white-space: pre-line;
+}
+
+.rauda-lesson-text:empty {
+    display: none;
+}
+
+
+/* =========================
+   ФАЙЛЫ
+   ========================= */
+
+.rauda-lesson-files {
+    display: grid;
+    gap: 8px;
+
+    margin-top: 13px;
+}
+
+.rauda-lesson-files:empty {
+    display: none;
+}
+
+.rauda-lesson-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    width: 100%;
+
+    padding: 13px 14px;
+
+    border: 1px solid #e3dac7;
+    border-radius: 13px;
+
+    background: #fffdf8;
+
+    color: #183d2c;
+
+    text-decoration: none;
+}
+
+.rauda-lesson-file-info {
+    min-width: 0;
+}
+
+.rauda-lesson-file-name {
+    overflow: hidden;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.rauda-lesson-file-type {
+    margin-top: 3px;
+
+    color: #8c897f;
+
+    font-size: 11px;
+}
+
+.rauda-lesson-file-arrow {
+    flex: 0 0 auto;
+
+    color: #a18448;
+
+    font-size: 19px;
+}
+
+
+/* =========================
+   ПРОГРЕСС
+   ========================= */
+
+.rauda-lesson-progress-box {
+    margin-top: 14px;
+    padding: 15px;
+
+    border: 1px solid #e4dbc7;
+    border-radius: 14px;
+
+    background: #fffdf8;
+}
+
+.rauda-lesson-progress-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 8px;
+
+    color: #777970;
+
+    font-size: 12px;
+}
+
+.rauda-lesson-progress-head strong {
+    color: #183d2c;
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.rauda-lesson-progress-line {
+    width: 100%;
+    height: 7px;
+
+    overflow: hidden;
+
+    border-radius: 999px;
+
+    background: #e8e1d3;
+}
+
+.rauda-lesson-progress-fill {
+    width: 0%;
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: #c6a45f;
+
+    transition:
+        width 350ms
+        cubic-bezier(.22,1,.36,1);
+}
+
+
+/* =========================
+   КНОПКА ЗАВЕРШЕНИЯ
+   ========================= */
+
+.rauda-complete-lesson-button {
+    margin-top: 13px !important;
+}
+
+.rauda-complete-lesson-button.completed {
+    background: #e4eee7 !important;
+    color: #356249 !important;
+
+    border-color: #cbdccf !important;
+
+    cursor: default;
+}
+
+
+/* =========================
+   ВИКТОРИНА
+   ========================= */
+
+.rauda-quiz-container {
+    width: 100%;
+}
+
+.rauda-quiz-empty {
+    padding: 32px 18px;
+
+    border: 1px dashed #d9c9a7;
+    border-radius: 16px;
+
+    background: #faf6ed;
+
+    text-align: center;
+}
+
+.rauda-quiz-empty-title {
+    color: #183d2c;
+
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.rauda-quiz-empty-text {
+    max-width: 330px;
+
+    margin: 7px auto 0;
+
+    color: #89867e;
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 420px) {
+
+    .rauda-lesson-page-title {
+        font-size: 21px;
+    }
+
+    .rauda-lesson-text {
+        padding: 14px;
+
+        font-size: 13.5px;
+    }
+
+    .rauda-lesson-file {
+        padding: 12px;
+    }
+}
+
+</style>
         
 </head>
     <body>
@@ -7841,33 +8237,169 @@ a,
         ← Назад
     </button>
 
-    <div class="card rauda-lesson-player-card">
 
-        <div
-            id="lessonPlayerTitle"
-            class="program-title"
-        >
-            Урок
+    <div class="rauda-lesson-page">
+
+        <!-- НАЗВАНИЕ УРОКА -->
+
+        <div class="rauda-lesson-page-head">
+
+            <div
+                id="lessonPlayerMeta"
+                class="rauda-lesson-page-number"
+            >
+                Урок
+            </div>
+
+            <div
+                id="lessonPlayerTitle"
+                class="rauda-lesson-page-title"
+            >
+                Урок
+            </div>
+
         </div>
 
-        <div
-            id="lessonPlayerMeta"
-            class="program-label"
-        ></div>
+
+        <!-- ВКЛАДКИ -->
+
+        <div class="rauda-lesson-tabs">
+
+            <button
+                id="lessonContentTab"
+                type="button"
+                class="rauda-lesson-tab active"
+                onclick="switchLessonTab('lesson')"
+            >
+                Урок
+            </button>
+
+            <button
+                id="lessonQuizTab"
+                type="button"
+                class="rauda-lesson-tab"
+                onclick="switchLessonTab('quiz')"
+            >
+                Викторина
+            </button>
+
+        </div>
+
+
+        <!-- ВКЛАДКА УРОК -->
 
         <div
-            id="lessonMediaContainer"
-        ></div>
+            id="lessonContentPanel"
+            class="rauda-lesson-panel active"
+        >
+
+            <!-- ВИДЕО / АУДИО -->
+
+            <div
+                id="lessonMediaContainer"
+                class="rauda-lesson-media"
+            ></div>
+
+
+            <!-- ОПИСАНИЕ -->
+
+            <div
+                id="lessonPlayerDescription"
+                class="rauda-lesson-text"
+            ></div>
+
+
+            <!-- ФАЙЛЫ -->
+
+            <div
+                id="lessonFilesContainer"
+                class="rauda-lesson-files"
+            ></div>
+
+
+            <!-- ПРОГРЕСС -->
+
+            <div
+                class="rauda-lesson-progress-box"
+            >
+
+                <div
+                    class="rauda-lesson-progress-head"
+                >
+
+                    <span>
+                        Прогресс урока
+                    </span>
+
+                    <strong
+                        id="lessonPlayerProgress"
+                    >
+                        0%
+                    </strong>
+
+                </div>
+
+
+                <div
+                    class="rauda-lesson-progress-line"
+                >
+
+                    <div
+                        id="lessonPlayerProgressFill"
+                        class="rauda-lesson-progress-fill"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ЗАВЕРШЕНИЕ -->
+
+            <button
+                id="lessonCompleteButton"
+                type="button"
+                class="primary-button rauda-complete-lesson-button"
+                onclick="completeCurrentLesson()"
+            >
+                Отметить урок как пройденный
+            </button>
+
+        </div>
+
+
+        <!-- ВКЛАДКА ВИКТОРИНА -->
 
         <div
-            id="lessonPlayerDescription"
-            class="lesson-description"
-        ></div>
+            id="lessonQuizPanel"
+            class="rauda-lesson-panel"
+        >
+
+            <div
+                id="lessonQuizContainer"
+                class="rauda-quiz-container"
+            >
+
+                <div class="rauda-quiz-empty">
+
+                    <div class="rauda-quiz-empty-title">
+                        Викторина
+                    </div>
+
+                    <div class="rauda-quiz-empty-text">
+                        Если к этому уроку будет добавлена викторина,
+                        она появится здесь.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
 </section>
-
     <!-- SCHEDULE -->
 
     <section
