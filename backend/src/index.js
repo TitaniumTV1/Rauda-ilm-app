@@ -574,55 +574,90 @@ async function handleEmailLink(request, env) {
             );
         }
 
-        const existing =
-            await first(
-                env.DB,
-                `
-                SELECT id
-                FROM users
-                WHERE LOWER(email) = ?
-                  AND id != ?
-                LIMIT 1
-                `,
-                [
-                    email,
-                    auth.user.id
-                ]
-            );
+        const previewVerification =
+    await verifyEmailCode(
+        env.DB,
+        email,
+        "link",
+        code,
+        env,
+        false
+    );
 
-        if (existing) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        "Эта почта уже привязана к другому аккаунту"
-                },
-                409,
-                env
-            );
-        }
+if (!previewVerification.ok) {
+    return json(
+        {
+            ok: false,
+            error:
+                previewVerification.error
+        },
+        previewVerification.status || 400,
+        env
+    );
+}
 
-        const verification =
-            await verifyEmailCode(
-                env.DB,
-                email,
-                "link",
-                code,
-                env
-            );
 
-        if (!verification.ok) {
-            return json(
-                {
-                    ok: false,
-                    error:
-                        verification.error
-                },
-                verification.status || 400,
-                env
-            );
-        }
+const existing =
+    await first(
+        env.DB,
+        `
+        SELECT id
+        FROM users
+        WHERE LOWER(email) = ?
+          AND id != ?
+        LIMIT 1
+        `,
+        [
+            email,
+            auth.user.id
+        ]
+    );
 
+
+if (existing) {
+
+    const conflicts =
+        await recoveryUserData(
+            env.DB,
+            existing.id
+        );
+
+    return json(
+        {
+            ok: false,
+            needs_merge: true,
+            email,
+            merge_from_user_id:
+                existing.id,
+            conflicts
+        },
+        409,
+        env
+    );
+}
+
+
+const verification =
+    await verifyEmailCode(
+        env.DB,
+        email,
+        "link",
+        code,
+        env,
+        true
+    );
+
+if (!verification.ok) {
+    return json(
+        {
+            ok: false,
+            error:
+                verification.error
+        },
+        verification.status || 400,
+        env
+    );
+}
         await run(
             env.DB,
             `
