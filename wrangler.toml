@@ -29,3 +29,12 @@ binding = "ASSETS"
 [[r2_buckets]]
 binding = "FILES"
 bucket_name = "rauda-ilm-media"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
