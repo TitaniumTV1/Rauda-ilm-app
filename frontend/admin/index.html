@@ -1340,6 +1340,42 @@ a:focus:not(:focus-visible) {
         <span class="pill">R2 FILES подключён</span>
       </div>
 
+      <section class="card" id="user-search-card" style="padding: 20px;">
+    <h3>Поиск пользователя</h3>
+
+    <p class="section-copy">
+        Поиск по ID аккаунта, логину, Telegram ID, имени или нику
+    </p>
+
+    <div class="field">
+        <label for="adminUserSearch">
+            ID аккаунта или данные пользователя
+        </label>
+
+        <input
+            id="adminUserSearch"
+            type="text"
+            placeholder="Например: 58372916"
+            autocomplete="off"
+        >
+    </div>
+
+    <div class="buttons">
+        <button
+            type="button"
+            class="button primary"
+            id="adminUserSearchButton"
+        >
+            Найти пользователя
+        </button>
+    </div>
+
+    <div
+        id="adminUserSearchResults"
+        style="margin-top: 16px;"
+    ></div>
+</section>
+      
       <form id="lesson-form" class="card editor">
         <section>
           <h3>Содержание урока</h3>
