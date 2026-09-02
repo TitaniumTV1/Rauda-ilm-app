@@ -93,10 +93,35 @@ async function handleEmailSendCode(request, env) {
             .trim()
             .toLowerCase();
 
-        const purpose =
-            body?.purpose === "register"
-                ? "register"
-                : "login";
+        const requestedPurpose =
+    String(body?.purpose || "")
+        .trim()
+        .toLowerCase();
+
+const purpose =
+    [
+        "register",
+        "login",
+        "link"
+    ].includes(requestedPurpose)
+        ? requestedPurpose
+        : "login";
+
+if (purpose === "link") {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+}
 
         if (!isValidEmail(email)) {
             return json(
