@@ -6679,7 +6679,7 @@ body.menu-open {
      * ============================
      */
 
-   async function api(
+  async function api(
     path,
     options = {}
 ) {
@@ -6690,13 +6690,8 @@ body.menu-open {
 
     if (
         options.body &&
-        !(
-            options.body
-            instanceof FormData
-        ) &&
-        !headers.has(
-            "Content-Type"
-        )
+        !(options.body instanceof FormData) &&
+        !headers.has("Content-Type")
     ) {
         headers.set(
             "Content-Type",
@@ -6709,10 +6704,7 @@ body.menu-open {
             API + path,
             {
                 ...options,
-
-                credentials:
-                    "same-origin",
-
+                credentials: "same-origin",
                 headers
             }
         );
@@ -6725,58 +6717,22 @@ body.menu-open {
     } catch {
         data = {
             ok: false,
-            error:
-                "Ошибка сервера"
+            error: "Ошибка сервера"
         };
     }
 
-
-        const headers = {
-            "Content-Type":
-                "application/json",
-            ...(options.headers || {})
-        };
-
-        const token = getToken();
-
-        if (token) {
-            headers.Authorization =
-                "Bearer " + token;
-        }
-
-        const response =
-            await fetch(
-                API + path,
-                {
-                    ...options,
-                    headers
-                }
-            );
-
-        let data;
-
-        try {
-            data = await response.json();
-        } catch {
-            data = {
-                ok: false,
-                error: "Ошибка сервера"
-            };
-        }
-
-        return {
-            response,
-            data
-        };
-    }
+    return {
+        response,
+        data
+    };
+}
 
 
-    /*
-     * ============================
-     * AUTH UI
-     * ============================
-     */
-
+/*
+ * ============================
+ * AUTH UI
+ * ============================
+ */
     function showError(message) {
 
         const element =
