@@ -6353,7 +6353,7 @@ body.menu-open {
 
             <button
                 class="primary-button"
-                onclick="showScreen('lessonsScreen'); loadLessons();"
+                onclick="openLessons()"('lessonsScreen'); loadLessons();"
             >
                 Перейти к урокам
             </button>
@@ -8108,6 +8108,7 @@ const progress =
     }
 
     await loadLessons();
+await loadCourses();
 }
 
 
