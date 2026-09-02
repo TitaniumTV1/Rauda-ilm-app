@@ -6664,16 +6664,7 @@ body.menu-open {
      * ============================
      */
 
-    function getToken() {
-        return localStorage.getItem("rauda_token");
-    }
-
-    function saveToken(token) {
-        localStorage.setItem(
-            "rauda_token",
-            token
-        );
-    }
+   
 
     function clearToken() {
         localStorage.removeItem(
@@ -6688,10 +6679,62 @@ body.menu-open {
      * ============================
      */
 
-    async function api(
-        path,
-        options = {}
+   async function api(
+    path,
+    options = {}
+) {
+    const headers =
+        new Headers(
+            options.headers || {}
+        );
+
+    if (
+        options.body &&
+        !(
+            options.body
+            instanceof FormData
+        ) &&
+        !headers.has(
+            "Content-Type"
+        )
     ) {
+        headers.set(
+            "Content-Type",
+            "application/json"
+        );
+    }
+
+    const response =
+        await fetch(
+            API + path,
+            {
+                ...options,
+
+                credentials:
+                    "same-origin",
+
+                headers
+            }
+        );
+
+    let data;
+
+    try {
+        data =
+            await response.json();
+    } catch {
+        data = {
+            ok: false,
+            error:
+                "Ошибка сервера"
+        };
+    }
+
+    return {
+        response,
+        data
+    };
+}
 
         const headers = {
             "Content-Type":
@@ -6839,10 +6882,7 @@ body.menu-open {
             return;
         }
 
-        saveToken(
-            result.data.token
-        );
-
+        
         currentUser =
             result.data.user;
 
@@ -6924,10 +6964,7 @@ body.menu-open {
             return;
         }
 
-        saveToken(
-            result.data.token
-        );
-
+        
         currentUser =
             result.data.user;
 
@@ -6993,9 +7030,7 @@ body.menu-open {
             return;
         }
 
-        saveToken(
-            result.data.token
-        );
+        
 
         currentUser =
             result.data.user;
@@ -7011,32 +7046,24 @@ body.menu-open {
      * ============================
      */
 
-    async function checkSession() {
+   async function checkSession() {
+    const result =
+        await api(
+            "/auth/me"
+        );
 
-        const token =
-            getToken();
-
-        if (!token) {
-            return false;
-        }
-
-        const result =
-            await api(
-                "/auth/me"
-            );
-
-        if (!result.data.ok) {
-
-            clearToken();
-
-            return false;
-        }
-
-        currentUser =
-            result.data.user;
-
-        return true;
+    if (
+        !result.data ||
+        !result.data.ok
+    ) {
+        return false;
     }
+
+    currentUser =
+        result.data.user;
+
+    return true;
+}
 
 
     /*
@@ -8133,10 +8160,7 @@ async function emailLogin() {
         return;
     }
 
-    saveToken(
-        result.data.token
-    );
-
+    
     currentUser =
         result.data.user;
 
@@ -8208,9 +8232,7 @@ async function emailRegister() {
         return;
     }
 
-    saveToken(
-        result.data.token
-    );
+    
 
     currentUser =
         result.data.user;
@@ -8484,9 +8506,7 @@ async function emailRegister() {
         return;
     }
 
-    saveToken(
-        result.data.token
-    );
+    
 
     currentUser =
         result.data.user;
@@ -8554,9 +8574,7 @@ async function emailLogin() {
         return;
     }
 
-    saveToken(
-        result.data.token
-    );
+    
 
     currentUser =
         result.data.user;
@@ -10215,9 +10233,7 @@ function setRegisterMethod(method) {
                 }
 
 
-                saveToken(
-                    result.data.token
-                );
+                
 
 
                 currentUser =
@@ -10310,9 +10326,7 @@ function setRegisterMethod(method) {
                     }
 
 
-                    saveToken(
-                        result.data.token
-                    );
+                    
 
 
                     currentUser =
@@ -10532,9 +10546,7 @@ function setRegisterMethod(method) {
                     return;
                 }
 
-                saveToken(
-                    result.data.token
-                );
+                
 
                 currentUser =
                     result.data.user;
@@ -10688,9 +10700,6 @@ function setRegisterMethod(method) {
                     return;
                 }
 
-                saveToken(
-                    result.data.token
-                );
 
                 currentUser =
                     result.data.user;
@@ -11074,9 +11083,7 @@ function setRegisterMethod(method) {
                 }
 
 
-                saveToken(
-                    result.data.token
-                );
+                
 
 
                 currentUser =
