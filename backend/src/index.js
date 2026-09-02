@@ -22,8 +22,12 @@ export default {
                     headers: corsHeaders(env)
                 });
             }
-
+            
+if (env.DB) {
+    await ensureAccountIdSchema(env.DB);
+}
             if (url.pathname === "/api/health" && request.method === "GET") {
+                
                 return json({
                     ok: true,
                     app: env.APP_NAME || "RAUDA ILM",
