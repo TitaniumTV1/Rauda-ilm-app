@@ -8891,14 +8891,28 @@ async function linkEmail() {
             await response.json();
 
         if (!response.ok) {
-            setEmailStatus(
-                "linkEmailStatus",
-                data?.error ||
-                    "Не удалось привязать почту",
-                "error"
-            );
-            return;
-        }
+
+    if (
+        data?.needs_merge &&
+        data?.merge_preview
+    ) {
+        showEmailMergePreview(
+            data,
+            email,
+            code
+        );
+        return;
+    }
+
+    setEmailStatus(
+        "linkEmailStatus",
+        data?.error ||
+            "Не удалось привязать почту",
+        "error"
+    );
+
+    return;
+}
 
         currentUser =
             data.user;
