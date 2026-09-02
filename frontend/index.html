@@ -5796,24 +5796,74 @@ a:active,
 
 .auth-method.active {
     animation:
-        raudaAuthIn .28s
-        cubic-bezier(.22, 1, .36, 1)
+        raudaAuthIn .26s ease
         both;
+
+    transform:
+        none !important;
+
+    -webkit-transform:
+        none !important;
 }
 
 @keyframes raudaAuthIn {
 
     from {
         opacity: 0;
-        transform:
-            translateY(5px);
+        transform: none;
     }
 
     to {
         opacity: 1;
-        transform:
-            translateY(0);
+        transform: none;
     }
+}
+
+
+/* Telegram WebView:
+   убираем чёрные press-блоки
+   именно на экране авторизации */
+
+.auth-screen button,
+.auth-screen a,
+.auth-screen [role="button"] {
+    -webkit-tap-highlight-color:
+        rgba(0,0,0,0) !important;
+
+    -webkit-appearance:
+        none !important;
+
+    appearance:
+        none !important;
+
+    transform:
+        none !important;
+
+    -webkit-transform:
+        none !important;
+
+    filter:
+        none !important;
+
+    outline:
+        none !important;
+}
+
+.auth-screen button:active,
+.auth-screen button:focus,
+.auth-screen a:active,
+.auth-screen a:focus {
+    transform:
+        none !important;
+
+    -webkit-transform:
+        none !important;
+
+    filter:
+        none !important;
+
+    outline:
+        none !important;
 }
 
 
