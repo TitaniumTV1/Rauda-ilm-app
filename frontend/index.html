@@ -8571,6 +8571,8 @@ a,
 
     let currentCourses = [];
     let currentCourseLessons = [];
+    let currentLessonId = null;
+    let currentCompletedLessonIds = [];
 
     /*
      * ============================
@@ -10086,6 +10088,10 @@ async function loadLessons(
                     .completedLessonIds
                 : [];
 
+        currentCompletedLessonIds =
+    completedIds.map(
+        id => Number(id)
+    );
 
         currentCourseLessons =
             lessons;
@@ -10226,6 +10232,431 @@ async function loadLessons(
     }
 }
 
+function switchLessonTab(tab) {
+
+    const lessonTab =
+        document.getElementById(
+            "lessonContentTab"
+        );
+
+    const quizTab =
+        document.getElementById(
+            "lessonQuizTab"
+        );
+
+    const lessonPanel =
+        document.getElementById(
+            "lessonContentPanel"
+        );
+
+    const quizPanel =
+        document.getElementById(
+            "lessonQuizPanel"
+        );
+
+
+    const showQuiz =
+        tab === "quiz";
+
+
+    lessonTab?.classList.toggle(
+        "active",
+        !showQuiz
+    );
+
+    quizTab?.classList.toggle(
+        "active",
+        showQuiz
+    );
+
+    lessonPanel?.classList.toggle(
+        "active",
+        !showQuiz
+    );
+
+    quizPanel?.classList.toggle(
+        "active",
+        showQuiz
+    );
+}
+
+
+function updateLessonPlayerProgress(
+    percent
+) {
+
+    const value =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Number(percent) || 0
+            )
+        );
+
+
+    const text =
+        document.getElementById(
+            "lessonPlayerProgress"
+        );
+
+    const fill =
+        document.getElementById(
+            "lessonPlayerProgressFill"
+        );
+
+
+    if (text) {
+        text.textContent =
+            value + "%";
+    }
+
+
+    if (fill) {
+        fill.style.width =
+            value + "%";
+    }
+}
+
+
+function renderLessonMedia(
+    lesson
+) {
+
+    const container =
+        document.getElementById(
+            "lessonMediaContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    container.innerHTML =
+        "";
+
+
+    const videoUrl =
+        lesson.video_url ||
+        lesson.video ||
+        "";
+
+
+    const audioUrl =
+        lesson.audio_url ||
+        lesson.audio ||
+        "";
+
+
+    const imageUrl =
+        lesson.image_url ||
+        lesson.image ||
+        "";
+
+
+    if (videoUrl) {
+
+        const wrap =
+            document.createElement(
+                "div"
+            );
+
+        wrap.className =
+            "rauda-video-wrap";
+
+
+        const video =
+            document.createElement(
+                "video"
+            );
+
+        video.controls =
+            true;
+
+        video.playsInline =
+            true;
+
+        video.preload =
+            "metadata";
+
+        video.src =
+            videoUrl;
+
+
+        wrap.appendChild(
+            video
+        );
+
+        container.appendChild(
+            wrap
+        );
+    }
+
+
+    if (audioUrl) {
+
+        const wrap =
+            document.createElement(
+                "div"
+            );
+
+        wrap.className =
+            "rauda-audio-wrap";
+
+
+        const title =
+            document.createElement(
+                "div"
+            );
+
+        title.className =
+            "rauda-media-title";
+
+        title.textContent =
+            "Аудиоурок";
+
+
+        const audio =
+            document.createElement(
+                "audio"
+            );
+
+        audio.controls =
+            true;
+
+        audio.preload =
+            "metadata";
+
+        audio.src =
+            audioUrl;
+
+
+        wrap.appendChild(
+            title
+        );
+
+        wrap.appendChild(
+            audio
+        );
+
+        container.appendChild(
+            wrap
+        );
+    }
+
+
+    if (imageUrl) {
+
+        const img =
+            document.createElement(
+                "img"
+            );
+
+        img.src =
+            imageUrl;
+
+        img.alt =
+            "";
+
+        img.style.width =
+            "100%";
+
+        img.style.display =
+            "block";
+
+        img.style.borderRadius =
+            "17px";
+
+
+        container.appendChild(
+            img
+        );
+    }
+}
+
+
+function renderLessonFiles(
+    lesson
+) {
+
+    const container =
+        document.getElementById(
+            "lessonFilesContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    container.innerHTML =
+        "";
+
+
+    const files =
+        Array.isArray(
+            lesson.files
+        )
+            ? lesson.files
+
+            : Array.isArray(
+                lesson.lesson_files
+            )
+                ? lesson.lesson_files
+                : [];
+
+
+    files.forEach(
+        (file, index) => {
+
+            const url =
+                file.url ||
+                file.file_url ||
+                file.path ||
+                "";
+
+
+            if (!url) {
+                return;
+            }
+
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+            link.className =
+                "rauda-lesson-file";
+
+            link.href =
+                url;
+
+            link.target =
+                "_blank";
+
+            link.rel =
+                "noopener noreferrer";
+
+
+            const info =
+                document.createElement(
+                    "div"
+                );
+
+            info.className =
+                "rauda-lesson-file-info";
+
+
+            const name =
+                document.createElement(
+                    "div"
+                );
+
+            name.className =
+                "rauda-lesson-file-name";
+
+            name.textContent =
+                file.name ||
+                file.file_name ||
+                file.title ||
+                "Файл " + (index + 1);
+
+
+            const type =
+                document.createElement(
+                    "div"
+                );
+
+            type.className =
+                "rauda-lesson-file-type";
+
+            type.textContent =
+                file.type ||
+                file.file_type ||
+                "Материал урока";
+
+
+            const arrow =
+                document.createElement(
+                    "div"
+                );
+
+            arrow.className =
+                "rauda-lesson-file-arrow";
+
+            arrow.textContent =
+                "›";
+
+
+            info.appendChild(
+                name
+            );
+
+            info.appendChild(
+                type
+            );
+
+            link.appendChild(
+                info
+            );
+
+            link.appendChild(
+                arrow
+            );
+
+            container.appendChild(
+                link
+            );
+        }
+    );
+}
+
+
+function updateLessonCompleteButton(
+    completed
+) {
+
+    const button =
+        document.getElementById(
+            "lessonCompleteButton"
+        );
+
+
+    if (!button) {
+        return;
+    }
+
+
+    if (completed) {
+
+        button.textContent =
+            "Урок пройден";
+
+        button.classList.add(
+            "completed"
+        );
+
+        button.disabled =
+            true;
+
+    } else {
+
+        button.textContent =
+            "Отметить урок как пройденный";
+
+        button.classList.remove(
+            "completed"
+        );
+
+        button.disabled =
+            false;
+    }
+}
+
 
 function openCourseLesson(
     lessonId
@@ -10250,6 +10681,10 @@ function openCourseLesson(
     }
 
 
+    currentLessonId =
+        id;
+
+
     const title =
         document.getElementById(
             "lessonPlayerTitle"
@@ -10268,12 +10703,6 @@ function openCourseLesson(
         );
 
 
-    const media =
-        document.getElementById(
-            "lessonMediaContainer"
-        );
-
-
     const index =
         currentCourseLessons.findIndex(
             item =>
@@ -10283,6 +10712,7 @@ function openCourseLesson(
 
 
     if (title) {
+
         title.textContent =
             lesson.title ||
             "Урок";
@@ -10290,30 +10720,204 @@ function openCourseLesson(
 
 
     if (meta) {
+
         meta.textContent =
             index >= 0
-                ? (index + 1) +
-                  " урок"
+                ? "Урок " +
+                  (index + 1)
                 : "Урок";
     }
 
 
     if (description) {
+
         description.textContent =
+            lesson.content ||
+            lesson.text ||
             lesson.description ||
             "";
     }
 
 
-    if (media) {
-        media.innerHTML =
-            "";
-    }
+    const completed =
+        currentCompletedLessonIds.includes(
+            id
+        ) ||
+        Number(
+            lesson.progress_percent
+        ) >= 100;
+
+
+    updateLessonPlayerProgress(
+        completed
+            ? 100
+            : Number(
+                lesson.progress_percent
+            ) || 0
+    );
+
+
+    updateLessonCompleteButton(
+        completed
+    );
+
+
+    renderLessonMedia(
+        lesson
+    );
+
+
+    renderLessonFiles(
+        lesson
+    );
+
+
+    switchLessonTab(
+        "lesson"
+    );
 
 
     showScreen(
         "lessonPlayerScreen"
     );
+}
+
+
+async function completeCurrentLesson() {
+
+    const id =
+        Number(
+            currentLessonId
+        );
+
+
+    if (
+        !Number.isInteger(id) ||
+        id <= 0
+    ) {
+
+        alert(
+            "Не удалось определить урок."
+        );
+
+        return;
+    }
+
+
+    const button =
+        document.getElementById(
+            "lessonCompleteButton"
+        );
+
+
+    if (button) {
+
+        button.disabled =
+            true;
+
+        button.textContent =
+            "Сохраняем...";
+    }
+
+
+    try {
+
+        const result =
+            await api(
+                "/progress",
+                {
+                    method: "POST",
+
+                    body:
+                        JSON.stringify({
+                            lesson_id: id,
+                            completed: true,
+                            progress_percent: 100
+                        })
+                }
+            );
+
+
+        if (
+            !result.data ||
+            !result.data.ok
+        ) {
+
+            updateLessonCompleteButton(
+                false
+            );
+
+            alert(
+                result.data?.error ||
+                "Не удалось сохранить прогресс."
+            );
+
+            return;
+        }
+
+
+        if (
+            !currentCompletedLessonIds.includes(
+                id
+            )
+        ) {
+
+            currentCompletedLessonIds.push(
+                id
+            );
+        }
+
+
+        const lesson =
+            currentCourseLessons.find(
+                item =>
+                    Number(item.id) ===
+                    id
+            );
+
+
+        if (lesson) {
+
+            lesson.progress_percent =
+                100;
+        }
+
+
+        updateLessonPlayerProgress(
+            100
+        );
+
+
+        updateLessonCompleteButton(
+            true
+        );
+
+
+        await loadLessons(
+            currentCourseId
+        );
+
+
+        await loadCourses();
+
+
+    } catch (error) {
+
+        console.error(
+            "Complete lesson error:",
+            error
+        );
+
+
+        updateLessonCompleteButton(
+            false
+        );
+
+
+        alert(
+            "Не удалось сохранить прогресс."
+        );
+    }
 }
 
     async function completeLesson(lessonId) {
