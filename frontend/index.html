@@ -5810,6 +5810,57 @@ body.menu-open {
 }
 
 </style>
+
+    <style id="rauda-lesson-progress-v1">
+
+.rauda-progress-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-top: 13px;
+    margin-bottom: 6px;
+
+    color: #817d74;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.rauda-progress-head strong {
+    color: #183d2c;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.rauda-progress-line {
+    width: 100%;
+    height: 7px;
+
+    overflow: hidden;
+
+    border-radius: 999px;
+
+    background: #e8e1d2;
+}
+
+.rauda-progress-fill {
+    width: 0;
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: #c6a45f;
+
+    transition:
+        width 380ms
+        cubic-bezier(.22, 1, .36, 1);
+}
+
+</style>
     
 </head><body>
 <div id="authApp" class="auth-screen">
