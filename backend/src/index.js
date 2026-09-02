@@ -606,7 +606,7 @@ async function handleEmailLink(request, env) {
             await verifyEmailCode(
                 env.DB,
                 email,
-                "register",
+                "link",
                 code,
                 env
             );
