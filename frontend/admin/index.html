@@ -1820,8 +1820,15 @@ $("#password-toggle").addEventListener("click", () => {
 
       try {
         const result = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+    method: "POST",
+
+    credentials:
+        "same-origin",
+
+    headers: {
+        "Content-Type":
+            "application/json"
+    },
           body: JSON.stringify({
             login: $("#login").value.trim(),
             password: $("#password").value
@@ -1840,7 +1847,12 @@ $("#password-toggle").addEventListener("click", () => {
           throw new Error("У этой учётной записи нет прав администратора.");
         }
 
-        localStorage.setItem(TOKEN_KEY, result.token);
+        if (result.token) {
+    localStorage.setItem(
+        TOKEN_KEY,
+        result.token
+    );
+}
 
         showWorkspace(result.user);
         await Promise.all([loadPrograms(), loadCourses()]);
