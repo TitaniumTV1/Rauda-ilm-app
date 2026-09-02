@@ -2028,6 +2028,110 @@ document
         "click",
         searchAdminUsers
     );
+
+    async function searchAdminUsers() {
+    const input =
+        document.getElementById(
+            "adminUserSearch"
+        );
+
+    const results =
+        document.getElementById(
+            "adminUserSearchResults"
+        );
+
+    const query =
+        String(input?.value || "").trim();
+
+    results.replaceChildren();
+
+    if (!query) {
+        results.textContent =
+            "Введите ID или данные пользователя";
+        return;
+    }
+
+    try {
+        const data = await api(
+            "/api/admin/users/search?q=" +
+            encodeURIComponent(query)
+        );
+
+        const users =
+            Array.isArray(data.users)
+                ? data.users
+                : [];
+
+        if (!users.length) {
+            results.textContent =
+                "Пользователь не найден";
+            return;
+        }
+
+        for (const user of users) {
+            const card =
+                document.createElement("div");
+
+            card.className = "note";
+            card.style.marginBottom = "10px";
+
+            const username =
+                user.username
+                    ? ` (@${String(
+                        user.username
+                    ).replace(/^@/, "")})`
+                    : "";
+
+            const title =
+                document.createElement("h4");
+
+            title.textContent =
+                "Привязанный аккаунт: " +
+                (user.account_id ?? "—") +
+                username;
+
+            const telegramId =
+                document.createElement("p");
+
+            telegramId.textContent =
+                "Telegram ID: " +
+                (
+                    Number(user.telegram_id) > 0
+                        ? user.telegram_id
+                        : "Не привязан"
+                );
+
+            const login =
+                document.createElement("p");
+
+            login.textContent =
+                "Логин: " +
+                (user.login || "Не установлен");
+
+            card.append(
+                title,
+                telegramId,
+                login
+            );
+
+            results.append(card);
+        }
+    } catch (error) {
+        results.textContent =
+            error.message ||
+            "Ошибка поиска пользователя";
+    }
+}
+
+
+document
+    .getElementById(
+        "adminUserSearchButton"
+    )
+    .addEventListener(
+        "click",
+        searchAdminUsers
+    );
     
     $("#new-lesson-button").addEventListener("click", resetLessonForm);
 
