@@ -7313,11 +7313,22 @@ if (loginHint) {
             );
 
         if (!result.data.ok) {
-            showError(
-                result.data.error
-            );
-            return;
-        }
+
+    if (
+        result.response?.status === 401 &&
+        loginHint
+    ) {
+        loginHint.textContent =
+            result.data.error ||
+            "Неверный логин или пароль";
+        return;
+    }
+
+    showError(
+        result.data.error
+    );
+    return;
+}
 
         
         currentUser =
