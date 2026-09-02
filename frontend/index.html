@@ -14824,6 +14824,60 @@ window.closeMenu = function () {
 };
 
 </script>
+
+    <script id="rauda-back-button-native-fix">
+document
+    .querySelectorAll("button.back-button")
+    .forEach(function (button) {
+
+        const back =
+            document.createElement("div");
+
+        back.className =
+            button.className;
+
+        back.innerHTML =
+            button.innerHTML;
+
+        back.setAttribute(
+            "role",
+            "button"
+        );
+
+        back.setAttribute(
+            "tabindex",
+            "0"
+        );
+
+        const onclick =
+            button.getAttribute(
+                "onclick"
+            );
+
+        if (onclick) {
+            back.setAttribute(
+                "onclick",
+                onclick
+            );
+        }
+
+        back.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+                    event.preventDefault();
+                    back.click();
+                }
+            }
+        );
+
+        button.replaceWith(back);
+    });
+</script>
     
 </body>
 </html>
