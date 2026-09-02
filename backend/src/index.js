@@ -4507,6 +4507,178 @@ async function generateUniqueAccountId(db) {
     );
 }
 
+async function ensureUserAccountId(
+    db,
+    userId
+) {
+    const id = Number(userId);
+
+    if (
+        !Number.isInteger(id) ||
+        id <= 0
+    ) {
+        return null;
+    }
+
+    const user = await first(
+        db,
+        `
+        SELECT id, account_id
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+        `,
+        [id]
+    );
+
+    if (!user) {
+        return null;
+    }
+
+    const currentId =
+        Number(user.account_id);
+
+    if (
+        Number.isInteger(currentId) &&
+        currentId >= 10000000 &&
+        currentId <= 99999999
+    ) {
+        return currentId;
+    }
+
+    for (
+        let attempt = 0;
+        attempt < 50;
+        attempt++
+    ) {
+        const accountId =
+            await generateUniqueAccountId(
+                db
+            );
+
+        try {
+            await run(
+                db,
+                `
+                UPDATE users
+                SET
+                    account_id = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                  AND account_id IS NULL
+                `,
+                [
+                    accountId,
+                    id
+                ]
+            );
+        } catch (error) {
+            continue;
+        }
+
+        const saved = await first(
+            db,
+            `
+            SELECT account_id
+            FROM users
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [id]
+        );
+
+        const savedId =
+            Number(saved?.account_id);
+
+        if (
+            Number.isInteger(savedId) &&
+            savedId >= 10000000 &&
+            savedId <= 99999999
+        ) {
+            return savedId;
+        }
+    }
+
+    throw new Error(
+        "Не удалось присвоить ID аккаунта"
+    );
+}
+
+
+async function ensureAccountIdSchema(db) {
+
+    if (!db) {
+        return;
+    }
+
+    if (accountIdSchemaPromise) {
+        return accountIdSchemaPromise;
+    }
+
+    accountIdSchemaPromise =
+        (async () => {
+
+            const columns = await all(
+                db,
+                `
+                PRAGMA table_info(users)
+                `
+            );
+
+            const hasAccountId =
+                columns.some(
+                    column =>
+                        column.name ===
+                        "account_id"
+                );
+
+            if (!hasAccountId) {
+                await run(
+                    db,
+                    `
+                    ALTER TABLE users
+                    ADD COLUMN account_id INTEGER
+                    `
+                );
+            }
+
+            await run(
+                db,
+                `
+                CREATE UNIQUE INDEX
+                IF NOT EXISTS
+                idx_users_account_id
+                ON users(account_id)
+                `
+            );
+
+            const users =
+                await all(
+                    db,
+                    `
+                    SELECT id
+                    FROM users
+                    WHERE account_id IS NULL
+                    ORDER BY id ASC
+                    `
+                );
+
+            for (const user of users) {
+                await ensureUserAccountId(
+                    db,
+                    user.id
+                );
+            }
+        })();
+
+    try {
+        await accountIdSchemaPromise;
+    } catch (error) {
+        accountIdSchemaPromise = null;
+        throw error;
+    }
+}
+
 async function getUserById(db, userId) {
     await ensureAvatarInfrastructure(db);
     const user = await first(db, `
