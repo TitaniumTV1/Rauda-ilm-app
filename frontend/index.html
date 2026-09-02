@@ -7790,7 +7790,16 @@ async function saveProfile() {
                                     lesson.id
                                 )
                             );
-
+const progress =
+    Math.max(
+        0,
+        Math.min(
+            100,
+            Number(
+                lesson.progress_percent
+            ) || 0
+        )
+    );
                         return `
                             <div class="lesson">
 
@@ -7807,6 +7816,18 @@ async function saveProfile() {
                                         ""
                                     )}
                                 </div>
+                                
+<div class="rauda-progress-head">
+    <span>Прогресс</span>
+    <strong>${progress}%</strong>
+</div>
+
+<div class="rauda-progress-line">
+    <div
+        class="rauda-progress-fill"
+        style="width:${progress}%"
+    ></div>
+</div>
 
                                 ${
                                     isCompleted
