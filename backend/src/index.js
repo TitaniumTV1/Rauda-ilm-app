@@ -3722,31 +3722,289 @@ async function handlePrograms(request, env) {
 }
 
 async function handleCourses(request, env) {
-    const auth = await requireUser(request, env);
-    if (!auth.ok) return authError(auth, env);
+    const auth =
+        await requireUser(request, env);
+
+    if (!auth.ok) {
+        return authError(auth, env);
+    }
 
     try {
-        const courses = await listContentRows(env.DB, "courses", new URL(request.url).searchParams, auth.user);
-        return json({ ok: true, courses }, 200, env);
+        await ensureLessonProgressTable(
+            env.DB
+        );
+
+        const courses =
+            await listContentRows(
+                env.DB,
+                "courses",
+                new URL(request.url)
+                    .searchParams,
+                auth.user
+            );
+
+        const coursesWithProgress =
+            await Promise.all(
+                courses.map(
+                    async course => {
+
+                        const params =
+                            new URLSearchParams();
+
+                        params.set(
+                            "course_id",
+                            String(course.id)
+                        );
+
+                        const lessons =
+                            await listContentRows(
+                                env.DB,
+                                "lessons",
+                                params,
+                                auth.user
+                            );
+
+                        if (!lessons.length) {
+                            return {
+                                ...course,
+                                total_lessons: 0,
+                                completed_lessons: 0,
+                                progress_percent: 0
+                            };
+                        }
+
+                        const progresses =
+                            await Promise.all(
+                                lessons.map(
+                                    async lesson => {
+
+                                        const row =
+                                            await first(
+                                                env.DB,
+                                                `
+                                                SELECT
+                                                    progress_percent,
+                                                    is_completed
+                                                FROM lesson_progress
+                                                WHERE
+                                                    user_id = ?
+                                                    AND lesson_id = ?
+                                                LIMIT 1
+                                                `,
+                                                [
+                                                    auth.user.id,
+                                                    lesson.id
+                                                ]
+                                            );
+
+                                        const percent =
+                                            clampProgress(
+                                                row
+                                                    ?.progress_percent ??
+                                                (
+                                                    row
+                                                        ?.is_completed
+                                                        ? 100
+                                                        : 0
+                                                )
+                                            );
+
+                                        return {
+                                            percent,
+                                            completed:
+                                                Number(
+                                                    row
+                                                        ?.is_completed
+                                                ) === 1 ||
+                                                percent >= 100
+                                        };
+                                    }
+                                )
+                            );
+
+                        const sum =
+                            progresses.reduce(
+                                (
+                                    total,
+                                    item
+                                ) =>
+                                    total +
+                                    item.percent,
+                                0
+                            );
+
+                        const completed =
+                            progresses.filter(
+                                item =>
+                                    item.completed
+                            ).length;
+
+                        return {
+                            ...course,
+
+                            total_lessons:
+                                lessons.length,
+
+                            completed_lessons:
+                                completed,
+
+                            progress_percent:
+                                Math.round(
+                                    sum /
+                                    lessons.length
+                                )
+                        };
+                    }
+                )
+            );
+
+        return json(
+            {
+                ok: true,
+                courses:
+                    coursesWithProgress
+            },
+            200,
+            env
+        );
+
     } catch (error) {
-        console.error("Courses error:", error);
-        return json({ ok: false, error: "Не удалось получить курсы" }, 500, env);
+
+        console.error(
+            "Courses error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось получить курсы"
+            },
+            500,
+            env
+        );
     }
 }
 
 async function handleLessons(request, env) {
-    const auth = await requireUser(request, env);
-    if (!auth.ok) return authError(auth, env);
+    const auth =
+        await requireUser(request, env);
+
+    if (!auth.ok) {
+        return authError(auth, env);
+    }
 
     try {
-        const lessons = await listContentRows(env.DB, "lessons", new URL(request.url).searchParams, auth.user);
-        return json({ ok: true, lessons }, 200, env);
+        await ensureLessonProgressTable(
+            env.DB
+        );
+
+        const lessons =
+            await listContentRows(
+                env.DB,
+                "lessons",
+                new URL(request.url)
+                    .searchParams,
+                auth.user
+            );
+
+        const lessonsWithProgress =
+            await Promise.all(
+                lessons.map(
+                    async lesson => {
+
+                        const progress =
+                            await first(
+                                env.DB,
+                                `
+                                SELECT
+                                    progress_percent,
+                                    is_completed
+                                FROM lesson_progress
+                                WHERE
+                                    user_id = ?
+                                    AND lesson_id = ?
+                                LIMIT 1
+                                `,
+                                [
+                                    auth.user.id,
+                                    lesson.id
+                                ]
+                            );
+
+                        const percent =
+                            clampProgress(
+                                progress
+                                    ?.progress_percent ??
+                                (
+                                    progress
+                                        ?.is_completed
+                                        ? 100
+                                        : 0
+                                )
+                            );
+
+                        const completed =
+                            Number(
+                                progress
+                                    ?.is_completed
+                            ) === 1 ||
+                            percent >= 100;
+
+                        return {
+                            ...lesson,
+
+                            progress_percent:
+                                percent,
+
+                            is_completed:
+                                completed
+                        };
+                    }
+                )
+            );
+
+        const completedLessonIds =
+            lessonsWithProgress
+                .filter(
+                    lesson =>
+                        lesson.is_completed
+                )
+                .map(
+                    lesson =>
+                        Number(lesson.id)
+                );
+
+        return json(
+            {
+                ok: true,
+                lessons:
+                    lessonsWithProgress,
+                completedLessonIds
+            },
+            200,
+            env
+        );
+
     } catch (error) {
-        console.error("Lessons error:", error);
-        return json({ ok: false, error: "Не удалось получить уроки" }, 500, env);
+
+        console.error(
+            "Lessons error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось получить уроки"
+            },
+            500,
+            env
+        );
     }
 }
-
 async function handleSingleLesson(request, env, lessonId) {
     const auth = await requireUser(request, env);
     if (!auth.ok) return authError(auth, env);
