@@ -8758,15 +8758,6 @@ async function sendEmailCode(purpose) {
     );
 }
 
-const registerHint =
-    document.getElementById(
-        "registerEmailCodeHint"
-    );
-
-if (registerHint) {
-    registerHint.textContent = "";
-}
-
 async function emailLogin() {
     hideError();
 
