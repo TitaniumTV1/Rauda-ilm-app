@@ -6578,13 +6578,16 @@ a,
         RАUDA ILM
     </div>
 
-    <button
-        class="menu-button"
-        onclick="openMenu()"
-        aria-label="Меню"
-    >
+    <div
+    class="menu-button"
+    role="button"
+    tabindex="0"
+    onclick="openMenu()"
+    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMenu();}"
+    aria-label="Меню"
+>
         ☰
-    </button>
+    </div>
 
 </header>
 
