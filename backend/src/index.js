@@ -1546,15 +1546,20 @@ if (
              * изменить их вручную в профиле.
              */
 
-            await run(
-                env.DB,
-                `
-                UPDATE users
-                SET updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-                `,
-                [user.id]
-            );
+           await run(
+    env.DB,
+    `
+    UPDATE users
+    SET
+        username = COALESCE(?, username),
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+    `,
+    [
+        telegramUser.username || null,
+        user.id
+    ]
+);
 
             user = await getUserById(
                 env.DB,
@@ -1765,15 +1770,19 @@ async function handleTelegramWidgetAuth(request, env) {
              */
 
             await run(
-                env.DB,
-                `
-                UPDATE users
-                SET updated_at =
-                    CURRENT_TIMESTAMP
-                WHERE id = ?
-                `,
-                [user.id]
-            );
+    env.DB,
+    `
+    UPDATE users
+    SET
+        username = COALESCE(?, username),
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+    `,
+    [
+        telegramUser.username || null,
+        user.id
+    ]
+);
 
 
             user =
