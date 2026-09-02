@@ -1261,6 +1261,15 @@ async function ensureEmailAuthSchema(db) {
                 return handleLessons(request, env);
             }
 
+                     if (
+    url.pathname === "/api/admin/users/search" &&
+    request.method === "GET"
+) {
+    return handleAdminUserSearch(
+        request,
+        env
+    );
+}
             // Create the lesson first; the returned id is then used for file uploads.
             if (url.pathname === "/api/admin/lessons" && request.method === "POST") {
                 return handleAdminCreateLesson(request, env);
