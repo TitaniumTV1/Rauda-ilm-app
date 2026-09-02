@@ -13063,8 +13063,10 @@ function setRegisterMethod(method) {
 
 
         Array.from(
-            screen.children
-        ).forEach(
+    tabs.parentElement
+        ? tabs.parentElement.children
+        : []
+).forEach(
             element => {
 
                 if (
