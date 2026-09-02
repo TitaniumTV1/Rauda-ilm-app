@@ -3349,10 +3349,10 @@ a:focus:not(:focus-visible) {
         rgba(10, 16, 12, .56);
 
     backdrop-filter:
-        none(6px);
+    none !important;
 
-    -webkit-backdrop-filter:
-         none(6px);
+-webkit-backdrop-filter:
+    none !important;
 
     opacity: 0;
 
@@ -5904,6 +5904,42 @@ select {
 }
 
 </style>
+
+    /* AUTH OVERLAYS:
+   скрытые слои вообще не участвуют в рендере */
+
+.password-reset-overlay,
+.telegram-login-overlay,
+.telegram-browser-overlay,
+.telegram-confirm-overlay {
+    display: none !important;
+}
+
+
+/* Показываем только реально открытый слой */
+
+.password-reset-overlay.active,
+.telegram-login-overlay.active,
+.telegram-browser-overlay.active,
+.telegram-confirm-overlay.active {
+    display: flex !important;
+
+    animation:
+        raudaOverlayIn .20s ease
+        both;
+}
+
+
+@keyframes raudaOverlayIn {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
     
 </head><body>
 <div id="authApp" class="auth-screen">
