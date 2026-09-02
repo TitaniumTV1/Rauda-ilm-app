@@ -2,6 +2,8 @@ import { verifyTelegramInitData } from "./telegram.js";
 import { handleAssessmentRequest } from "./assessment.js";
 
 const SESSION_DAYS = 30;
+const SESSION_COOKIE_NAME =
+    "__Host-rauda_session";
 const PASSWORD_ITERATIONS = 100000;
 
 let accountIdSchemaPromise = null;
@@ -171,9 +173,8 @@ async function handleEmailSendCode(request, env) {
             );
         }
 
-        const code = String(
-            Math.floor(100000 + Math.random() * 900000)
-        );
+       const code =
+    generateVerificationCode();
 
         const codeHash = await hashEmailCode(
             email,
@@ -1105,21 +1106,48 @@ async function hashEmailCode(
     env
 ) {
     const secret =
-        env.EMAIL_AUTH_SECRET ||
-        env.CHECKOUT_CLAIM_SECRET ||
-        "rauda-ilm-email-auth";
+        String(
+            env.EMAIL_AUTH_SECRET ||
+            ""
+        );
 
-    const value =
-        `${email}:${purpose}:${code}:${secret}`;
+    if (!secret) {
+        throw new Error(
+            "EMAIL_AUTH_SECRET is not configured"
+        );
+    }
 
-    const digest =
-        await crypto.subtle.digest(
-            "SHA-256",
-            new TextEncoder().encode(value)
+    const encoder =
+        new TextEncoder();
+
+    const key =
+        await crypto.subtle.importKey(
+            "raw",
+            encoder.encode(secret),
+            {
+                name: "HMAC",
+                hash: "SHA-256"
+            },
+            false,
+            ["sign"]
+        );
+
+    const message =
+        [
+            String(email),
+            String(purpose),
+            String(code)
+        ].join(":");
+
+    const signature =
+        await crypto.subtle.sign(
+            "HMAC",
+            key,
+            encoder.encode(message)
         );
 
     return Array.from(
-        new Uint8Array(digest)
+        new Uint8Array(signature)
     )
         .map(
             byte =>
@@ -1129,8 +1157,6 @@ async function hashEmailCode(
         )
         .join("");
 }
-
-
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
         String(email || "")
@@ -3620,12 +3646,61 @@ async function handleAdminRecoverTelegram(
     }
 }
 
-async function handleLogout(request, env) {
-    if (!env.DB) return databaseMissing(env);
-    await ensureAuthSessionsTable(env.DB);
-    const token = getBearerToken(request);
-    if (token) await run(env.DB, "DELETE FROM auth_sessions WHERE token = ?", [token]);
-    return json({ ok: true }, 200, env);
+async function handleLogout(
+    request,
+    env
+) {
+    if (!env.DB) {
+        return databaseMissing(env);
+    }
+
+    await ensureAuthSessionsTable(
+        env.DB
+    );
+
+    const token =
+        getSessionToken(request);
+
+    if (token) {
+        await run(
+            env.DB,
+            `
+            DELETE FROM auth_sessions
+            WHERE token = ?
+            `,
+            [token]
+        );
+    }
+
+    const headers =
+        new Headers(
+            corsHeaders(env)
+        );
+
+    headers.set(
+        "Content-Type",
+        "application/json; charset=utf-8"
+    );
+
+    headers.append(
+        "Set-Cookie",
+        expiredSessionCookie()
+    );
+
+    headers.set(
+        "Cache-Control",
+        "no-store"
+    );
+
+    return new Response(
+        JSON.stringify({
+            ok: true
+        }),
+        {
+            status: 200,
+            headers
+        }
+    );
 }
 
 async function handlePrograms(request, env) {
@@ -4433,7 +4508,8 @@ async function handleTributeWebhook(request, env) {
 async function requireUser(request, env) {
     if (!env.DB) return { ok: false, status: 500, error: "Database is not configured" };
     await ensureAuthSessionsTable(env.DB);
-    const token = getBearerToken(request);
+    const token =
+    getSessionToken(request);
     if (!token) return { ok: false, status: 401, error: "Authorization required" };
 
     const row = await first(env.DB, `
@@ -5120,6 +5196,123 @@ async function hashVerificationCode(
         )
         .join("");
 }
+
+function getCookie(
+    request,
+    name
+) {
+    const cookieHeader =
+        request.headers.get(
+            "Cookie"
+        ) || "";
+
+    const cookies =
+        cookieHeader.split(";");
+
+    for (const cookie of cookies) {
+        const separator =
+            cookie.indexOf("=");
+
+        if (separator < 0) {
+            continue;
+        }
+
+        const key =
+            cookie
+                .slice(
+                    0,
+                    separator
+                )
+                .trim();
+
+        if (key !== name) {
+            continue;
+        }
+
+        const value =
+            cookie.slice(
+                separator + 1
+            );
+
+        try {
+            return decodeURIComponent(
+                value
+            );
+        } catch {
+            return value;
+        }
+    }
+
+    return null;
+}
+
+
+function sessionCookie(token) {
+    const maxAge =
+        SESSION_DAYS *
+        24 *
+        60 *
+        60;
+
+    return [
+        SESSION_COOKIE_NAME +
+            "=" +
+            encodeURIComponent(token),
+
+        "Path=/",
+        "HttpOnly",
+        "Secure",
+        "SameSite=Strict",
+        "Max-Age=" + maxAge
+    ].join("; ");
+}
+
+
+function expiredSessionCookie() {
+    return [
+        SESSION_COOKIE_NAME + "=",
+        "Path=/",
+        "HttpOnly",
+        "Secure",
+        "SameSite=Strict",
+        "Max-Age=0"
+    ].join("; ");
+}
+
+
+function getSessionToken(
+    request
+) {
+    const cookieToken =
+        getCookie(
+            request,
+            SESSION_COOKIE_NAME
+        );
+
+    if (cookieToken) {
+        return cookieToken;
+    }
+
+    /*
+     * Временно оставляем старый Bearer
+     * для совместимости со старыми
+     * открытыми версиями frontend.
+     */
+    const headerToken =
+        bearerFromHeader(
+            request.headers.get(
+                "Authorization"
+            )
+        ) ||
+        request.headers.get(
+            "X-Session-Token"
+        );
+
+    return headerToken
+        ? String(headerToken).trim()
+        : null;
+}
+
 function bearerFromHeader(value) {
     const match = String(value || "").match(/^Bearer\s+(.+)$/i);
     return match ? match[1].trim() : null;
@@ -5472,11 +5665,73 @@ function withCors(response, env) {
     return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
-function json(payload, status = 200, env = {}) {
-    return new Response(JSON.stringify(payload), {
-        status,
-        headers: { ...corsHeaders(env), "Content-Type": "application/json; charset=utf-8" }
-    });
+function json(
+    payload,
+    status = 200,
+    env = {}
+) {
+    const headers =
+        new Headers(
+            corsHeaders(env)
+        );
+
+    headers.set(
+        "Content-Type",
+        "application/json; charset=utf-8"
+    );
+
+    let responsePayload =
+        payload;
+
+    /*
+     * Все успешные ответы авторизации
+     * сейчас содержат:
+     *
+     * user + token + expires_at
+     *
+     * Перехватываем session token,
+     * помещаем его в HttpOnly cookie
+     * и НЕ отдаём JavaScript.
+     */
+    if (
+        payload &&
+        typeof payload === "object" &&
+        payload.user &&
+        payload.token &&
+        payload.expires_at
+    ) {
+        headers.append(
+            "Set-Cookie",
+            sessionCookie(
+                String(
+                    payload.token
+                )
+            )
+        );
+
+        headers.set(
+            "Cache-Control",
+            "no-store"
+        );
+
+        const {
+            token,
+            ...safePayload
+        } = payload;
+
+        responsePayload =
+            safePayload;
+    }
+
+    return new Response(
+        JSON.stringify(
+            responsePayload
+        ),
+        {
+            status,
+            headers
+        }
+    );
 }
 
 function databaseMissing(env) {
