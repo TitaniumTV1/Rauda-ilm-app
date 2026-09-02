@@ -5905,6 +5905,8 @@ select {
 
 </style>
 
+    <style id="rauda-auth-overlays-render-fix">
+        
     /* AUTH OVERLAYS:
    скрытые слои вообще не участвуют в рендере */
 
@@ -5915,8 +5917,6 @@ select {
     display: none !important;
 }
 
-
-/* Показываем только реально открытый слой */
 
 .password-reset-overlay.active,
 .telegram-login-overlay.active,
@@ -5940,7 +5940,7 @@ select {
         opacity: 1;
     }
 }
-    
+    </style>
 </head><body>
 <div id="authApp" class="auth-screen">
 
