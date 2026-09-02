@@ -10710,7 +10710,7 @@ function setRegisterMethod(method) {
     }
 
 
-    function openTelegramBrowserLogin() {
+    window.openTelegramBrowserLogin = function () {
 
         tgStatus("", "");
 
@@ -10724,7 +10724,7 @@ function setRegisterMethod(method) {
         );
 
         loadTelegramWidget();
-    }
+    };
 
 
     /*
