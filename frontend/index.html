@@ -8741,7 +8741,7 @@ async function sendEmailCode(purpose) {
 
     if (
         purpose === "register" &&
-        result.status === 429 &&
+        (result.status === 429 || result.status === 409) &&
         registerHint
     ) {
         registerHint.textContent =
