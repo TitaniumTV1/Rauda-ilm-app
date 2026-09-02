@@ -5636,46 +5636,41 @@ body {
     left: 0 !important;
     right: auto !important;
 
-    /* Старый right больше ничего не анимирует */
     transform:
-        translate3d(-104%, 0, 0)
+        translateX(-101%)
         !important;
 
-    will-change: transform !important;
+    will-change:
+        auto !important;
 
-    backface-visibility: hidden !important;
-    -webkit-backface-visibility: hidden !important;
+    backface-visibility:
+        visible !important;
 
-    transition:
-        transform 560ms
-        cubic-bezier(.16, 1, .3, 1),
-        box-shadow 420ms ease
-        !important;
-}
-
-
-/* Закрыто */
-.side-menu:not(.active) {
-    transform:
-        translate3d(-104%, 0, 0)
-        !important;
-
-    box-shadow: none !important;
-}
-
-
-/* Открыто */
-.side-menu.active {
-    transform:
-        translate3d(0, 0, 0)
-        !important;
+    -webkit-backface-visibility:
+        visible !important;
 
     box-shadow:
         18px 0 45px
         rgba(0, 0, 0, .18)
         !important;
+
+    transition:
+        transform 460ms
+        cubic-bezier(.22, 1, .36, 1)
+        !important;
 }
 
+.side-menu:not(.active) {
+    transform:
+        translateX(-101%)
+        !important;
+}
+
+.side-menu.active {
+    transform:
+        translateX(0)
+        !important;
+}
 
 /* Блокируем прокрутку страницы */
 body.menu-open {
