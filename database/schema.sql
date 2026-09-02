@@ -7,6 +7,7 @@ PRAGMA foreign_keys = ON;
 -- Пользователи Telegram
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER,
     telegram_id INTEGER NOT NULL UNIQUE,
     username TEXT,
     first_name TEXT,
@@ -555,3 +556,6 @@ ON audit_logs(admin_id);
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_course
 ON audit_logs(course_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_account_id
+ON users(account_id);
