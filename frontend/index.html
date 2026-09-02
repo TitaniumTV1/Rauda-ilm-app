@@ -8591,8 +8591,199 @@ function setEmailStatus(
         message;
 }
 
+let pendingLinkEmail = "";
 
-async function sendLinkEmailCode() {
+function sendLinkEmailCode() {
+
+    const input =
+        document.getElementById(
+            "linkEmailInput"
+        );
+
+    const email =
+        String(
+            input?.value || ""
+        )
+        .trim()
+        .toLowerCase();
+
+    if (!email) {
+
+        setEmailStatus(
+            "linkEmailStatus",
+            "Введите электронную почту",
+            "error"
+        );
+
+        return;
+    }
+
+    pendingLinkEmail =
+        email;
+
+    let box =
+        document.getElementById(
+            "linkEmailConfirm"
+        );
+
+    if (!box) {
+
+        box =
+            document.createElement(
+                "div"
+            );
+
+        box.id =
+            "linkEmailConfirm";
+
+        box.style.cssText = `
+            margin-top: 14px;
+            padding: 16px;
+            border: 1px solid #e5dbc4;
+            border-radius: 16px;
+            background: #fffdf8;
+        `;
+
+        const status =
+            document.getElementById(
+                "linkEmailStatus"
+            );
+
+        status?.parentNode
+            ?.insertBefore(
+                box,
+                status
+            );
+    }
+
+    box.innerHTML = "";
+
+    const text =
+        document.createElement(
+            "div"
+        );
+
+    text.style.cssText = `
+        color: #1d2b23;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 14px;
+    `;
+
+    text.textContent =
+        "Проверьте адрес. Код подтверждения будет отправлен на " +
+        email +
+        ". Адрес указан верно?";
+
+    const actions =
+        document.createElement(
+            "div"
+        );
+
+    actions.style.cssText = `
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    `;
+
+    const editButton =
+        document.createElement(
+            "button"
+        );
+
+    editButton.type =
+        "button";
+
+    editButton.className =
+        "secondary-button";
+
+    editButton.textContent =
+        "Исправить";
+
+    editButton.onclick =
+        editLinkEmailAddress;
+
+
+    const sendButton =
+        document.createElement(
+            "button"
+        );
+
+    sendButton.type =
+        "button";
+
+    sendButton.className =
+        "primary-button";
+
+    sendButton.textContent =
+        "Да, отправить";
+
+    sendButton.onclick =
+        confirmLinkEmailSend;
+
+
+    actions.append(
+        editButton,
+        sendButton
+    );
+
+    box.append(
+        text,
+        actions
+    );
+}
+
+
+function editLinkEmailAddress() {
+
+    document
+        .getElementById(
+            "linkEmailConfirm"
+        )
+        ?.remove();
+
+    const input =
+        document.getElementById(
+            "linkEmailInput"
+        );
+
+    input?.focus();
+}
+
+
+async function confirmLinkEmailSend() {
+
+    const input =
+        document.getElementById(
+            "linkEmailInput"
+        );
+
+    const currentEmail =
+        String(
+            input?.value || ""
+        )
+        .trim()
+        .toLowerCase();
+
+    if (
+        currentEmail !==
+        pendingLinkEmail
+    ) {
+
+        sendLinkEmailCode();
+        return;
+    }
+
+    document
+        .getElementById(
+            "linkEmailConfirm"
+        )
+        ?.remove();
+
+    await actuallySendLinkEmailCode();
+}
+    
+async function actuallySendLinkEmailCode() {
     const email =
         document
             .getElementById(
