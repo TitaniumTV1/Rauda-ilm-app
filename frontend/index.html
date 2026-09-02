@@ -14603,14 +14603,31 @@ window.openMenu = function () {
         return;
     }
 
-    menu.classList.add(
-        "active"
-    );
+    menu.classList.remove(
+    "active"
+);
 
+document.body.classList.remove(
+    "menu-open"
+);
 
-    document.body.classList.add(
-        "menu-open"
-    );
+requestAnimationFrame(() => {
+
+    requestAnimationFrame(() => {
+
+        menu.classList.add(
+            "active"
+        );
+
+        setTimeout(() => {
+            document.body.classList.add(
+                "menu-open"
+            );
+        }, 120);
+
+    });
+
+});
 };
 
 
