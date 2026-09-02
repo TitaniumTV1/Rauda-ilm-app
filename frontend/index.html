@@ -8298,11 +8298,13 @@ async function linkEmail() {
                 API + "/auth/email/link",
                 {
                     method: "POST",
+                   
+                    credentials:
+                        "same-origin",
+
                     headers: {
                         "Content-Type":
-                            "application/json",
-                        "Authorization":
-                            "Bearer " + getToken()
+                            "application/json"
                     },
                     body: JSON.stringify({
                         email,
