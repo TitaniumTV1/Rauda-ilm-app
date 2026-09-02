@@ -6846,7 +6846,7 @@ body.menu-open {
     const API = "/api";
 
     let currentUser = null;
-
+    let currentCourseId = null;
 
     /*
      * ============================
@@ -7926,8 +7926,28 @@ async function saveProfile() {
             </div>`;
     }
 }
+    function openCourse(courseId) {
+
+    const id =
+        Number(courseId);
+
+    if (
+        !Number.isInteger(id) ||
+        id <= 0
+    ) {
+        return;
+    }
+
+    currentCourseId = id;
+
+    showScreen(
+        "lessonsScreen"
+    );
+
+    loadLessons(id);
+}
     
-    async function loadLessons() {
+   async function loadLessons(courseId = currentCourseId) {
 
         const container =
             document
@@ -7940,11 +7960,15 @@ async function saveProfile() {
                 Загружаем уроки...
             </div>`;
 
-        const result =
-            await api(
-                "/lessons"
-            );
+        const suffix =
+    courseId
+        ? `?course_id=${Number(courseId)}`
+        : "";
 
+const result =
+    await api(
+        "/lessons" + suffix
+    );
         if (!result.data.ok) {
 
             container.innerHTML =
@@ -8190,7 +8214,9 @@ const progress =
     function openLessons() {
 
         closeMenu();
-
+        
+currentCourseId = null;
+        
         showScreen(
             "lessonsScreen"
         );
