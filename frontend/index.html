@@ -6236,8 +6236,571 @@ a,
     -webkit-transform: none !important;
 }
 </style>
-    
-</head><body>
+
+    <style id="rauda-course-page-v1">
+
+        /* =========================================================
+   COURSE PAGE
+   ========================================================= */
+
+#lessonsScreen {
+    padding-bottom: 32px;
+}
+
+#lessonsScreen .back-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 16px;
+    margin-bottom: 14px;
+
+    border: 1px solid rgba(23, 32, 28, 0.08);
+    border-radius: 14px;
+
+    background: #ffffff;
+    color: #17201c;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 8px rgba(23, 32, 28, 0.04);
+}
+
+
+/* =========================
+   ОСНОВНАЯ КАРТОЧКА КУРСА
+   ========================= */
+
+.rauda-course-page-card {
+    width: 100%;
+    padding: 16px;
+
+    border: 1px solid rgba(23, 32, 28, 0.07);
+    border-radius: 24px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 8px 28px rgba(23, 32, 28, 0.06);
+
+    overflow: hidden;
+}
+
+
+/* =========================
+   ОБЛОЖКА
+   ========================= */
+
+.rauda-course-cover-wrap {
+    position: relative;
+
+    width: 100%;
+    aspect-ratio: 16 / 10;
+
+    margin-bottom: 18px;
+
+    border-radius: 19px;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            145deg,
+            #efe7c3 0%,
+            #e4d28e 50%,
+            #cdb76b 100%
+        );
+}
+
+.rauda-course-cover {
+    display: none;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.rauda-course-cover.active {
+    display: block;
+}
+
+.rauda-course-cover-placeholder {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    color: rgba(50, 43, 18, 0.78);
+
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+
+    text-align: center;
+}
+
+
+/* =========================
+   НАЗВАНИЕ
+   ========================= */
+
+.rauda-course-page-title {
+    margin-bottom: 9px;
+
+    color: #17201c;
+
+    font-size: 23px;
+    line-height: 1.25;
+    font-weight: 750;
+}
+
+
+/* =========================
+   ОПИСАНИЕ
+   ========================= */
+
+.rauda-course-page-description {
+    margin-bottom: 12px;
+
+    color: #737b77;
+
+    font-size: 14px;
+    line-height: 1.55;
+
+    white-space: pre-line;
+}
+
+.rauda-course-page-description:empty {
+    display: none;
+}
+
+
+/* =========================
+   АВТОР
+   ========================= */
+
+.rauda-course-author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-bottom: 17px;
+
+    color: #505955;
+
+    font-size: 14px;
+    font-weight: 550;
+}
+
+.rauda-course-author[hidden] {
+    display: none !important;
+}
+
+.rauda-course-author-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 29px;
+    height: 29px;
+
+    border-radius: 9px;
+
+    background: #f5f2e5;
+    color: #9a7d18;
+
+    font-size: 16px;
+}
+
+
+/* =========================
+   УРОКОВ / СЕРТИФИКАТ
+   ========================= */
+
+.rauda-course-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.rauda-course-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    min-width: 0;
+
+    padding: 13px;
+
+    border-radius: 17px;
+
+    background: #f7f8f5;
+}
+
+.rauda-course-meta-icon {
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    border-radius: 12px;
+
+    background: #efe9cc;
+    color: #8b711a;
+}
+
+.rauda-course-meta-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.rauda-course-meta-label {
+    margin-bottom: 2px;
+
+    color: #858c88;
+
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.rauda-course-meta-value {
+    color: #17201c;
+
+    font-size: 15px;
+    font-weight: 700;
+}
+
+
+/* =========================
+   ОБЩИЙ ПРОГРЕСС
+   ========================= */
+
+.rauda-course-progress-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    margin-top: 14px;
+    padding: 16px;
+
+    border: 1px solid rgba(23, 32, 28, 0.07);
+    border-radius: 22px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 6px 20px rgba(23, 32, 28, 0.045);
+}
+
+.rauda-course-progress-circle {
+    --course-progress: 0deg;
+
+    position: relative;
+
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 70px;
+    height: 70px;
+
+    border-radius: 50%;
+
+    background:
+        conic-gradient(
+            #c6a84c var(--course-progress),
+            #eeefe9 0
+        );
+}
+
+.rauda-course-progress-circle::before {
+    content: "";
+
+    position: absolute;
+
+    width: 56px;
+    height: 56px;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+}
+
+.rauda-course-progress-circle span {
+    position: relative;
+    z-index: 1;
+
+    color: #17201c;
+
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.rauda-course-progress-label {
+    color: #535c57;
+
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+
+/* =========================
+   СПИСОК УРОКОВ
+   ========================= */
+
+.rauda-course-lessons-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    margin-top: 16px;
+}
+
+.rauda-course-lessons-list .loading {
+    padding: 20px;
+
+    border-radius: 18px;
+
+    background: #ffffff;
+
+    color: #7b837f;
+
+    font-size: 14px;
+
+    text-align: center;
+}
+
+
+/* =========================
+   КАРТОЧКА ОДНОГО УРОКА
+   ========================= */
+
+.rauda-lesson-card {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    width: 100%;
+    min-height: 76px;
+
+    padding: 12px 13px;
+
+    border: 1px solid rgba(23, 32, 28, 0.07);
+    border-radius: 19px;
+
+    background: #ffffff;
+
+    color: inherit;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 5px 18px rgba(23, 32, 28, 0.04);
+
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        background 0.16s ease;
+}
+
+.rauda-lesson-card:active {
+    transform: scale(0.985);
+
+    background: #fafbf8;
+}
+
+.rauda-lesson-number {
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 46px;
+    height: 46px;
+
+    border-radius: 15px;
+
+    background: #f1ecd7;
+    color: #8b711a;
+
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.rauda-lesson-content {
+    flex: 1;
+
+    min-width: 0;
+}
+
+.rauda-lesson-title {
+    margin-bottom: 5px;
+
+    color: #17201c;
+
+    font-size: 15px;
+    line-height: 1.35;
+    font-weight: 700;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rauda-lesson-subtitle {
+    color: #858d89;
+
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.rauda-lesson-arrow {
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 31px;
+    height: 31px;
+
+    border-radius: 10px;
+
+    background: #f6f7f4;
+    color: #737b77;
+
+    font-size: 19px;
+    line-height: 1;
+}
+
+
+/* =========================
+   ПРОЙДЕННЫЙ УРОК
+   ========================= */
+
+.rauda-lesson-card.completed .rauda-lesson-number {
+    background: #e3eee7;
+    color: #4f725d;
+}
+
+.rauda-lesson-card.completed .rauda-lesson-subtitle {
+    color: #668270;
+}
+
+
+/* =========================
+   ЭКЗАМЕН
+   ========================= */
+
+.rauda-course-exam-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    margin-top: 11px;
+    padding: 16px;
+
+    border: 1px solid rgba(23, 32, 28, 0.07);
+    border-radius: 19px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 5px 18px rgba(23, 32, 28, 0.04);
+}
+
+.rauda-course-exam-card.locked {
+    opacity: 0.72;
+}
+
+.rauda-course-exam-title {
+    margin-bottom: 4px;
+
+    color: #17201c;
+
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.rauda-course-exam-status {
+    color: #8a918e;
+
+    font-size: 12px;
+}
+
+.rauda-course-exam-lock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    border-radius: 12px;
+
+    background: #f1f2ee;
+
+    font-size: 16px;
+}
+
+
+/* =========================
+   МОБИЛЬНЫЕ ЭКРАНЫ
+   ========================= */
+
+@media (max-width: 380px) {
+
+    .rauda-course-page-card {
+        padding: 13px;
+        border-radius: 21px;
+    }
+
+    .rauda-course-page-title {
+        font-size: 21px;
+    }
+
+    .rauda-course-meta-item {
+        gap: 8px;
+        padding: 11px 9px;
+    }
+
+    .rauda-course-meta-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .rauda-course-progress-circle {
+        width: 64px;
+        height: 64px;
+    }
+
+    .rauda-course-progress-circle::before {
+        width: 51px;
+        height: 51px;
+    }
+}
+        
+</head>
+    <body>
 <div id="authApp" class="auth-screen">
 
     <div class="auth-shell">
@@ -7474,6 +8037,9 @@ a,
     
     let currentCourseId = null;
 
+    let currentCourses = [];
+    let currentCourseLessons = [];
+
     /*
      * ============================
      * TOKEN
@@ -8475,6 +9041,8 @@ async function saveProfile() {
         const courses =
             result.data.courses || [];
 
+        currentCourses = courses;
+        
         if (!courses.length) {
 
             container.innerHTML =
@@ -8572,10 +9140,300 @@ async function saveProfile() {
             </div>`;
     }
 }
-    function openCourse(courseId) {
+   
+function getCourseCover(course) {
+    if (!course) return "";
+
+    return (
+        course.cover_image ||
+        course.cover_url ||
+        course.image_url ||
+        course.image ||
+        ""
+    );
+}
+
+
+function getCourseCertificateStatus(course) {
+    if (!course) {
+        return "—";
+    }
+
+    if (
+        course.certificate_enabled === true ||
+        Number(course.certificate_enabled) === 1 ||
+        course.has_certificate === true ||
+        Number(course.has_certificate) === 1
+    ) {
+        return "Есть";
+    }
+
+    if (
+        course.certificate_enabled === false ||
+        Number(course.certificate_enabled) === 0 ||
+        course.has_certificate === false
+    ) {
+        return "Нет";
+    }
+
+    return "—";
+}
+
+
+function fillCoursePage(course) {
+
+    const title =
+        document.getElementById(
+            "coursePageTitle"
+        );
+
+    const description =
+        document.getElementById(
+            "coursePageDescription"
+        );
+
+    const authorRow =
+        document.getElementById(
+            "coursePageAuthorRow"
+        );
+
+    const author =
+        document.getElementById(
+            "coursePageAuthor"
+        );
+
+    const cover =
+        document.getElementById(
+            "coursePageCover"
+        );
+
+    const placeholder =
+        document.getElementById(
+            "coursePageCoverPlaceholder"
+        );
+
+    const certificate =
+        document.getElementById(
+            "coursePageCertificate"
+        );
+
+
+    if (title) {
+        title.textContent =
+            course?.name ||
+            course?.title ||
+            "Курс";
+    }
+
+
+    if (description) {
+        description.textContent =
+            course?.description ||
+            "";
+    }
+
+
+    const authorName =
+        course?.author ||
+        course?.author_name ||
+        course?.teacher_name ||
+        "";
+
+
+    if (
+        authorRow &&
+        author
+    ) {
+
+        if (authorName) {
+
+            author.textContent =
+                authorName;
+
+            authorRow.hidden =
+                false;
+
+        } else {
+
+            author.textContent =
+                "";
+
+            authorRow.hidden =
+                true;
+        }
+    }
+
+
+    const coverUrl =
+        getCourseCover(course);
+
+
+    if (
+        cover &&
+        placeholder
+    ) {
+
+        if (coverUrl) {
+
+            cover.src =
+                coverUrl;
+
+            cover.classList.add(
+                "active"
+            );
+
+            placeholder.style.display =
+                "none";
+
+
+            cover.onerror =
+                function () {
+
+                    cover.classList.remove(
+                        "active"
+                    );
+
+                    placeholder.style.display =
+                        "flex";
+                };
+
+        } else {
+
+            cover.removeAttribute(
+                "src"
+            );
+
+            cover.classList.remove(
+                "active"
+            );
+
+            placeholder.style.display =
+                "flex";
+        }
+    }
+
+
+    if (certificate) {
+        certificate.textContent =
+            getCourseCertificateStatus(
+                course
+            );
+    }
+}
+
+
+function updateCourseProgress(
+    lessons,
+    completedIds
+) {
+
+    const total =
+        lessons.length;
+
+
+    const completedSet =
+        new Set(
+            completedIds.map(
+                id => Number(id)
+            )
+        );
+
+
+    let completedCount =
+        0;
+
+
+    lessons.forEach(
+        lesson => {
+
+            const lessonId =
+                Number(
+                    lesson.id
+                );
+
+
+            const progress =
+                Number(
+                    lesson.progress_percent
+                ) || 0;
+
+
+            if (
+                completedSet.has(
+                    lessonId
+                ) ||
+                progress >= 100
+            ) {
+                completedCount++;
+            }
+        }
+    );
+
+
+    const percent =
+        total > 0
+            ? Math.round(
+                completedCount /
+                total *
+                100
+            )
+            : 0;
+
+
+    const countElement =
+        document.getElementById(
+            "coursePageLessonsCount"
+        );
+
+
+    if (countElement) {
+        countElement.textContent =
+            String(total);
+    }
+
+
+    const progressElement =
+        document.getElementById(
+            "coursePageProgress"
+        );
+
+
+    if (progressElement) {
+        progressElement.textContent =
+            percent + "%";
+    }
+
+
+    const circle =
+        document.querySelector(
+            "#lessonsScreen .rauda-course-progress-circle"
+        );
+
+
+    if (circle) {
+
+        circle.style.setProperty(
+            "--course-progress",
+            (
+                percent * 3.6
+            ) + "deg"
+        );
+    }
+
+
+    return {
+        total,
+        completedCount,
+        percent
+    };
+}
+
+
+function openCourse(courseId) {
 
     const id =
         Number(courseId);
+
 
     if (
         !Number.isInteger(id) ||
@@ -8584,144 +9442,347 @@ async function saveProfile() {
         return;
     }
 
-    currentCourseId = id;
+
+    currentCourseId =
+        id;
+
+
+    const course =
+        currentCourses.find(
+            item =>
+                Number(item.id) ===
+                id
+        );
+
+
+    fillCoursePage(
+        course || null
+    );
+
 
     showScreen(
         "lessonsScreen"
     );
 
-    loadLessons(id);
-}
-    
-   async function loadLessons(courseId = currentCourseId) {
 
-        const container =
-            document
-                .getElementById(
-                    "lessonsContainer"
-                );
-
-        container.innerHTML =
-            `<div class="loading">
-                Загружаем уроки...
-            </div>`;
-
-        const suffix =
-    courseId
-        ? `?course_id=${Number(courseId)}`
-        : "";
-
-const result =
-    await api(
-        "/lessons" + suffix
+    loadLessons(
+        id
     );
-        if (!result.data.ok) {
+}
 
-            container.innerHTML =
-                `<div class="empty">
+
+async function loadLessons(
+    courseId = currentCourseId
+) {
+
+    const container =
+        document.getElementById(
+            "lessonsContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    if (
+        !courseId ||
+        Number(courseId) <= 0
+    ) {
+
+        container.innerHTML = `
+            <div class="empty">
+                Сначала выберите курс.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML = `
+        <div class="loading">
+            Загружаем уроки...
+        </div>
+    `;
+
+
+    try {
+
+        const result =
+            await api(
+                "/lessons?course_id=" +
+                encodeURIComponent(
+                    Number(courseId)
+                )
+            );
+
+
+        if (
+            !result.data ||
+            !result.data.ok
+        ) {
+
+            container.innerHTML = `
+                <div class="empty">
                     ${escapeHtml(
-                        result.data.error ||
+                        result.data?.error ||
                         "Не удалось загрузить уроки"
                     )}
-                </div>`;
+                </div>
+            `;
 
             return;
         }
 
-        const lessons =
-            result.data.lessons ||
-            [];
 
-        const completed =
-            result.data.completedLessonIds ||
-            [];
+        const lessons =
+            Array.isArray(
+                result.data.lessons
+            )
+                ? result.data.lessons
+                : [];
+
+
+        const completedIds =
+            Array.isArray(
+                result.data
+                    .completedLessonIds
+            )
+                ? result.data
+                    .completedLessonIds
+                : [];
+
+
+        currentCourseLessons =
+            lessons;
+
+
+        updateCourseProgress(
+            lessons,
+            completedIds
+        );
+
 
         if (!lessons.length) {
 
-            container.innerHTML =
-                `<div class="empty">
-                    Пока нет доступных уроков.
-                </div>`;
+            container.innerHTML = `
+                <div class="empty">
+                    В этом курсе пока нет уроков.
+                </div>
+            `;
 
             return;
         }
+
+
+        const completedSet =
+            new Set(
+                completedIds.map(
+                    id => Number(id)
+                )
+            );
+
 
         container.innerHTML =
             lessons
                 .map(
-                    lesson => {
+                    (
+                        lesson,
+                        index
+                    ) => {
+
+                        const lessonId =
+                            Number(
+                                lesson.id
+                            );
+
+
+                        const progress =
+                            Number(
+                                lesson.progress_percent
+                            ) || 0;
+
 
                         const isCompleted =
-                            completed.includes(
-                                Number(
-                                    lesson.id
-                                )
-                            );
-const progress =
-    Math.max(
-        0,
-        Math.min(
-            100,
-            Number(
-                lesson.progress_percent
-            ) || 0
-        )
-    );
+                            completedSet.has(
+                                lessonId
+                            ) ||
+                            progress >= 100;
+
+
+                        const lessonNumber =
+                            index + 1;
+
+
                         return `
-                            <div class="lesson">
+                            <button
+                                type="button"
+                                class="
+                                    rauda-lesson-card
+                                    ${
+                                        isCompleted
+                                            ? "completed"
+                                            : ""
+                                    }
+                                "
+                                onclick="openCourseLesson(${lessonId})"
+                            >
 
-                                <div class="lesson-title">
-                                    ${escapeHtml(
-                                        lesson.title ||
-                                        "Урок"
-                                    )}
+                                <div
+                                    class="rauda-lesson-number"
+                                >
+                                    ${lessonNumber}
                                 </div>
 
-                                <div class="lesson-description">
-                                    ${escapeHtml(
-                                        lesson.description ||
-                                        ""
-                                    )}
+
+                                <div
+                                    class="rauda-lesson-content"
+                                >
+
+                                    <div
+                                        class="rauda-lesson-title"
+                                    >
+                                        ${escapeHtml(
+                                            lesson.title ||
+                                            lessonNumber +
+                                            " урок"
+                                        )}
+                                    </div>
+
+
+                                    <div
+                                        class="rauda-lesson-subtitle"
+                                    >
+                                        ${
+                                            isCompleted
+                                                ? "Урок пройден"
+                                                : "Открыть урок"
+                                        }
+                                    </div>
+
                                 </div>
-                                
-<div class="rauda-progress-head">
-    <span>Прогресс</span>
-    <strong>${progress}%</strong>
-</div>
 
-<div class="rauda-progress-line">
-    <div
-        class="rauda-progress-fill"
-        style="width:${progress}%"
-    ></div>
-</div>
 
-                                ${
-                                    isCompleted
-                                        ? `
-                                            <div class="completed">
-                                                ✓ Урок пройден
-                                            </div>
-                                          `
-                                        : `
-                                            <button
-                                                class="secondary-button"
-                                                onclick="completeLesson(${Number(lesson.id)})"
-                                            >
-                                                Отметить как пройденный
-                                            </button>
-                                          `
-                                }
+                                <div
+                                    class="rauda-lesson-arrow"
+                                >
+                                    ›
+                                </div>
 
-                            </div>
+                            </button>
                         `;
-
                     }
                 )
                 .join("");
 
+
+    } catch (error) {
+
+        console.error(
+            "Lessons error:",
+            error
+        );
+
+
+        container.innerHTML = `
+            <div class="empty">
+                Не удалось загрузить уроки.
+            </div>
+        `;
+    }
+}
+
+
+function openCourseLesson(
+    lessonId
+) {
+
+    const id =
+        Number(
+            lessonId
+        );
+
+
+    const lesson =
+        currentCourseLessons.find(
+            item =>
+                Number(item.id) ===
+                id
+        );
+
+
+    if (!lesson) {
+        return;
     }
 
+
+    const title =
+        document.getElementById(
+            "lessonPlayerTitle"
+        );
+
+
+    const meta =
+        document.getElementById(
+            "lessonPlayerMeta"
+        );
+
+
+    const description =
+        document.getElementById(
+            "lessonPlayerDescription"
+        );
+
+
+    const media =
+        document.getElementById(
+            "lessonMediaContainer"
+        );
+
+
+    const index =
+        currentCourseLessons.findIndex(
+            item =>
+                Number(item.id) ===
+                id
+        );
+
+
+    if (title) {
+        title.textContent =
+            lesson.title ||
+            "Урок";
+    }
+
+
+    if (meta) {
+        meta.textContent =
+            index >= 0
+                ? (index + 1) +
+                  " урок"
+                : "Урок";
+    }
+
+
+    if (description) {
+        description.textContent =
+            lesson.description ||
+            "";
+    }
+
+
+    if (media) {
+        media.innerHTML =
+            "";
+    }
+
+
+    showScreen(
+        "lessonPlayerScreen"
+    );
+}
 
     async function completeLesson(lessonId) {
 
@@ -8858,18 +9919,38 @@ await loadCourses();
     showScreen("settingsScreen");
 }
 
-    function openLessons() {
+   function openLessons() {
 
-        closeMenu();
-        
-currentCourseId = null;
-        
-        showScreen(
-            "lessonsScreen"
-        );
+    closeMenu();
 
-        loadLessons();
-    }
+    currentCourseId =
+        null;
+
+    currentCourseLessons =
+        [];
+
+    showScreen(
+        "homeScreen"
+    );
+
+    loadCourses();
+
+    setTimeout(
+        function () {
+
+            document
+                .getElementById(
+                    "coursesContainer"
+                )
+                ?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+        },
+        100
+    );
+}
 
 
     function openSchedule() {
