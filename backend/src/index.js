@@ -5896,6 +5896,129 @@ async function requireAccountRecoveryAdmin(
     return auth;
 }
 
+async function emailMergePreview(
+    db,
+    userId
+) {
+
+    const courses =
+        await all(
+            db,
+            `
+            SELECT
+                c.id,
+                c.name,
+                uc.status
+            FROM user_courses uc
+            JOIN courses c
+                ON c.id = uc.course_id
+            WHERE uc.user_id = ?
+            ORDER BY c.name
+            `,
+            [userId]
+        );
+
+
+    const lessons =
+        await all(
+            db,
+            `
+            SELECT
+                l.id AS lesson_id,
+                l.title,
+                c.id AS course_id,
+                c.name AS course_name,
+                lp.progress_percent,
+                lp.is_completed
+            FROM lesson_progress lp
+            JOIN lessons l
+                ON l.id = lp.lesson_id
+            JOIN courses c
+                ON c.id = l.course_id
+            WHERE lp.user_id = ?
+            ORDER BY
+                c.name,
+                l.sort_order,
+                l.id
+            `,
+            [userId]
+        );
+
+
+    const tests =
+        await all(
+            db,
+            `
+            SELECT
+                t.title,
+                c.name AS course_name,
+                ta.percentage,
+                ta.passed,
+                ta.submitted_at
+            FROM test_attempts ta
+            JOIN tests t
+                ON t.id = ta.test_id
+            JOIN courses c
+                ON c.id = ta.course_id
+            WHERE ta.user_id = ?
+            ORDER BY ta.id DESC
+            `,
+            [userId]
+        );
+
+
+    const exams =
+        await all(
+            db,
+            `
+            SELECT
+                e.title,
+                c.name AS course_name,
+                ea.percentage,
+                ea.passed,
+                ea.grade,
+                ea.submitted_at
+            FROM exam_attempts ea
+            JOIN exams e
+                ON e.id = ea.exam_id
+            JOIN courses c
+                ON c.id = ea.course_id
+            WHERE ea.user_id = ?
+            ORDER BY ea.id DESC
+            `,
+            [userId]
+        );
+
+
+    const certificates =
+        await all(
+            db,
+            `
+            SELECT
+                c.name AS course_name,
+                certificates.certificate_number,
+                certificates.certificate_name,
+                certificates.issued_at,
+                certificates.is_valid
+            FROM certificates
+            JOIN courses c
+                ON c.id =
+                    certificates.course_id
+            WHERE certificates.user_id = ?
+            ORDER BY certificates.issued_at DESC
+            `,
+            [userId]
+        );
+
+
+    return {
+        courses,
+        lessons,
+        tests,
+        exams,
+        certificates
+    };
+}
 
 async function recoveryUserData(
     db,
