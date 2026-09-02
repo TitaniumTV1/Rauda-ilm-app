@@ -3139,7 +3139,7 @@ async function handleAdminUserSearch(
                 WHERE
                     ${
                         isNumber
-                            ? "id = ? OR telegram_id = ? OR"
+                            ? "account_id = ? OR id = ? OR telegram_id = ? OR"
                             : ""
                     }
                     COALESCE(login, '') LIKE ?
@@ -3152,6 +3152,7 @@ async function handleAdminUserSearch(
                 `,
                 isNumber
                     ? [
+                        numeric,
                         numeric,
                         numeric,
                         like,
