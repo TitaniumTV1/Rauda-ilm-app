@@ -7223,6 +7223,7 @@ body.menu-open {
         updateProfile();
 
         loadPrograms();
+        loadCourses();
     }
 
 
@@ -7790,6 +7791,142 @@ async function saveProfile() {
 
 <!-- SETTINGS -->
 
+    async function loadCourses() {
+
+    const container =
+        document.getElementById(
+            "coursesContainer"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML =
+        `<div class="loading">
+            Загружаем курсы...
+        </div>`;
+
+    try {
+
+        const result =
+            await api(
+                "/courses"
+            );
+
+        if (
+            !result.data ||
+            !result.data.ok
+        ) {
+            container.innerHTML =
+                `<div class="empty">
+                    Не удалось загрузить курсы
+                </div>`;
+
+            return;
+        }
+
+        const courses =
+            result.data.courses || [];
+
+        if (!courses.length) {
+
+            container.innerHTML =
+                `<div class="empty">
+                    Пока нет доступных курсов.
+                </div>`;
+
+            return;
+        }
+
+        container.innerHTML =
+            courses
+                .map(
+                    course => {
+
+                        const progress =
+                            Math.max(
+                                0,
+                                Math.min(
+                                    100,
+                                    Number(
+                                        course.progress_percent
+                                    ) || 0
+                                )
+                            );
+
+                        const totalLessons =
+                            Number(
+                                course.total_lessons
+                            ) || 0;
+
+                        const completedLessons =
+                            Number(
+                                course.completed_lessons
+                            ) || 0;
+
+                        return `
+                            <div
+                                class="card rauda-course-card"
+                                onclick="openCourse(${Number(course.id)})"
+                            >
+
+                                <div class="program-label">
+                                    Курс
+                                </div>
+
+                                <div class="program-title">
+                                    ${escapeHtml(
+                                        course.name ||
+                                        course.title ||
+                                        "Курс"
+                                    )}
+                                </div>
+
+                                <div class="rauda-progress-head">
+
+                                    <span>
+                                        ${completedLessons}
+                                        из
+                                        ${totalLessons}
+                                        уроков
+                                    </span>
+
+                                    <strong>
+                                        ${progress}%
+                                    </strong>
+
+                                </div>
+
+                                <div class="rauda-progress-line">
+
+                                    <div
+                                        class="rauda-progress-fill"
+                                        style="width:${progress}%"
+                                    ></div>
+
+                                </div>
+
+                            </div>
+                        `;
+                    }
+                )
+                .join("");
+
+    } catch (error) {
+
+        console.error(
+            "Courses error:",
+            error
+        );
+
+        container.innerHTML =
+            `<div class="empty">
+                Не удалось загрузить курсы
+            </div>`;
+    }
+}
+    
     async function loadLessons() {
 
         const container =
