@@ -12304,7 +12304,9 @@ function setRegisterMethod(method) {
 
         profileOriginalChildren =
             Array.from(
-                screen.children
+                tabs.parentElement
+    ? tabs.parentElement.children
+    : []
             ).filter(
                 element =>
                     element !== tabs &&
