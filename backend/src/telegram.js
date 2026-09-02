@@ -62,11 +62,11 @@ export async function verifyTelegramInitData(
 
         /*
          * Telegram initData принимаем
-         * только в течение 5 минут.
+         * только в течение 2 часов.
          */
         if (
             authDate > now + 60 ||
-            now - authDate > 300
+            now - authDate > 7200
         ) {
             return {
                 ok: false,
