@@ -6143,6 +6143,58 @@ a,
     }
 }
 </style>
+
+    <style id="rauda-menu-avatar-placeholder">
+.rauda-menu-logo {
+    position: relative !important;
+    overflow: hidden !important;
+    border-radius: 50% !important;
+    background: rgba(255,255,255,.08) !important;
+}
+
+/* Голова */
+.rauda-menu-logo::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 50%;
+
+    width: 18px;
+    height: 18px;
+
+    transform: translateX(-50%);
+    border-radius: 50%;
+
+    background: rgba(241,231,207,.72);
+}
+
+/* Плечи */
+.rauda-menu-logo::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+
+    width: 36px;
+    height: 23px;
+
+    transform: translateX(-50%);
+    border-radius: 20px 20px 8px 8px;
+
+    background: rgba(241,231,207,.72);
+}
+
+.rauda-menu-logo img {
+    position: relative !important;
+    z-index: 2 !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    object-fit: cover !important;
+    border-radius: 50% !important;
+}
+</style>
     
 </head><body>
 <div id="authApp" class="auth-screen">
