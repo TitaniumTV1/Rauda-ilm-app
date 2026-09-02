@@ -621,6 +621,12 @@ if (existing) {
             env.DB,
             existing.id
         );
+    
+    const mergePreview =
+    await emailMergePreview(
+        env.DB,
+        existing.id
+    );
 
     return json(
         {
@@ -629,7 +635,9 @@ if (existing) {
             email,
             merge_from_user_id:
                 existing.id,
-            conflicts
+            conflicts,
+merge_preview:
+    mergePreview
         },
         409,
         env
