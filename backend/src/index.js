@@ -5286,7 +5286,77 @@ async function ensureLessonProgressTable(db) {
             UNIQUE(user_id, lesson_id)
         )
     `);
-    await run(db, "CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_id ON lesson_progress(user_id)");
+
+    const columns =
+        await all(
+            db,
+            `PRAGMA table_info(lesson_progress)`
+        );
+
+    const names =
+        new Set(
+            columns.map(
+                column => column.name
+            )
+        );
+
+    if (!names.has("progress_percent")) {
+        await run(
+            db,
+            `
+            ALTER TABLE lesson_progress
+            ADD COLUMN progress_percent
+            INTEGER NOT NULL DEFAULT 0
+            `
+        );
+    }
+
+    if (!names.has("is_completed")) {
+        await run(
+            db,
+            `
+            ALTER TABLE lesson_progress
+            ADD COLUMN is_completed
+            INTEGER NOT NULL DEFAULT 0
+            `
+        );
+    }
+
+    /*
+     * Переносим старый completed
+     * в новую структуру.
+     */
+    if (names.has("completed")) {
+        await run(
+            db,
+            `
+            UPDATE lesson_progress
+            SET
+                is_completed =
+                    CASE
+                        WHEN completed = 1
+                        THEN 1
+                        ELSE is_completed
+                    END,
+
+                progress_percent =
+                    CASE
+                        WHEN completed = 1
+                        THEN 100
+                        ELSE progress_percent
+                    END
+            `
+        );
+    }
+
+    await run(
+        db,
+        `
+        CREATE INDEX IF NOT EXISTS
+        idx_lesson_progress_user_id
+        ON lesson_progress(user_id)
+        `
+    );
 }
 
 async function getLessonProgress(db, userId, lessonId) {
