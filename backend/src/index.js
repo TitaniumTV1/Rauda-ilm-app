@@ -4448,6 +4448,65 @@ async function createSession(db, userId) {
     return { token, expiresAt };
 }
 
+/* =========================================================
+   ACCOUNT ID
+   ========================================================= */
+
+function generateRandomAccountId() {
+    const MIN = 10000000;
+    const RANGE = 90000000;
+    const UINT32_RANGE = 0x100000000;
+
+    const limit =
+        Math.floor(UINT32_RANGE / RANGE) * RANGE;
+
+    const buffer =
+        new Uint32Array(1);
+
+    let value;
+
+    do {
+        crypto.getRandomValues(buffer);
+        value = buffer[0];
+    } while (value >= limit);
+
+    return MIN + (value % RANGE);
+}
+
+
+async function generateUniqueAccountId(db) {
+
+    for (
+        let attempt = 0;
+        attempt < 50;
+        attempt++
+    ) {
+
+        const accountId =
+            generateRandomAccountId();
+
+        const existing =
+            await first(
+                db,
+                `
+                SELECT id
+                FROM users
+                WHERE account_id = ?
+                LIMIT 1
+                `,
+                [accountId]
+            );
+
+        if (!existing) {
+            return accountId;
+        }
+    }
+
+    throw new Error(
+        "Не удалось создать уникальный ID аккаунта"
+    );
+}
+
 async function getUserById(db, userId) {
     await ensureAvatarInfrastructure(db);
     const user = await first(db, `
