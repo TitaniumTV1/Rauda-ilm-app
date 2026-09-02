@@ -3125,7 +3125,7 @@ async function handleAdminUserSearch(
                 `
                 SELECT
                     id,
-                    account_id
+                    account_id,
                     telegram_id,
                     username,
                     first_name,
