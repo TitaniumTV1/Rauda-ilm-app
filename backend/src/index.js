@@ -5364,23 +5364,172 @@ async function getLessonProgress(db, userId, lessonId) {
     return first(db, "SELECT * FROM lesson_progress WHERE user_id = ? AND lesson_id = ? LIMIT 1", [userId, lessonId]);
 }
 
-async function saveLessonProgress(db, userId, lessonId, percentage, completed) {
-    const existing = await getLessonProgress(db, userId, lessonId);
+async function saveLessonProgress(
+    db,
+    userId,
+    lessonId,
+    percentage,
+    completed
+) {
+    const existing =
+        await getLessonProgress(
+            db,
+            userId,
+            lessonId
+        );
+
     if (existing) {
-        await run(db, `
+
+        await run(
+            db,
+            `
             UPDATE lesson_progress
-            SET progress_percent = ?, is_completed = ?,
-                completed_at = CASE WHEN ? = 1 THEN COALESCE(completed_at, CURRENT_TIMESTAMP) ELSE NULL END,
+            SET
+                progress_percent = ?,
+                is_completed = ?,
+                completed_at =
+                    CASE
+                        WHEN ? = 1
+                        THEN COALESCE(
+                            completed_at,
+                            CURRENT_TIMESTAMP
+                        )
+                        ELSE NULL
+                    END,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = ? AND lesson_id = ?
-        `, [percentage, completed, completed, userId, lessonId]);
+            WHERE user_id = ?
+              AND lesson_id = ?
+            `,
+            [
+                percentage,
+                completed,
+                completed,
+                userId,
+                lessonId
+            ]
+        );
+
     } else {
-        await run(db, `
-            INSERT INTO lesson_progress (user_id, lesson_id, progress_percent, is_completed, completed_at)
-            VALUES (?, ?, ?, ?, CASE WHEN ? = 1 THEN CURRENT_TIMESTAMP ELSE NULL END)
-        `, [userId, lessonId, percentage, completed, completed]);
+
+        /*
+         * Поддерживаем старую D1-схему,
+         * где course_id обязательный.
+         */
+        const columns =
+            await all(
+                db,
+                `PRAGMA table_info(lesson_progress)`
+            );
+
+        const names =
+            new Set(
+                columns.map(
+                    column => column.name
+                )
+            );
+
+        if (names.has("course_id")) {
+
+            const lesson =
+                await first(
+                    db,
+                    `
+                    SELECT course_id
+                    FROM lessons
+                    WHERE id = ?
+                    LIMIT 1
+                    `,
+                    [lessonId]
+                );
+
+            const courseId =
+                Number(
+                    lesson?.course_id
+                );
+
+            if (
+                !Number.isInteger(courseId) ||
+                courseId <= 0
+            ) {
+                throw new Error(
+                    "У урока отсутствует course_id"
+                );
+            }
+
+            await run(
+                db,
+                `
+                INSERT INTO lesson_progress (
+                    user_id,
+                    course_id,
+                    lesson_id,
+                    progress_percent,
+                    is_completed,
+                    completed_at
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    CASE
+                        WHEN ? = 1
+                        THEN CURRENT_TIMESTAMP
+                        ELSE NULL
+                    END
+                )
+                `,
+                [
+                    userId,
+                    courseId,
+                    lessonId,
+                    percentage,
+                    completed,
+                    completed
+                ]
+            );
+
+        } else {
+
+            await run(
+                db,
+                `
+                INSERT INTO lesson_progress (
+                    user_id,
+                    lesson_id,
+                    progress_percent,
+                    is_completed,
+                    completed_at
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    CASE
+                        WHEN ? = 1
+                        THEN CURRENT_TIMESTAMP
+                        ELSE NULL
+                    END
+                )
+                `,
+                [
+                    userId,
+                    lessonId,
+                    percentage,
+                    completed,
+                    completed
+                ]
+            );
+        }
     }
-    return getLessonProgress(db, userId, lessonId);
+
+    return getLessonProgress(
+        db,
+        userId,
+        lessonId
+    );
 }
 
 async function ensureTributeTables(db) {
