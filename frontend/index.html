@@ -5992,6 +5992,165 @@ body.menu-open {
 }
 
 </style>
+
+    <style id="rauda-final-interaction-smoothing">
+
+/* =========================
+   ОБЩАЯ ПЛАВНОСТЬ
+   ========================= */
+
+button,
+a,
+[role="button"] {
+    transition:
+        background-color 220ms ease,
+        color 220ms ease,
+        border-color 220ms ease,
+        opacity 220ms ease
+        !important;
+}
+
+
+/* =========================
+   ГАМБУРГЕР
+   ========================= */
+
+.menu-button {
+    background:
+        #edf2ee !important;
+
+    color:
+        var(--green) !important;
+
+    box-shadow:
+        none !important;
+
+    filter:
+        none !important;
+
+    outline:
+        none !important;
+
+    transform:
+        none !important;
+
+    -webkit-transform:
+        none !important;
+
+    -webkit-tap-highlight-color:
+        transparent !important;
+
+    transition:
+        background-color 220ms ease,
+        border-color 220ms ease,
+        color 220ms ease
+        !important;
+}
+
+.menu-button:hover,
+.menu-button:active,
+.menu-button:focus,
+.menu-button:focus-visible {
+    background:
+        #edf2ee !important;
+
+    color:
+        var(--green) !important;
+
+    box-shadow:
+        none !important;
+
+    filter:
+        none !important;
+
+    outline:
+        none !important;
+
+    transform:
+        none !important;
+
+    -webkit-transform:
+        none !important;
+}
+
+
+/* =========================
+   НАЗАД
+   ========================= */
+
+.back-button {
+    transition:
+        color 220ms ease,
+        opacity 220ms ease
+        !important;
+
+    -webkit-tap-highlight-color:
+        transparent !important;
+}
+
+.back-button:active,
+.back-button:focus {
+    background:
+        transparent !important;
+
+    box-shadow:
+        none !important;
+
+    filter:
+        none !important;
+}
+
+
+/* =========================
+   БОКОВОЕ МЕНЮ
+   ========================= */
+
+.side-menu {
+    transition:
+        transform 620ms
+        cubic-bezier(.16, 1, .3, 1)
+        !important;
+}
+
+
+/* =========================
+   УВЕДОМЛЕНИЯ
+   ========================= */
+
+.rauda-notifications-overlay {
+    transition:
+        opacity 300ms ease,
+        visibility 300ms ease
+        !important;
+}
+
+.rauda-notifications-panel {
+    transform:
+        translateY(-12px)
+        scale(.985);
+
+    opacity:
+        0;
+
+    transition:
+        transform 360ms
+        cubic-bezier(.16, 1, .3, 1),
+        opacity 280ms ease
+        !important;
+}
+
+.rauda-notifications-overlay.active
+.rauda-notifications-panel {
+    transform:
+        translateY(0)
+        scale(1);
+
+    opacity:
+        1;
+}
+
+</style>
+    
 </head><body>
 <div id="authApp" class="auth-screen">
 
