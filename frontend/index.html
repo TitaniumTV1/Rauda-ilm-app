@@ -6122,6 +6122,27 @@ a,
 }
 
 </style>
+
+    <style>
+.code-inline-hint {
+    grid-column: 2;
+    margin-top: 5px;
+    max-width: 150px;
+
+    color: #8a7245;
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: right;
+}
+
+@media (max-width: 520px) {
+    .code-inline-hint {
+        grid-column: 1;
+        max-width: none;
+        text-align: left;
+    }
+}
+</style>
     
 </head><body>
 <div id="authApp" class="auth-screen">
@@ -6279,7 +6300,10 @@ a,
                         >
                             Получить код
                         </button>
-
+<div
+    id="registerEmailCodeHint"
+    class="code-inline-hint"
+></div> 
                     </div>
 
 
@@ -6461,6 +6485,10 @@ a,
                             onclick="sendEmailCode('register')"
                         >
                             Получить код
+                            <div
+    id="registerEmailCodeHint"
+    class="code-inline-hint"
+></div>
                         </button>
 
                     </div>
@@ -8697,19 +8725,39 @@ async function sendEmailCode(purpose) {
             }
         );
 
-    if (!result.ok) {
-        showError(
-            result.data?.error ||
-            "Не удалось отправить код"
-        );
+   if (!result.ok) {
+
+    const message =
+        result.data?.error ||
+        "Не удалось отправить код";
+
+    if (
+        purpose === "register" &&
+        result.status === 429 &&
+        registerHint
+    ) {
+        registerHint.textContent =
+            message;
         return;
     }
+
+    showError(message);
+    return;
+}
 
     alert(
         "Код отправлен на почту"
     );
 }
 
+const registerHint =
+    document.getElementById(
+        "registerEmailCodeHint"
+    );
+
+if (registerHint) {
+    registerHint.textContent = "";
+}
 
 async function emailLogin() {
     hideError();
