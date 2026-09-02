@@ -5262,7 +5262,7 @@ function sessionCookie(token) {
         "Path=/",
         "HttpOnly",
         "Secure",
-        "SameSite=Strict",
+        "SameSite=Lax",
         "Max-Age=" + maxAge
     ].join("; ");
 }
@@ -5274,7 +5274,7 @@ function expiredSessionCookie() {
         "Path=/",
         "HttpOnly",
         "Secure",
-        "SameSite=Strict",
+        "SameSite=Lax",
         "Max-Age=0"
     ].join("; ");
 }
