@@ -6300,10 +6300,10 @@ a,
                         >
                             Получить код
                         </button>
-<div
+
+                        <div
     id="registerEmailCodeHint"
-    class="code-inline-hint"
-></div> 
+    class="code-inline-hint">
                     </div>
 
 
@@ -8696,8 +8696,18 @@ async function emailAuthRequest(path, body) {
 
 
 async function sendEmailCode(purpose) {
+
     hideError();
 
+        const registerHint =
+        document.getElementById(
+            "registerEmailCodeHint"
+        );
+
+    if (registerHint) {
+        registerHint.textContent = "";
+    }
+    
     const email =
         purpose === "register"
             ? document
