@@ -3,6 +3,8 @@ import { handleAssessmentRequest } from "./assessment.js";
 
 const SESSION_DAYS = 30;
 const PASSWORD_ITERATIONS = 100000;
+
+let accountIdSchemaPromise = null;
 const VERIFICATION_CODE_TTL_MINUTES = 5;
 const VERIFICATION_RESEND_SECONDS = 60;
 const VERIFICATION_MAX_ATTEMPTS = 5;
