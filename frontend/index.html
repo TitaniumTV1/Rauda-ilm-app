@@ -11286,12 +11286,12 @@ function setRegisterMethod(method) {
             }
 
 
-            if (
-                typeof openTelegramBrowserLogin ===
-                "function"
-            ) {
+           if (
+    typeof window.openTelegramBrowserLogin ===
+        "function"
+) {
 
-                openTelegramBrowserLogin();
+    window.openTelegramBrowserLogin();
 
                 return;
             }
