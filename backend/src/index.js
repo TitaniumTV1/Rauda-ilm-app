@@ -4680,9 +4680,17 @@ async function ensureAccountIdSchema(db) {
 }
 
 async function getUserById(db, userId) {
+
+    await ensureAccountIdSchema(db);
+
+    await ensureUserAccountId(
+        db,
+        userId
+    );
+
     await ensureAvatarInfrastructure(db);
     const user = await first(db, `
-        SELECT id, telegram_id, username, first_name, last_name, phone, role, status,
+        SELECT id, account_id, telegram_id, username, first_name, last_name, phone, role, status,
                blocked_reason, blocked_at, created_at, updated_at, login, email, email_verified_at, avatar_key, avatar_source
         FROM users WHERE id = ? LIMIT 1
     `, [userId]);
