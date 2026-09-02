@@ -7163,7 +7163,16 @@ function updateProfile() {
             currentUser.login || "—";
     }
 
+const profileAccountId =
+    document.getElementById(
+        "profileAccountId"
+    );
 
+if (profileAccountId) {
+    profileAccountId.textContent =
+        currentUser.account_id ?? "—";
+}
+    
     const telegramId =
         Number(
             currentUser.telegram_id
