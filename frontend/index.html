@@ -5950,6 +5950,101 @@ select {
     }
 }
     </style>
+
+    <style id="rauda-auth-press-fix">
+
+/* Telegram WebView:
+   никаких compositor-эффектов при удержании кнопок */
+
+.auth-screen button,
+.auth-screen a {
+    transition:
+        color .18s ease,
+        border-color .18s ease
+        !important;
+
+    box-shadow: none !important;
+    filter: none !important;
+
+    transform: none !important;
+    -webkit-transform: none !important;
+
+    will-change: auto !important;
+
+    -webkit-tap-highlight-color:
+        transparent !important;
+
+    contain: paint;
+}
+
+
+/* Основная кнопка */
+
+.auth-screen .primary-button:active {
+    background:
+        #183d2c !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/* Telegram */
+
+.auth-screen .telegram-button:active {
+    background:
+        #f5f7f4 !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/* Админ-панель */
+
+.auth-screen .admin-link:active {
+    background:
+        #faf5e9 !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/* Получить код */
+
+.auth-screen .code-button:active {
+    background:
+        #f8f1e2 !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/* Ссылки вход / регистрация */
+
+.auth-screen .auth-switch button:active {
+    background:
+        transparent !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/* Вкладки Логин / Почта */
+
+.auth-screen .auth-tab:active {
+    box-shadow:
+        none !important;
+
+    filter:
+        none !important;
+}
+
+</style>
+    
 </head><body>
 <div id="authApp" class="auth-screen">
 
