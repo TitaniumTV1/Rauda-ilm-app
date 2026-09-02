@@ -941,7 +941,7 @@ async function handleEmailRegister(request, env) {
             return json(
                 {
                     ok: false,
-                    error: "Эта почта уже зарегистрирована"
+                    error: "Аккаунт с этой почтой уже существует"
                 },
                 409,
                 env
