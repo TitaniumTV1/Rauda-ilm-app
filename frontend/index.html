@@ -6255,6 +6255,12 @@ body.menu-open {
         </div>
 
         <div class="profile-row">
+            <div class="profile-row">
+    <span>ID аккаунта</span>
+    <span id="profileAccountId">—</span>
+</div>
+
+        <div class="profile-row"> 
             <span>Логин</span>
             <span id="profileLogin">—</span>
         </div>
@@ -7098,7 +7104,7 @@ function updateProfile() {
         );
 
     if (profileName) {
-        profileName.textContent =
+      profileName.textContent =
             fullName;
     }
 
