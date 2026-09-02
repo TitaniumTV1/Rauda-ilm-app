@@ -1767,10 +1767,6 @@ a:focus:not(:focus-visible) {
     async function initialise() {
       renderSelectedFiles();
 
-      if (!token()) {
-        return;
-      }
-
       try {
         const result = await api("/api/auth/me");
 
