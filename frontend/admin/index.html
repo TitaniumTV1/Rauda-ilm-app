@@ -5364,43 +5364,6 @@ if (!userId || !type || !assessmentId) {
 
 </script>
 
-  <section id="ownerAdminPasswordPanel" style="display:none; margin-top:24px;">
-
-    <h2>Управление администраторами</h2>
-
-    <div style="display:grid; gap:10px; max-width:420px;">
-
-        <input
-            id="ownerAdminUserId"
-            type="number"
-            placeholder="ID администратора"
-        >
-
-        <input
-            id="ownerAdminNewPassword"
-            type="password"
-            placeholder="Новый пароль"
-        >
-
-        <input
-            id="ownerAdminRepeatPassword"
-            type="password"
-            placeholder="Повторите пароль"
-        >
-
-        <button
-            type="button"
-            onclick="ownerChangeAdminPassword()"
-        >
-            Сменить пароль администратора
-        </button>
-
-        <div id="ownerAdminPasswordResult"></div>
-
-    </div>
-
-</section>
-
   <script id="rauda-admin-student-search-v1">
 
 let selectedAdminStudent = null;
