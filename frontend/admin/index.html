@@ -3514,7 +3514,7 @@ function switchAdminTab(tabName) {
 
     async function loadCourses() {
       const programId =
-        asPositiveInteger($("#program-id-manual").value) ||
+        asPositiveInteger($("#program-id-manual")?.value) ||
         asPositiveInteger(programSelect.value);
 
       const suffix = programId ? `?program_id=${programId}` : "";
@@ -3559,9 +3559,9 @@ function switchAdminTab(tabName) {
 
     function lessonPayload() {
       const selectedProgram = asPositiveInteger(programSelect.value);
-      const manualProgram = asPositiveInteger($("#program-id-manual").value);
+      const manualProgram = asPositiveInteger($("#program-id-manual")?.value);
       const selectedCourse = asPositiveInteger(courseSelect.value);
-      const manualCourse = asPositiveInteger($("#course-id-manual").value);
+      const manualCourse = asPositiveInteger($("#course-id-manual")?.value);
 
       return {
         title: $("#title").value.trim(),
@@ -3977,14 +3977,22 @@ $("#password-toggle")?.addEventListener("click", () => {
     $("#files")?.addEventListener("change", renderSelectedFiles);
 
     programSelect?.addEventListener("change", () => {
-      $("#program-id-manual").value = "";
+    const manualProgram =
+        $("#program-id-manual");
 
-      loadCourses().catch((error) => {
-        setStatus(lessonStatus, error.message, "error");
-      });
+    if (manualProgram) {
+        manualProgram.value = "";
+    }
+
+    loadCourses().catch((error) => {
+        setStatus(
+            lessonStatus,
+            error.message,
+            "error"
+        );
     });
-
-    $("#program-id-manual").addEventListener("change", () => {
+});
+    $("#program-id-manual")?.addEventListener("change", () => {
       if ($("#program-id-manual").value) {
         programSelect.value = "";
       }
@@ -3994,13 +4002,18 @@ $("#password-toggle")?.addEventListener("click", () => {
       });
     });
 
-    courseSelect.addEventListener("change", () => {
-      if (courseSelect.value) {
-        $("#course-id-manual").value = "";
-      }
-    });
+    courseSelect?.addEventListener("change", () => {
+    const manualCourse =
+        $("#course-id-manual");
 
-    $("#course-id-manual").addEventListener("change", () => {
+    if (
+        courseSelect.value &&
+        manualCourse
+    ) {
+        manualCourse.value = "";
+    }
+});
+    $("#course-id-manual")?.addEventListener("change", () => {
       if ($("#course-id-manual").value) {
         courseSelect.value = "";
       }
@@ -4121,7 +4134,7 @@ document
     .getElementById(
         "adminUserSearchButton"
     )
-    .addEventListener(
+    ?.addEventListener(
         "click",
         searchAdminUsers
     );
@@ -4911,7 +4924,7 @@ document
 
                 const result =
                     await api(
-                        "/admin/assessment-dashboard"
+                        "/api/admin/assessment-dashboard"
                     );
 
 
@@ -5014,7 +5027,7 @@ document
 
                 const result =
                     await api(
-                        "/admin/assessment-access-state" +
+                        "api/admin/assessment-access-state" +
                         "?user_id=" +
                         encodeURIComponent(
                             userId
@@ -5230,7 +5243,7 @@ document
 
             const result =
                 await api(
-                    "/admin/assessment-access",
+                    "/api/admin/assessment-access",
                     {
                         method:
                             "POST",
@@ -5319,7 +5332,7 @@ document
 
             const result =
                 await api(
-                    "/admin/assessment-state",
+                    "/api/admin/assessment-state",
                     {
                         method:
                             "POST",
