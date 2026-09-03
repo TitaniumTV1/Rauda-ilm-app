@@ -1485,6 +1485,33 @@ if (
                 return handleAdminCreateLesson(request, env);
             }
 
+            const adminLessonRoute =
+    url.pathname.match(
+        /^\/api\/admin\/lessons\/(\d+)$/
+    );
+
+if (
+    adminLessonRoute &&
+    request.method === "PATCH"
+) {
+    return handleAdminUpdateLesson(
+        request,
+        env,
+        Number(adminLessonRoute[1])
+    );
+}
+
+if (
+    adminLessonRoute &&
+    request.method === "DELETE"
+) {
+    return handleAdminDeleteLesson(
+        request,
+        env,
+        Number(adminLessonRoute[1])
+    );
+}
+            
             const singleLesson = url.pathname.match(/^\/api\/lessons\/(\d+)$/);
             if (singleLesson && request.method === "GET") {
                 return handleSingleLesson(request, env, Number(singleLesson[1]));
@@ -5390,6 +5417,447 @@ async function handleAdminCreateLesson(request, env) {
     } catch (error) {
         console.error("Create lesson error:", error);
         return json({ ok: false, error: "Не удалось создать урок" }, 500, env);
+    }
+}
+
+async function handleAdminUpdateLesson(
+    request,
+    env,
+    lessonId
+) {
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        if (
+            !Number.isInteger(lessonId) ||
+            lessonId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Некорректный ID урока"
+                },
+                400,
+                env
+            );
+        }
+
+        const existing =
+            await first(
+                env.DB,
+                `
+                SELECT id
+                FROM lessons
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [lessonId]
+            );
+
+        if (!existing) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Урок не найден"
+                },
+                404,
+                env
+            );
+        }
+
+        const body =
+            await readJson(
+                request
+            );
+
+        const title =
+            cleanText(
+                body?.title
+            );
+
+        if (!title) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите название урока"
+                },
+                400,
+                env
+            );
+        }
+
+        const courseId =
+            positiveIntegerOrNull(
+                body?.course_id
+            );
+
+        let programId =
+            positiveIntegerOrNull(
+                body?.program_id
+            );
+
+        const semesterId =
+            positiveIntegerOrNull(
+                body?.semester_id
+            );
+
+        const subjectId =
+            positiveIntegerOrNull(
+                body?.subject_id
+            );
+
+        if (
+            courseId &&
+            !programId
+        ) {
+
+            const course =
+                await first(
+                    env.DB,
+                    `
+                    SELECT program_id
+                    FROM courses
+                    WHERE id = ?
+                    LIMIT 1
+                    `,
+                    [courseId]
+                );
+
+            programId =
+                positiveIntegerOrNull(
+                    course?.program_id
+                );
+        }
+
+        const columns =
+            await tableColumns(
+                env.DB,
+                "lessons"
+            );
+
+        const updates = [];
+        const values = [];
+
+        const add = (
+            choices,
+            value
+        ) => {
+
+            const column =
+                firstColumn(
+                    columns,
+                    choices
+                );
+
+            if (column) {
+
+                updates.push(
+                    `${quoteIdentifier(
+                        column
+                    )} = ?`
+                );
+
+                values.push(
+                    value
+                );
+            }
+        };
+
+        add(
+            ["course_id"],
+            courseId
+        );
+
+        add(
+            ["program_id"],
+            programId
+        );
+
+        add(
+            ["semester_id"],
+            semesterId
+        );
+
+        add(
+            ["subject_id"],
+            subjectId
+        );
+
+        add(
+            ["title", "name"],
+            title
+        );
+
+        add(
+            [
+                "description",
+                "summary"
+            ],
+            cleanText(
+                body?.description
+            ) || null
+        );
+
+        add(
+            [
+                "content",
+                "body",
+                "text"
+            ],
+            cleanText(
+                body?.content
+            ) || null
+        );
+
+        add(
+            [
+                "lesson_number",
+                "number"
+            ],
+            nonNegativeNumber(
+                body?.lesson_number
+            )
+        );
+
+        add(
+            [
+                "sort_order",
+                "position",
+                "order_index"
+            ],
+            nonNegativeNumber(
+                body?.sort_order
+            )
+        );
+
+        add(
+            [
+                "is_visible",
+                "visible",
+                "is_published",
+                "published"
+            ],
+            body?.is_visible === false ||
+            body?.is_visible === 0 ||
+            body?.is_visible === "0"
+                ? 0
+                : 1
+        );
+
+        if (!updates.length) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Нет полей для изменения"
+                },
+                500,
+                env
+            );
+        }
+
+        values.push(
+            lessonId
+        );
+
+        await run(
+            env.DB,
+            `
+            UPDATE lessons
+            SET
+                ${updates.join(", ")},
+                updated_at =
+                    CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            values
+        );
+
+        const lesson =
+            await first(
+                env.DB,
+                `
+                SELECT *
+                FROM lessons
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [lessonId]
+            );
+
+        const files =
+            await getLessonFiles(
+                env.DB,
+                lessonId
+            );
+
+        return json(
+            {
+                ok: true,
+                lesson: {
+                    ...lesson,
+                    files
+                }
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Update lesson:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось изменить урок"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleAdminDeleteLesson(
+    request,
+    env,
+    lessonId
+) {
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        const lesson =
+            await first(
+                env.DB,
+                `
+                SELECT id
+                FROM lessons
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [lessonId]
+            );
+
+        if (!lesson) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Урок не найден"
+                },
+                404,
+                env
+            );
+        }
+
+        const files =
+            await getLessonFiles(
+                env.DB,
+                lessonId
+            );
+
+        if (env.FILES) {
+
+            for (const file of files) {
+
+                const key =
+                    fileStorageKey(
+                        file
+                    );
+
+                if (key) {
+                    await env.FILES.delete(
+                        key
+                    );
+                }
+            }
+        }
+
+        await run(
+            env.DB,
+            `
+            DELETE FROM lesson_files
+            WHERE lesson_id = ?
+            `,
+            [lessonId]
+        );
+
+        await run(
+            env.DB,
+            `
+            DELETE FROM lesson_progress
+            WHERE lesson_id = ?
+            `,
+            [lessonId]
+        );
+
+        await run(
+            env.DB,
+            `
+            DELETE FROM lessons
+            WHERE id = ?
+            `,
+            [lessonId]
+        );
+
+        return json(
+            {
+                ok: true
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Delete lesson:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось удалить урок"
+            },
+            500,
+            env
+        );
     }
 }
 
