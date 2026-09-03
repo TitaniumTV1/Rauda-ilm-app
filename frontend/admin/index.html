@@ -1262,6 +1262,787 @@ a:focus:not(:focus-visible) {
 
 </style>
 
+  <style id="rauda-admin-responsive-v1">
+
+/* =========================================================
+   RAUDA ILM ADMIN — RESPONSIVE BASE
+   ========================================================= */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    margin: 0;
+}
+
+
+/* =========================================================
+   ОСНОВНАЯ РАБОЧАЯ ОБЛАСТЬ
+   ========================================================= */
+
+#workspace,
+.workspace,
+.admin-workspace,
+.admin-container,
+main {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding-left: clamp(14px, 3vw, 32px);
+    padding-right: clamp(14px, 3vw, 32px);
+}
+
+
+/* =========================================================
+   СЕКЦИИ
+   ========================================================= */
+
+#workspace section,
+.workspace section,
+.admin-section,
+.admin-card,
+.panel {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* =========================================================
+   ФОРМЫ
+   ========================================================= */
+
+#workspace form,
+.workspace form {
+    width: 100%;
+    min-width: 0;
+}
+
+#workspace input,
+#workspace select,
+#workspace textarea,
+#workspace button,
+.workspace input,
+.workspace select,
+.workspace textarea,
+.workspace button {
+    max-width: 100%;
+}
+
+#workspace input,
+#workspace select,
+#workspace textarea,
+.workspace input,
+.workspace select,
+.workspace textarea {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* =========================================================
+   УНИВЕРСАЛЬНАЯ СЕТКА ФОРМ
+   ========================================================= */
+
+.rauda-admin-form-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+    gap: 14px;
+    width: 100%;
+}
+
+.rauda-admin-form-grid > * {
+    min-width: 0;
+}
+
+.rauda-admin-form-full {
+    grid-column: 1 / -1;
+}
+
+
+/* =========================================================
+   КАРТОЧКИ
+   ========================================================= */
+
+.rauda-admin-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(
+                min(100%, 320px),
+                1fr
+            )
+        );
+    gap: 16px;
+    width: 100%;
+}
+
+.rauda-admin-grid > * {
+    min-width: 0;
+}
+
+
+/* =========================================================
+   ОЦЕНКИ / ПЕРЕСДАЧИ
+   ========================================================= */
+
+.rauda-admin-grade-card,
+.rauda-admin-retake-card,
+.grade-card,
+.retake-card {
+    width: 100%;
+    min-width: 0;
+    padding: 17px;
+    border: 1px solid #ded3ba;
+    border-radius: 18px;
+    background: #f7f1df;
+    color: #183d2c;
+    box-shadow:
+        0 4px 16px rgba(24, 61, 44, 0.05);
+}
+
+.rauda-admin-grade-card *,
+.rauda-admin-retake-card *,
+.grade-card *,
+.retake-card * {
+    min-width: 0;
+}
+
+
+/* Не даём длинным данным ломать экран */
+
+.rauda-admin-grade-card div,
+.rauda-admin-grade-card span,
+.rauda-admin-grade-card strong,
+.rauda-admin-retake-card div,
+.rauda-admin-retake-card span,
+.rauda-admin-retake-card strong {
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   ПОИСК УЧЕНИКОВ
+   ========================================================= */
+
+.rauda-student-search {
+    position: sticky;
+    top: 10px;
+    z-index: 20;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 10px;
+
+    border: 1px solid #ded4bd;
+    border-radius: 16px;
+
+    background:
+        rgba(248, 244, 232, 0.96);
+
+    backdrop-filter: blur(12px);
+}
+
+.rauda-student-search input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+
+    padding: 0 14px;
+
+    border: 1px solid #ded4bd;
+    border-radius: 12px;
+
+    background: #fffdf7;
+    color: #183d2c;
+}
+
+
+/* =========================================================
+   СПИСОК УЧЕНИКОВ
+   ========================================================= */
+
+.rauda-student-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(
+                min(100%, 280px),
+                1fr
+            )
+        );
+    gap: 12px;
+    width: 100%;
+}
+
+.rauda-student-card {
+    min-width: 0;
+    padding: 15px;
+
+    border: 1px solid #dfd5bd;
+    border-radius: 16px;
+
+    background: #faf5e8;
+}
+
+.rauda-student-name {
+    color: #183d2c;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.rauda-student-meta {
+    margin-top: 5px;
+
+    color: #7b7c73;
+    font-size: 12px;
+    line-height: 1.45;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   ТАБЛИЦЫ
+   ========================================================= */
+
+.table-wrapper,
+.rauda-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   КНОПКИ
+   ========================================================= */
+
+.rauda-admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.rauda-admin-actions button {
+    flex:
+        1 1
+        150px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    #workspace,
+    .workspace,
+    .admin-workspace,
+    .admin-container,
+    main {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .rauda-admin-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rauda-admin-form-full {
+        grid-column: auto;
+    }
+
+    .rauda-admin-grid {
+        grid-template-columns: 1fr;
+        gap: 11px;
+    }
+
+    .rauda-student-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rauda-student-search {
+        top: 6px;
+        padding: 8px;
+    }
+
+    .rauda-admin-grade-card,
+    .rauda-admin-retake-card,
+    .grade-card,
+    .retake-card {
+        padding: 14px;
+        border-radius: 15px;
+    }
+
+    .rauda-admin-actions {
+        flex-direction: column;
+    }
+
+    .rauda-admin-actions button {
+        width: 100%;
+        flex: none;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+    #workspace,
+    .workspace,
+    .admin-workspace,
+    .admin-container,
+    main {
+        padding-left: 9px;
+        padding-right: 9px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+}
+
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
+@media (min-width: 1100px) {
+
+    .rauda-admin-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+    .rauda-student-grid {
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(0, 1fr)
+            );
+    }
+}
+
+</style>
+
+  <style id="rauda-admin-grades-ui-v1">
+
+#gradesAdminSection {
+    width: 100%;
+    margin-top: 24px;
+    padding: 18px;
+    border: 1px solid #ded4bd;
+    border-radius: 22px;
+    background: #f7f1df;
+    color: #183d2c;
+}
+
+.rauda-admin-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.rauda-admin-section-kicker {
+    margin-bottom: 4px;
+    color: #a18448;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.rauda-admin-section-title {
+    margin: 0;
+    color: #183d2c;
+    font-size: 22px;
+    line-height: 1.25;
+}
+
+.rauda-admin-section-description {
+    margin-top: 7px;
+    max-width: 620px;
+    color: #72776f;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.rauda-admin-student-search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+.rauda-admin-student-search input {
+    width: 100%;
+    min-width: 0;
+    height: 46px;
+    padding: 0 14px;
+    border: 1px solid #dcd1b8;
+    border-radius: 13px;
+    background: #fffaf0;
+    color: #183d2c;
+    font-size: 14px;
+}
+
+.rauda-admin-student-search button {
+    min-height: 46px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 13px;
+    background: #183d2c;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rauda-admin-student-results {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(
+                min(100%, 260px),
+                1fr
+            )
+        );
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+.rauda-admin-student-result {
+    width: 100%;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #ded4bd;
+    border-radius: 15px;
+    background: #fffaf0;
+    cursor: pointer;
+    text-align: left;
+}
+
+.rauda-admin-student-result:hover {
+    border-color: #c7b57c;
+}
+
+.rauda-admin-student-result-name {
+    color: #183d2c;
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.rauda-admin-student-result-meta {
+    margin-top: 5px;
+    color: #858980;
+    font-size: 12px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.rauda-admin-selected-student {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid #d9ceb5;
+    border-radius: 16px;
+    background: #efe6ce;
+}
+
+.rauda-admin-selected-student[hidden] {
+    display: none !important;
+}
+
+.rauda-selected-student-label {
+    margin-bottom: 3px;
+    color: #947b40;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.rauda-selected-student-name {
+    color: #183d2c;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.rauda-selected-student-meta {
+    margin-top: 4px;
+    color: #73786f;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.rauda-admin-small-button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 0 13px;
+    border: 1px solid #cfbf99;
+    border-radius: 11px;
+    background: #fffaf0;
+    color: #183d2c;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rauda-admin-grades-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(
+                min(100%, 320px),
+                1fr
+            )
+        );
+    gap: 14px;
+    width: 100%;
+}
+
+.rauda-admin-grade-card {
+    width: 100%;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #d9ceb5;
+    border-radius: 17px;
+    background: #fffaf0;
+}
+
+.rauda-admin-grade-kind {
+    color: #a18448;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.rauda-admin-grade-title {
+    margin-top: 4px;
+    color: #183d2c;
+    font-size: 16px;
+    line-height: 1.35;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.rauda-admin-grade-course {
+    margin-top: 5px;
+    color: #7d8178;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.rauda-admin-grade-score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.rauda-admin-grade-score {
+    color: #183d2c;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.rauda-admin-grade-status {
+    padding: 6px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.rauda-admin-grade-status.passed {
+    background: #e1ede5;
+    color: #466c55;
+}
+
+.rauda-admin-grade-status.failed {
+    background: #f3dfda;
+    color: #985d50;
+}
+
+.rauda-admin-grade-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.rauda-admin-grade-meta-item {
+    min-width: 0;
+    padding: 10px;
+    border-radius: 12px;
+    background: #f4ecd9;
+}
+
+.rauda-admin-grade-meta-label {
+    color: #89867c;
+    font-size: 10px;
+}
+
+.rauda-admin-grade-meta-value {
+    margin-top: 2px;
+    color: #183d2c;
+    font-size: 13px;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+}
+
+.rauda-admin-grade-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 13px;
+}
+
+.rauda-admin-grade-actions button {
+    flex: 1 1 150px;
+    min-height: 40px;
+    border: 0;
+    border-radius: 11px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rauda-admin-grade-edit {
+    background: #183d2c;
+    color: #fff;
+}
+
+.rauda-admin-grade-retake {
+    background: #d6bb70;
+    color: #352b12;
+}
+
+.rauda-admin-grade-reset {
+    background: #ead8d2;
+    color: #8b5146;
+}
+
+.rauda-admin-empty {
+    grid-column: 1 / -1;
+    padding: 22px;
+    border: 1px dashed #d6c7a6;
+    border-radius: 15px;
+    background: #fbf6e9;
+    color: #858980;
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+
+    #gradesAdminSection {
+        margin-top: 16px;
+        padding: 13px;
+        border-radius: 18px;
+    }
+
+    .rauda-admin-section-title {
+        font-size: 19px;
+    }
+
+    .rauda-admin-student-search {
+        grid-template-columns: 1fr;
+    }
+
+    .rauda-admin-student-search button {
+        width: 100%;
+    }
+
+    .rauda-admin-selected-student {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .rauda-admin-small-button {
+        width: 100%;
+    }
+
+    .rauda-admin-grades-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rauda-admin-grade-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .rauda-admin-grade-actions {
+        flex-direction: column;
+    }
+
+    .rauda-admin-grade-actions button {
+        width: 100%;
+        flex: none;
+    }
+}
+
+@media (min-width: 1100px) {
+
+    .rauda-admin-grades-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+}
+
+</style>
 </head>
 <body>
   <main class="shell">
@@ -1492,6 +2273,110 @@ a:focus:not(:focus-visible) {
         </section>
       </form>
     </section>
+      <section
+    id="gradesAdminSection"
+    class="rauda-admin-section"
+>
+
+    <div class="rauda-admin-section-head">
+
+        <div>
+            <div class="rauda-admin-section-kicker">
+                RAUDA ILM
+            </div>
+
+            <h2 class="rauda-admin-section-title">
+                Оценки и пересдачи
+            </h2>
+
+            <div class="rauda-admin-section-description">
+                Поиск ученика, результаты тестов,
+                экзамены и управление пересдачами.
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ПОИСК УЧЕНИКА -->
+
+    <div class="rauda-admin-student-search">
+
+        <input
+            id="adminStudentSearch"
+            type="search"
+            autocomplete="off"
+            placeholder="Имя, логин, email или ID"
+        >
+
+        <button
+            type="button"
+            id="adminStudentSearchButton"
+            onclick="searchAdminStudents()"
+        >
+            Найти
+        </button>
+
+    </div>
+
+
+    <!-- РЕЗУЛЬТАТЫ ПОИСКА -->
+
+    <div
+        id="adminStudentSearchResults"
+        class="rauda-admin-student-results"
+    ></div>
+
+
+    <!-- ВЫБРАННЫЙ УЧЕНИК -->
+
+    <div
+        id="adminSelectedStudent"
+        class="rauda-admin-selected-student"
+        hidden
+    >
+
+        <div>
+            <div class="rauda-selected-student-label">
+                Выбранный ученик
+            </div>
+
+            <div
+                id="adminSelectedStudentName"
+                class="rauda-selected-student-name"
+            ></div>
+
+            <div
+                id="adminSelectedStudentMeta"
+                class="rauda-selected-student-meta"
+            ></div>
+        </div>
+
+        <button
+            type="button"
+            class="rauda-admin-small-button"
+            onclick="clearSelectedAdminStudent()"
+        >
+            Сменить
+        </button>
+
+    </div>
+
+
+    <!-- ОЦЕНКИ -->
+
+    <div
+        id="adminStudentGrades"
+        class="rauda-admin-grades-grid"
+    >
+
+        <div class="rauda-admin-empty">
+            Найдите и выберите ученика.
+        </div>
+
+    </div>
+
+</section>
   </main>
 
   <script>
