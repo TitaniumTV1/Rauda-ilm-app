@@ -3641,271 +3641,49 @@ return data.lesson;
     }
 
     async function initialise() {
-      renderSelectedFiles();
-
-      try {
-        const result = await api("/api/auth/me");
-
-        if (!ADMIN_ROLES.has(String(result.user?.role || "").toLowerCase())) {
-          showLogin("У этой учётной записи нет прав администратора.");
-          return;
-        }
-
-        showWorkspace(result.user);
-        await Promise.all([loadPrograms(), loadCourses()]);
-      } catch {
-        showLogin("Сессия истекла. Войдите снова.");
-      }
-    }
-$("#password-toggle")?.addEventListener("click", () => {
-  const passwordInput = $("#password");
-  const toggleButton = $("#password-toggle");
-
-  const isVisible = passwordInput.type === "text";
-
-  passwordInput.type = isVisible
-    ? "password"
-    : "text";
-
-  toggleButton.textContent = isVisible
-    ? "👁"
-    : "🙈";
-
-  toggleButton.setAttribute(
-    "aria-label",
-    isVisible
-      ? "Показать пароль"
-      : "Скрыть пароль"
-  );
-
-  toggleButton.title = isVisible
-    ? "Показать пароль"
-    : "Скрыть пароль";
-});
-    $("#login-form")?.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const button = $("#login-button");
-      button.disabled = true;
-
-      setStatus(loginStatus, "Выполняется вход…", "loading");
-
-      try {
-        const result = await fetch("/api/auth/login", {
-    method: "POST",
-
-    credentials:
-        "same-origin",
-
-    headers: {
-        "Content-Type":
-            "application/json"
-    },
-          body: JSON.stringify({
-            login: $("#login").value.trim(),
-            password: $("#password").value
-          })
-        }).then(async (response) => {
-          const payload = await response.json().catch(() => ({}));
-
-          if (!response.ok || payload.ok === false) {
-            throw new Error(payload.error || "Не удалось войти");
-          }
-
-          return payload;
-        });
-
-        if (!ADMIN_ROLES.has(String(result.user?.role || "").toLowerCase())) {
-          throw new Error("У этой учётной записи нет прав администратора.");
-        }
-
-        if (result.token) {
-    localStorage.setItem(
-        TOKEN_KEY,
-        result.token
-    );
-}
-
-        showWorkspace(result.user);
-
-await Promise.all([
-    loadPrograms(),
-    loadCourses()
-]);
-
-await initializeRaudaContentManager();
-
-if (
-    typeof window.loadRaudaAssessmentDashboard ===
-    "function"
-) {
-    await window.loadRaudaAssessmentDashboard();
-}
-      } catch (error) {
-        setStatus(loginStatus, error.message || "Не удалось войти", "error");
-      } finally {
-        button.disabled = false;
-      }
-    });
-
-    $("#lesson-form")?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const button = $("#save-button");
-
-    const editingLessonId =
-        Number(
-            document.getElementById(
-                "editingLessonId"
-            )?.value
-        ) || 0;
-
-    button.disabled = true;
-
-    setStatus(
-        lessonStatus,
-        editingLessonId
-            ? "Сохраняем изменения…"
-            : "Создаём урок…",
-        "loading"
-    );
+    renderSelectedFiles();
 
     try {
-
-        let lesson;
-
-        if (editingLessonId) {
-
-            lesson =
-                await updateLesson(
-                    editingLessonId
-                );
-
-        } else {
-
-            lesson =
-                state.lesson ||
-                await createLesson();
-        }
-
-        const uploaded =
-            await uploadFiles(
-                lesson
-            );
-
-        setStatus(
-            lessonStatus,
-
-            editingLessonId
-                ? (
-                    uploaded
-                        ? `Урок обновлён. Загружено новых материалов: ${uploaded}.`
-                        : "Изменения урока сохранены."
-                )
-                : (
-                    uploaded
-                        ? `Урок создан. Загружено материалов: ${uploaded}.`
-                        : "Урок создан. Материалы можно добавить позже."
-                ),
-
-            "success"
-        );
-
-        state.lesson =
-            null;
-
-        const courseId =
-            Number(
-                lesson.course_id ||
-                document.getElementById(
-                    "lessonCourse"
-                )?.value ||
-                0
-            );
+        const result = await api("/api/auth/me");
 
         if (
-            typeof resetAdminLessonForm ===
-            "function"
+            !ADMIN_ROLES.has(
+                String(result.user?.role || "").toLowerCase()
+            )
         ) {
-            resetAdminLessonForm();
+            showLogin(
+                "У этой учётной записи нет прав администратора."
+            );
+            return;
         }
 
+        showWorkspace(result.user);
+
+        await Promise.all([
+            loadPrograms(),
+            loadCourses()
+        ]);
+
+        await initializeRaudaContentManager();
+
         if (
-            courseId &&
-            typeof loadAdminLessonsManager ===
+            typeof window.loadRaudaAssessmentDashboard ===
             "function"
         ) {
-            await loadAdminLessonsManager(
-                courseId
-            );
+            await window.loadRaudaAssessmentDashboard();
         }
 
     } catch (error) {
 
-        console.error(
-            "Save lesson:",
-            error
+        if (error?.status === 401) {
+            localStorage.removeItem(TOKEN_KEY);
+        }
+
+        showLogin(
+            "Сессия истекла. Войдите снова."
         );
-
-        setStatus(
-            lessonStatus,
-            error?.message ||
-                "Не удалось сохранить урок.",
-            "error"
-        );
-
-    } finally {
-
-        button.disabled =
-            false;
     }
-});
-
-    $("#files")?.addEventListener("change", renderSelectedFiles);
-
-    programSelect?.addEventListener("change", () => {
-    const manualProgram =
-        $("#program-id-manual");
-
-    if (manualProgram) {
-        manualProgram.value = "";
-    }
-
-    loadCourses().catch((error) => {
-        setStatus(
-            lessonStatus,
-            error.message,
-            "error"
-        );
-    });
-});
-    $("#program-id-manual")?.addEventListener("change", () => {
-      if ($("#program-id-manual").value) {
-        programSelect.value = "";
-      }
-
-      loadCourses().catch((error) => {
-        setStatus(lessonStatus, error.message, "error");
-      });
-    });
-
-    courseSelect?.addEventListener("change", () => {
-    const manualCourse =
-        $("#course-id-manual");
-
-    if (
-        courseSelect.value &&
-        manualCourse
-    ) {
-        manualCourse.value = "";
-    }
-});
-    $("#course-id-manual")?.addEventListener("change", () => {
-      if ($("#course-id-manual").value) {
-        courseSelect.value = "";
-      }
-    });
-
+}
     async function searchAdminUsers() {
     const input =
         document.getElementById(
@@ -7404,13 +7182,7 @@ async function initializeRaudaContentManager() {
  */
 window.addEventListener(
     "load",
-    function () {
-
-        setTimeout(
-            initializeRaudaContentManager,
-            300
-        );
-    }
+    initialise
 );
 
 </script>
