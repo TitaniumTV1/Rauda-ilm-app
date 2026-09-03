@@ -3410,10 +3410,7 @@ function switchAdminTab(tabName) {
 
         error.status = response.status;
 
-        if (response.status === 401) {
-            localStorage.removeItem(TOKEN_KEY);
-        }
-
+        
         throw error;
     }
 
@@ -3730,7 +3727,20 @@ $("#password-toggle")?.addEventListener("click", () => {
 }
 
         showWorkspace(result.user);
-        await Promise.all([loadPrograms(), loadCourses()]);
+
+await Promise.all([
+    loadPrograms(),
+    loadCourses()
+]);
+
+await initializeRaudaContentManager();
+
+if (
+    typeof window.loadRaudaAssessmentDashboard ===
+    "function"
+) {
+    await window.loadRaudaAssessmentDashboard();
+}
       } catch (error) {
         setStatus(loginStatus, error.message || "Не удалось войти", "error");
       } finally {
