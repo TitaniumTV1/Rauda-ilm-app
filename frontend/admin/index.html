@@ -2043,342 +2043,1039 @@ td {
 }
 
 </style>
+
+  <style id="rauda-admin-tabs-v1">
+
+.rauda-admin-tabs {
+    position: sticky;
+    top: 8px;
+    z-index: 50;
+
+    display: flex;
+    gap: 8px;
+
+    width: 100%;
+    margin-bottom: 18px;
+    padding: 7px;
+
+    overflow-x: auto;
+
+    border: 1px solid #ddd2b9;
+    border-radius: 16px;
+
+    background: rgba(248, 243, 229, 0.96);
+
+    backdrop-filter: blur(12px);
+}
+
+.rauda-admin-tab {
+    flex: 0 0 auto;
+
+    min-height: 42px;
+
+    padding: 0 15px;
+
+    border: 0;
+    border-radius: 11px;
+
+    background: transparent;
+
+    color: #6f746d;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.rauda-admin-tab.active {
+    background: #183d2c;
+    color: #ffffff;
+}
+
+.rauda-admin-tab-panel {
+    display: none;
+    width: 100%;
+}
+
+.rauda-admin-tab-panel.active {
+    display: block;
+}
+
+@media (max-width: 700px) {
+
+    .rauda-admin-tabs {
+        margin-left: -2px;
+        margin-right: -2px;
+
+        border-radius: 14px;
+    }
+
+    .rauda-admin-tab {
+        min-height: 40px;
+        padding: 0 13px;
+        font-size: 12px;
+    }
+}
+
+</style>
+  <style id="rauda-admin-layout-v2">
+
+.rauda-admin-shell {
+    width: 100%;
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.rauda-admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.rauda-admin-kicker,
+.rauda-admin-card-kicker {
+    color: #a18448;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.rauda-admin-title {
+    margin: 3px 0 0;
+    color: #183d2c;
+    font-size: 28px;
+}
+
+.rauda-admin-user {
+    margin-top: 6px;
+    color: #7a7f77;
+    font-size: 13px;
+}
+
+.rauda-admin-tabs {
+    display: flex;
+    gap: 7px;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 6px;
+    overflow-x: auto;
+    border: 1px solid #ddd2b9;
+    border-radius: 16px;
+    background: #f7f1df;
+}
+
+.rauda-admin-tab {
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #73786f;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.rauda-admin-tab.active {
+    background: #183d2c;
+    color: #fff;
+}
+
+.rauda-admin-tab-panel {
+    display: none;
+    width: 100%;
+}
+
+.rauda-admin-tab-panel.active {
+    display: block;
+}
+
+.rauda-admin-page-head {
+    margin-bottom: 16px;
+}
+
+.rauda-admin-page-head h2 {
+    margin: 3px 0 4px;
+    color: #183d2c;
+    font-size: 23px;
+}
+
+.rauda-admin-page-head p {
+    margin: 0;
+    color: #777d75;
+    font-size: 13px;
+}
+
+.rauda-admin-content-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.rauda-admin-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #ded4bd;
+    border-radius: 19px;
+    background: #f9f4e7;
+}
+
+.rauda-admin-card-full {
+    grid-column: 1 / -1;
+}
+
+.rauda-admin-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.rauda-admin-card h3 {
+    margin: 3px 0 0;
+    color: #183d2c;
+    font-size: 17px;
+}
+
+.rauda-admin-list {
+    display: grid;
+    gap: 9px;
+}
+
+.rauda-admin-form-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.rauda-admin-form-full {
+    grid-column: 1 / -1;
+}
+
+.rauda-admin-form-grid label {
+    display: block;
+    margin-bottom: 5px;
+    color: #666d66;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.rauda-admin-form-grid input,
+.rauda-admin-form-grid select,
+.rauda-admin-form-grid textarea,
+.rauda-admin-student-search input {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #d8ceb7;
+    border-radius: 12px;
+    background: #fffaf0;
+    color: #183d2c;
+    font: inherit;
+}
+
+.rauda-admin-form-grid input,
+.rauda-admin-form-grid select {
+    min-height: 44px;
+    padding: 0 12px;
+}
+
+.rauda-admin-form-grid textarea {
+    padding: 12px;
+    resize: vertical;
+}
+
+.rauda-admin-primary,
+.rauda-admin-secondary,
+.rauda-admin-logout {
+    min-height: 41px;
+    padding: 0 14px;
+    border-radius: 11px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.rauda-admin-primary {
+    border: 0;
+    background: #183d2c;
+    color: #fff;
+}
+
+.rauda-admin-secondary {
+    border: 1px solid #cfbf99;
+    background: #fffaf0;
+    color: #183d2c;
+}
+
+.rauda-admin-logout {
+    border: 1px solid #dfc8be;
+    background: #f4e4dd;
+    color: #8b5146;
+}
+
+.rauda-admin-wide {
+    width: 100%;
+}
+
+.rauda-admin-student-search {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr) auto;
+    gap: 9px;
+    margin-bottom: 14px;
+}
+
+.rauda-admin-student-search input {
+    min-height: 44px;
+    padding: 0 13px;
+}
+
+.rauda-admin-student-results,
+.rauda-admin-grades-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 11px;
+}
+
+.rauda-admin-empty {
+    grid-column: 1 / -1;
+    padding: 20px;
+    border: 1px dashed #d7c8a6;
+    border-radius: 14px;
+    color: #858980;
+    text-align: center;
+    background: #fcf7eb;
+}
+
+.rauda-checkbox-row {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+.rauda-checkbox-row input {
+    width: auto;
+    min-height: auto;
+}
+
+.rauda-admin-status {
+    color: #73786f;
+    font-size: 13px;
+}
+
+@media (max-width: 760px) {
+
+    .rauda-admin-shell {
+        padding: 12px;
+    }
+
+    .rauda-admin-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .rauda-admin-logout {
+        width: 100%;
+    }
+
+    .rauda-admin-content-grid,
+    .rauda-admin-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rauda-admin-card-full,
+    .rauda-admin-form-full {
+        grid-column: auto;
+    }
+
+    .rauda-admin-student-search {
+        grid-template-columns: 1fr;
+    }
+
+    .rauda-admin-student-search button {
+        width: 100%;
+    }
+
+    .rauda-admin-title {
+        font-size: 23px;
+    }
+}
+
+</style>
 </head>
+  <script>
+function switchAdminTab(tabName) {
+
+    document
+        .querySelectorAll(".rauda-admin-tab")
+        .forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.adminTab === tabName
+            );
+        });
+
+    document
+        .querySelectorAll(".rauda-admin-tab-panel")
+        .forEach(panel => {
+            panel.classList.toggle(
+                "active",
+                panel.dataset.adminPanel === tabName
+            );
+        });
+}
+</script>
 <body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark">RI</div>
-        <div>
-          <h1>RAUDA ILM</h1>
-          <p>Администрирование обучения</p>
-        </div>
-      </div>
+  <main id="workspace" class="workspace hidden">
 
-   <div class="user-actions">
-  <a class="button ghost back-button" href="/">← Назад</a>
+    <div class="rauda-admin-shell">
 
-  <span id="user-name"></span>
-
-  <button
-    id="logout-button"
-    class="button ghost hidden"
-    type="button"
-  >
-    Выйти
-  </button>
-</div>
-
-    <section id="login-view" class="card login-card">
-      <h2>Вход в админку</h2>
-      <p>Используй учётную запись с ролью владельца или администратора.</p>
-
-      <form id="login-form">
-        <div class="field">
-          <label for="login">Логин</label>
-          <input id="login" name="login" autocomplete="username" required>
-        </div>
-
-      <div class="field" style="margin-top:14px">
-  <label for="password">Пароль</label>
-
-  <div class="password-wrap">
-    <input
-      id="password"
-      name="password"
-      type="password"
-      autocomplete="current-password"
-      required
-    >
-
-    <button
-      id="password-toggle"
-      class="password-toggle"
-      type="button"
-      aria-label="Показать пароль"
-      title="Показать пароль"
-    >
-      👁
-    </button>
-  </div>
-</div>
-
-        <div class="buttons">
-          <button id="login-button" class="button primary" type="submit">Войти</button>
-        </div>
-      </form>
-
-      <div id="login-status" class="status" role="status"></div>
-    </section>
-
-    <section id="workspace" class="workspace hidden">
-      <div class="workspace-head">
-        <div>
-          <h2>Новый урок</h2>
-          <p>Сначала создаётся урок, затем выбранные материалы загружаются в R2.</p>
-        </div>
-
-        <span class="pill">R2 FILES подключён</span>
-      </div>
-
-      <section class="card" id="user-search-card" style="padding: 20px;">
-    <h3>Поиск пользователя</h3>
-
-    <p class="section-copy">
-        Поиск по ID аккаунта, логину, Telegram ID, имени или нику
-    </p>
-
-    <div class="field">
-        <label for="adminUserSearch">
-            ID аккаунта или данные пользователя
-        </label>
-
-        <input
-            id="adminUserSearch"
-            type="text"
-            placeholder="Например: 58372916"
-            autocomplete="off"
-        >
-    </div>
-
-    <div class="buttons">
-        <button
-            type="button"
-            class="button primary"
-            id="adminUserSearchButton"
-        >
-            Найти пользователя
-        </button>
-    </div>
-
-    <div
-        id="adminUserSearchResults"
-        style="margin-top: 16px;"
-    ></div>
-</section>
-      
-      <form id="lesson-form" class="card editor">
-        <section>
-          <h3>Содержание урока</h3>
-          <p class="section-copy">Поля с идентификаторами можно не заполнять, если они пока не нужны.</p>
-
-          <div class="form-grid">
-            <div class="field full">
-              <label for="title">Название урока</label>
-              <input id="title" name="title" maxlength="250" placeholder="Например: Урок 1. Введение" required>
-            </div>
-
-            <div class="field">
-              <label for="program-id">Программа</label>
-              <select id="program-id" name="program_id">
-                <option value="">Не выбрана</option>
-              </select>
-              <span class="hint">Можно выбрать из списка или указать ID ниже.</span>
-            </div>
-
-            <div class="field">
-              <label for="program-id-manual">ID программы</label>
-              <input id="program-id-manual" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
-            </div>
-
-            <div class="field">
-              <label for="course-id">Курс</label>
-              <select id="course-id" name="course_id">
-                <option value="">Не выбран</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="course-id-manual">ID курса</label>
-              <input id="course-id-manual" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
-            </div>
-
-            <div class="field">
-              <label for="semester-id">ID семестра</label>
-              <input id="semester-id" name="semester_id" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
-            </div>
-
-            <div class="field">
-              <label for="subject-id">ID предмета</label>
-              <input id="subject-id" name="subject_id" type="number" min="1" inputmode="numeric" placeholder="Необязательно">
-            </div>
-
-            <div class="field">
-              <label for="lesson-number">Номер урока</label>
-              <input id="lesson-number" name="lesson_number" type="number" min="0" value="0" inputmode="numeric">
-            </div>
-
-            <div class="field">
-              <label for="sort-order">Порядок показа</label>
-              <input id="sort-order" name="sort_order" type="number" min="0" value="0" inputmode="numeric">
-            </div>
-
-            <div class="field full">
-              <label for="description">Краткое описание</label>
-              <textarea id="description" name="description" maxlength="20000" placeholder="Что будет в уроке"></textarea>
-            </div>
-
-            <div class="field full">
-              <label for="content">Текст урока</label>
-              <textarea id="content" name="content" maxlength="20000" placeholder="Основной текст урока"></textarea>
-            </div>
-
-            <label class="switch-row field full">
-              <input id="is-visible" name="is_visible" type="checkbox" checked>
-              Показывать урок ученикам после создания
-            </label>
-          </div>
-        </section>
-
-        <section>
-          <div class="side-stack">
+        <div class="rauda-admin-header">
             <div>
-              <h3>Материалы</h3>
-              <p class="section-copy">Фото, видео, аудио, PDF и документы можно выбрать сразу несколько.</p>
-
-              <div class="upload-box">
-                <input id="files" name="files" type="file" multiple>
-
-                <div class="field">
-                  <label for="caption">Подпись к материалам</label>
-                  <input id="caption" name="caption" maxlength="500" placeholder="Необязательно">
+                <div class="rauda-admin-kicker">
+                    RAUDA ILM
                 </div>
 
-                <div class="field">
-                  <label for="file-order">Порядок материалов</label>
-                  <input id="file-order" name="file_order" type="number" min="0" value="0" inputmode="numeric">
+                <h1 class="rauda-admin-title">
+                    Панель управления
+                </h1>
+
+                <div
+                    id="userName"
+                    class="rauda-admin-user"
+                ></div>
+            </div>
+
+            <button
+                id="logoutButton"
+                type="button"
+                class="rauda-admin-logout hidden"
+            >
+                Выйти
+            </button>
+        </div>
+
+
+        <div class="rauda-admin-tabs">
+
+            <button
+                type="button"
+                class="rauda-admin-tab active"
+                data-admin-tab="content"
+                onclick="switchAdminTab('content')"
+            >
+                Контент
+            </button>
+
+            <button
+                type="button"
+                class="rauda-admin-tab"
+                data-admin-tab="students"
+                onclick="switchAdminTab('students')"
+            >
+                Ученики
+            </button>
+
+            <button
+                type="button"
+                class="rauda-admin-tab"
+                data-admin-tab="grades"
+                onclick="switchAdminTab('grades')"
+            >
+                Оценки
+            </button>
+
+            <button
+                type="button"
+                class="rauda-admin-tab"
+                data-admin-tab="admins"
+                onclick="switchAdminTab('admins')"
+            >
+                Администраторы
+            </button>
+
+        </div>
+
+
+        <!-- =========================
+             КОНТЕНТ
+             ========================= -->
+
+        <section
+            class="rauda-admin-tab-panel active"
+            data-admin-panel="content"
+        >
+
+            <div class="rauda-admin-page-head">
+                <div>
+                    <div class="rauda-admin-kicker">
+                        Учебная структура
+                    </div>
+
+                    <h2>
+                        Контент
+                    </h2>
+
+                    <p>
+                        Создание программ, курсов и уроков.
+                    </p>
                 </div>
-              </div>
-
-              <div id="selected-files" class="file-list" style="margin-top:10px"></div>
             </div>
 
-            <div id="created-lesson" class="lesson-id">
-              <strong>Урок создан</strong>
-              <span id="created-lesson-text"></span>
+
+            <div class="rauda-admin-content-grid">
+
+                <!-- ПРОГРАММЫ -->
+
+                <section class="rauda-admin-card">
+
+                    <div class="rauda-admin-card-head">
+                        <div>
+                            <div class="rauda-admin-card-kicker">
+                                Программы
+                            </div>
+
+                            <h3>
+                                Образовательные программы
+                            </h3>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="rauda-admin-primary"
+                            onclick="openProgramCreate()"
+                        >
+                            + Добавить
+                        </button>
+                    </div>
+
+                    <div
+                        id="adminProgramsList"
+                        class="rauda-admin-list"
+                    >
+                        <div class="rauda-admin-empty">
+                            Программы загружаются...
+                        </div>
+                    </div>
+
+                </section>
+
+
+                <!-- КУРСЫ -->
+
+                <section class="rauda-admin-card">
+
+                    <div class="rauda-admin-card-head">
+                        <div>
+                            <div class="rauda-admin-card-kicker">
+                                Курсы
+                            </div>
+
+                            <h3>
+                                Курсы
+                            </h3>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="rauda-admin-primary"
+                            onclick="openCourseCreate()"
+                        >
+                            + Добавить
+                        </button>
+                    </div>
+
+                    <div
+                        id="adminCoursesList"
+                        class="rauda-admin-list"
+                    >
+                        <div class="rauda-admin-empty">
+                            Курсы загружаются...
+                        </div>
+                    </div>
+
+                </section>
+
+
+                <!-- УРОКИ -->
+
+                <section
+                    class="rauda-admin-card rauda-admin-card-full"
+                >
+
+                    <div class="rauda-admin-card-head">
+
+                        <div>
+                            <div class="rauda-admin-card-kicker">
+                                Уроки
+                            </div>
+
+                            <h3>
+                                Создание урока
+                            </h3>
+                        </div>
+
+                    </div>
+
+
+                    <form
+                        id="lessonForm"
+                        class="rauda-admin-form-grid"
+                    >
+
+                        <div>
+                            <label>
+                                Программа
+                            </label>
+
+                            <select
+                                id="lessonProgram"
+                            ></select>
+                        </div>
+
+
+                        <div>
+                            <label>
+                                Курс
+                            </label>
+
+                            <select
+                                id="lessonCourse"
+                            ></select>
+                        </div>
+
+
+                        <div>
+                            <label>
+                                Номер урока
+                            </label>
+
+                            <input
+                                id="lessonNumber"
+                                type="number"
+                                min="0"
+                                placeholder="1"
+                            >
+                        </div>
+
+
+                        <div>
+                            <label>
+                                Порядок
+                            </label>
+
+                            <input
+                                id="lessonSortOrder"
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                            >
+                        </div>
+
+
+                        <div class="rauda-admin-form-full">
+                            <label>
+                                Название урока
+                            </label>
+
+                            <input
+                                id="lessonTitle"
+                                type="text"
+                                placeholder="Название урока"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="rauda-admin-form-full">
+                            <label>
+                                Описание
+                            </label>
+
+                            <textarea
+                                id="lessonDescription"
+                                rows="3"
+                                placeholder="Краткое описание"
+                            ></textarea>
+                        </div>
+
+
+                        <div class="rauda-admin-form-full">
+                            <label>
+                                Текст урока
+                            </label>
+
+                            <textarea
+                                id="lessonContent"
+                                rows="7"
+                                placeholder="Материал урока"
+                            ></textarea>
+                        </div>
+
+
+                        <div class="rauda-admin-form-full">
+
+                            <label>
+                                Файлы урока
+                            </label>
+
+                            <input
+                                id="lessonFiles"
+                                type="file"
+                                multiple
+                                accept="
+                                    image/*,
+                                    video/*,
+                                    audio/*,
+                                    application/pdf
+                                "
+                            >
+
+                        </div>
+
+
+                        <div class="rauda-admin-form-full">
+
+                            <label class="rauda-checkbox-row">
+
+                                <input
+                                    id="lessonVisible"
+                                    type="checkbox"
+                                    checked
+                                >
+
+                                Показывать ученикам
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="rauda-admin-form-full">
+
+                            <button
+                                type="submit"
+                                class="rauda-admin-primary rauda-admin-wide"
+                            >
+                                Создать урок
+                            </button>
+
+                        </div>
+
+
+                        <div
+                            id="lessonStatus"
+                            class="rauda-admin-status rauda-admin-form-full"
+                        ></div>
+
+                    </form>
+
+                </section>
+
             </div>
 
-            <div class="note">
-              <h4>Как это работает</h4>
-              <p>Сначала создаётся урок и получается его ID. Затем каждый материал отправляется в защищённое хранилище R2 и прикрепляется к этому уроку.</p>
-            </div>
-
-            <div class="buttons">
-              <button id="save-button" class="button primary" type="submit">Создать урок и загрузить</button>
-              <button id="new-lesson-button" class="button ghost" type="button">Новый урок</button>
-            </div>
-
-            <div id="lesson-status" class="status" role="status"></div>
-          </div>
         </section>
-      </form>
-    </section>
-      <section
-    id="gradesAdminSection"
-    class="rauda-admin-section"
->
-
-    <div class="rauda-admin-section-head">
-
-        <div>
-            <div class="rauda-admin-section-kicker">
-                RAUDA ILM
-            </div>
-
-            <h2 class="rauda-admin-section-title">
-                Оценки и пересдачи
-            </h2>
-
-            <div class="rauda-admin-section-description">
-                Поиск ученика, результаты тестов,
-                экзамены и управление пересдачами.
-            </div>
-        </div>
-
-    </div>
 
 
-    <!-- ПОИСК УЧЕНИКА -->
+        <!-- =========================
+             УЧЕНИКИ
+             ========================= -->
 
-    <div class="rauda-admin-student-search">
-
-        <input
-            id="adminStudentSearch"
-            type="search"
-            autocomplete="off"
-            placeholder="Имя, логин, email или ID"
+        <section
+            class="rauda-admin-tab-panel"
+            data-admin-panel="students"
         >
 
-        <button
-            type="button"
-            id="adminStudentSearchButton"
-            onclick="searchAdminStudents()"
-        >
-            Найти
-        </button>
+            <div class="rauda-admin-page-head">
 
-    </div>
+                <div>
+                    <div class="rauda-admin-kicker">
+                        Пользователи
+                    </div>
 
+                    <h2>
+                        Ученики
+                    </h2>
 
-    <!-- РЕЗУЛЬТАТЫ ПОИСКА -->
+                    <p>
+                        Поиск и управление аккаунтами учеников.
+                    </p>
+                </div>
 
-    <div
-        id="adminStudentSearchResults"
-        class="rauda-admin-student-results"
-    ></div>
-
-
-    <!-- ВЫБРАННЫЙ УЧЕНИК -->
-
-    <div
-        id="adminSelectedStudent"
-        class="rauda-admin-selected-student"
-        hidden
-    >
-
-        <div>
-            <div class="rauda-selected-student-label">
-                Выбранный ученик
             </div>
 
-            <div
-                id="adminSelectedStudentName"
-                class="rauda-selected-student-name"
-            ></div>
 
-            <div
-                id="adminSelectedStudentMeta"
-                class="rauda-selected-student-meta"
-            ></div>
-        </div>
+            <section class="rauda-admin-card">
 
-        <button
-            type="button"
-            class="rauda-admin-small-button"
-            onclick="clearSelectedAdminStudent()"
+                <div class="rauda-admin-student-search">
+
+                    <input
+                        id="adminUsersSearch"
+                        type="search"
+                        placeholder="Имя, логин, email, Telegram ID или RAUDA ID"
+                    >
+
+                    <button
+                        type="button"
+                        class="rauda-admin-primary"
+                        onclick="searchAdminUsers()"
+                    >
+                        Найти
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="adminUsersResults"
+                    class="rauda-admin-student-results"
+                >
+                    <div class="rauda-admin-empty">
+                        Введите данные ученика для поиска.
+                    </div>
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <!-- =========================
+             ОЦЕНКИ
+             ========================= -->
+
+        <section
+            class="rauda-admin-tab-panel"
+            data-admin-panel="grades"
         >
-            Сменить
-        </button>
+
+            <div class="rauda-admin-page-head">
+
+                <div>
+                    <div class="rauda-admin-kicker">
+                        Учебные результаты
+                    </div>
+
+                    <h2>
+                        Оценки и пересдачи
+                    </h2>
+
+                    <p>
+                        Поиск ученика, изменение результатов и выдача пересдач.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <section
+                id="gradesAdminSection"
+                class="rauda-admin-card"
+            >
+
+                <div class="rauda-admin-student-search">
+
+                    <input
+                        id="adminStudentSearch"
+                        type="search"
+                        autocomplete="off"
+                        placeholder="Имя, логин, email или RAUDA ID"
+                    >
+
+                    <button
+                        type="button"
+                        class="rauda-admin-primary"
+                        onclick="searchAdminStudents()"
+                    >
+                        Найти
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="adminStudentSearchResults"
+                    class="rauda-admin-student-results"
+                ></div>
+
+
+                <div
+                    id="adminSelectedStudent"
+                    class="rauda-admin-selected-student"
+                    hidden
+                >
+
+                    <div>
+
+                        <div class="rauda-selected-student-label">
+                            Выбранный ученик
+                        </div>
+
+                        <div
+                            id="adminSelectedStudentName"
+                            class="rauda-selected-student-name"
+                        ></div>
+
+                        <div
+                            id="adminSelectedStudentMeta"
+                            class="rauda-selected-student-meta"
+                        ></div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="rauda-admin-secondary"
+                        onclick="clearSelectedAdminStudent()"
+                    >
+                        Сменить
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="adminStudentGrades"
+                    class="rauda-admin-grades-grid"
+                >
+
+                    <div class="rauda-admin-empty">
+                        Найдите и выберите ученика.
+                    </div>
+
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <!-- =========================
+             АДМИНИСТРАТОРЫ
+             ========================= -->
+
+        <section
+            class="rauda-admin-tab-panel"
+            data-admin-panel="admins"
+        >
+
+            <div class="rauda-admin-page-head">
+
+                <div>
+                    <div class="rauda-admin-kicker">
+                        Управление доступом
+                    </div>
+
+                    <h2>
+                        Администраторы
+                    </h2>
+
+                    <p>
+                        Управление административными аккаунтами и правами.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <section
+                id="ownerAdminPasswordPanel"
+                class="rauda-admin-card"
+                style="display:none;"
+            >
+
+                <div class="rauda-admin-card-head">
+
+                    <div>
+                        <div class="rauda-admin-card-kicker">
+                            Пароли
+                        </div>
+
+                        <h3>
+                            Смена пароля администратора
+                        </h3>
+                    </div>
+
+                </div>
+
+
+                <div class="rauda-admin-form-grid">
+
+                    <div>
+                        <label>
+                            ID администратора
+                        </label>
+
+                        <input
+                            id="ownerAdminUserId"
+                            type="number"
+                            placeholder="ID"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label>
+                            Новый пароль
+                        </label>
+
+                        <input
+                            id="ownerAdminNewPassword"
+                            type="password"
+                            placeholder="Минимум 8 символов"
+                        >
+                    </div>
+
+
+                    <div>
+                        <label>
+                            Повторите пароль
+                        </label>
+
+                        <input
+                            id="ownerAdminRepeatPassword"
+                            type="password"
+                            placeholder="Повторите пароль"
+                        >
+                    </div>
+
+
+                    <div class="rauda-admin-form-full">
+
+                        <button
+                            type="button"
+                            class="rauda-admin-primary"
+                            onclick="ownerChangeAdminPassword()"
+                        >
+                            Сменить пароль
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        id="ownerAdminPasswordResult"
+                        class="rauda-admin-status rauda-admin-form-full"
+                    ></div>
+
+                </div>
+
+            </section>
+
+        </section>
 
     </div>
 
-
-    <!-- ОЦЕНКИ -->
-
-    <div
-        id="adminStudentGrades"
-        class="rauda-admin-grades-grid"
-    >
-
-        <div class="rauda-admin-empty">
-            Найдите и выберите ученика.
-        </div>
-
-    </div>
-
-</section>
-  </main>
-
+</main>
   <script>
     const TOKEN_KEY = "rauda_ilm_admin_token";
     const ADMIN_ROLES = new Set(["owner", "superadmin", "admin"]);
@@ -5187,6 +5884,41 @@ async function loadAdminStudentGrades(
     }
 }
     
+</script>
+
+  <script id="rauda-admin-tabs-script">
+
+function switchAdminTab(tabName) {
+
+    document
+        .querySelectorAll(
+            ".rauda-admin-tab"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.adminTab === tabName
+                );
+            }
+        );
+
+    document
+        .querySelectorAll(
+            ".rauda-admin-tab-panel"
+        )
+        .forEach(
+            panel => {
+
+                panel.classList.toggle(
+                    "active",
+                    panel.dataset.adminPanel === tabName
+                );
+            }
+        );
+}
+
 </script>
   
 </body>
