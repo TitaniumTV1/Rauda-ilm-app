@@ -2494,6 +2494,9 @@ td {
     .admin-menu-wrap {
     position: relative;
     flex: 0 0 auto;
+      display: flex;
+flex-direction: column;
+align-items: flex-end;
 }
 
 .admin-menu-button {
@@ -2572,6 +2575,9 @@ td {
     position: relative;
     margin-left: auto;
     z-index: 1100;
+  display: flex;
+flex-direction: column;
+align-items: flex-end;
 }
 
 .admin-menu-button {
@@ -2579,10 +2585,26 @@ td {
 }
 
 .admin-menu-dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 1200;
+    display: none;
+
+    width: 150px;
+    margin-top: 8px;
+    margin-left: auto;
+
+    padding: 6px;
+
+    border: 1px solid #ded3ba;
+    border-radius: 12px;
+
+    background: #fffdf8;
+
+    box-shadow:
+        0 8px 20px
+        rgba(23, 61, 44, .12);
+}
+
+.admin-menu-dropdown.open {
+    display: block;
 }
 
 .rauda-admin-tabs {
