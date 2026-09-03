@@ -3366,6 +3366,54 @@ function switchAdminTab(tabName) {
     </div>
 
 </section>
+
+          <section
+    class="rauda-admin-card"
+    style="margin-bottom:16px;"
+>
+
+    <div class="rauda-admin-card-head">
+        <div>
+            <div class="rauda-admin-card-kicker">
+                Администраторы
+            </div>
+
+            <h3>
+                Назначение прав
+            </h3>
+        </div>
+    </div>
+
+    <div class="rauda-admin-student-search">
+
+        <input
+            id="adminRoleSearch"
+            type="search"
+            placeholder="RAUDA ID, логин, имя или Telegram ID"
+        >
+
+        <button
+            type="button"
+            class="rauda-admin-primary"
+            onclick="searchAdminRoleUsers()"
+        >
+            Найти
+        </button>
+
+    </div>
+
+    <div
+        id="adminRoleResults"
+        class="rauda-admin-student-results"
+        style="margin-top:14px;"
+    >
+        <div class="rauda-admin-empty">
+            Найдите пользователя.
+        </div>
+    </div>
+
+</section>
+          
             <section
                 id="ownerAdminPasswordPanel"
                 class="rauda-admin-card"
@@ -4085,8 +4133,7 @@ document
         searchAdminUsers
     );
 
-    async function searchAdminRoleUsers() {
-
+async function searchAdminRoleUsers() {
     const input =
         document.getElementById(
             "adminRoleSearch"
@@ -4115,7 +4162,6 @@ document
     }
 
     try {
-
         const data =
             await api(
                 "/api/admin/users/search?q=" +
@@ -4134,13 +4180,11 @@ document
         }
 
         for (const user of users) {
-
             const card =
                 document.createElement("div");
 
             card.className = "note";
             card.style.marginBottom = "12px";
-
 
             const name =
                 [
@@ -4152,20 +4196,17 @@ document
                 user.login ||
                 "Пользователь";
 
-
             const title =
                 document.createElement("h4");
 
             title.textContent = name;
 
-
-            const account =
+            const accountId =
                 document.createElement("p");
 
-            account.textContent =
+            accountId.textContent =
                 "RAUDA ID: " +
                 (user.account_id ?? "—");
-
 
             const login =
                 document.createElement("p");
@@ -4173,7 +4214,6 @@ document
             login.textContent =
                 "Логин: " +
                 (user.login || "Не установлен");
-
 
             const role =
                 document.createElement("p");
@@ -4184,29 +4224,26 @@ document
                     user.role
                 );
 
-
             const buttons =
                 document.createElement("div");
 
             buttons.className = "buttons";
 
+            const currentRole =
+                String(
+                    user.role || ""
+                ).toLowerCase();
 
-            if (
-                String(user.role).toLowerCase() !==
-                "owner"
-            ) {
+            if (currentRole !== "owner") {
 
-                if (
-                    String(user.role).toLowerCase() !==
-                    "admin"
-                ) {
-
+                if (currentRole !== "admin") {
                     const makeAdmin =
                         document.createElement(
                             "button"
                         );
 
                     makeAdmin.type = "button";
+
                     makeAdmin.className =
                         "button primary";
 
@@ -4225,18 +4262,18 @@ document
                     );
                 }
 
-
                 if (
-                    String(user.role).toLowerCase() !==
+                    currentRole !==
                     "superadmin"
                 ) {
-
                     const makeSuperAdmin =
                         document.createElement(
                             "button"
                         );
 
-                    makeSuperAdmin.type = "button";
+                    makeSuperAdmin.type =
+                        "button";
+
                     makeSuperAdmin.className =
                         "button";
 
@@ -4255,24 +4292,19 @@ document
                     );
                 }
 
-
                 if (
-                    [
-                        "admin",
+                    currentRole === "admin" ||
+                    currentRole ===
                         "superadmin"
-                    ].includes(
-                        String(
-                            user.role
-                        ).toLowerCase()
-                    )
                 ) {
-
                     const removeAdmin =
                         document.createElement(
                             "button"
                         );
 
-                    removeAdmin.type = "button";
+                    removeAdmin.type =
+                        "button";
+
                     removeAdmin.className =
                         "button ghost";
 
@@ -4290,13 +4322,11 @@ document
                         removeAdmin
                     );
                 }
-
             }
-
 
             card.append(
                 title,
-                account,
+                accountId,
                 login,
                 role,
                 buttons
@@ -4306,7 +4336,6 @@ document
         }
 
     } catch (error) {
-
         results.textContent =
             error?.message ||
             "Ошибка поиска пользователя";
@@ -4315,12 +4344,14 @@ document
 
 
 function adminRoleLabel(role) {
-
     const roles = {
         owner: "Владелец",
-        superadmin: "Суперадминистратор",
-        admin: "Администратор",
-        student: "Ученик"
+        superadmin:
+            "Суперадминистратор",
+        admin:
+            "Администратор",
+        student:
+            "Ученик"
     };
 
     return (
@@ -4337,9 +4368,12 @@ async function changeAdminUserRole(
     userId,
     role
 ) {
+    const results =
+        document.getElementById(
+            "adminRoleResults"
+        );
 
     try {
-
         await api(
             "/api/admin/users/role",
             {
@@ -4354,26 +4388,18 @@ async function changeAdminUserRole(
                     JSON.stringify({
                         user_id:
                             Number(userId),
-
                         role
                     })
             }
         );
 
-
         await searchAdminRoleUsers();
 
     } catch (error) {
-
-        const results =
-            document.getElementById(
-                "adminRoleResults"
-            );
-
         if (results) {
             results.textContent =
                 error?.message ||
-                "Не удалось изменить права";
+                "Не удалось изменить роль";
         }
     }
 }
