@@ -1400,7 +1400,19 @@ async function ensureEmailAuthSchema(db) {
             if (
     url.pathname === "/api/admin/users/role" &&
     request.method === "POST"
+)
+            if (
+    url.pathname === "/api/admin/users/permissions" &&
+    (
+        request.method === "GET" ||
+        request.method === "POST"
+    )
 ) {
+    return handleOwnerAdminPermissions(
+        request,
+        env
+    );
+} {
     return handleOwnerChangeUserRole(
         request,
         env
@@ -4304,6 +4316,234 @@ async function handleLessons(request, env) {
                 ok: false,
                 error:
                     "Не удалось получить уроки"
+            },
+            500,
+            env
+        );
+    }
+}
+
+async function handleOwnerAdminPermissions(
+    request,
+    env
+) {
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    const currentRole =
+        String(
+            auth.user?.role || ""
+        ).toLowerCase();
+
+    if (currentRole !== "owner") {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Только владелец может изменять права администраторов"
+            },
+            403,
+            env
+        );
+    }
+
+    try {
+        let userId;
+
+        if (request.method === "GET") {
+            const url =
+                new URL(
+                    request.url
+                );
+
+            userId =
+                positiveIntegerOrNull(
+                    url.searchParams.get(
+                        "user_id"
+                    )
+                );
+        } else {
+            const body =
+                await readJson(
+                    request
+                );
+
+            userId =
+                positiveIntegerOrNull(
+                    body?.user_id
+                );
+
+            const permissions =
+                Array.isArray(
+                    body?.permissions
+                )
+                    ? body.permissions
+                    : [];
+
+            if (!userId) {
+                return json(
+                    {
+                        ok: false,
+                        error:
+                            "Укажите user_id"
+                    },
+                    400,
+                    env
+                );
+            }
+
+            const target =
+                await first(
+                    env.DB,
+                    `
+                    SELECT
+                        id,
+                        role
+                    FROM users
+                    WHERE id = ?
+                    LIMIT 1
+                    `,
+                    [userId]
+                );
+
+            if (!target) {
+                return json(
+                    {
+                        ok: false,
+                        error:
+                            "Пользователь не найден"
+                    },
+                    404,
+                    env
+                );
+            }
+
+            const targetRole =
+                String(
+                    target.role || ""
+                ).toLowerCase();
+
+            if (targetRole !== "admin") {
+                return json(
+                    {
+                        ok: false,
+                        error:
+                            "Отдельные права можно назначать только обычному администратору"
+                    },
+                    400,
+                    env
+                );
+            }
+
+            const cleanPermissions =
+                [
+                    ...new Set(
+                        permissions
+                            .map(
+                                permission =>
+                                    String(
+                                        permission || ""
+                                    ).trim()
+                            )
+                            .filter(
+                                permission =>
+                                    ADMIN_PERMISSION_KEYS.has(
+                                        permission
+                                    )
+                            )
+                    )
+                ];
+
+            await run(
+                env.DB,
+                `
+                DELETE FROM admin_permissions
+                WHERE admin_id = ?
+                `,
+                [userId]
+            );
+
+            for (
+                const permission
+                of cleanPermissions
+            ) {
+                await run(
+                    env.DB,
+                    `
+                    INSERT OR IGNORE INTO admin_permissions
+                        (
+                            admin_id,
+                            permission
+                        )
+                    VALUES (?, ?)
+                    `,
+                    [
+                        userId,
+                        permission
+                    ]
+                );
+            }
+        }
+
+        if (!userId) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Укажите user_id"
+                },
+                400,
+                env
+            );
+        }
+
+        const rows =
+            await all(
+                env.DB,
+                `
+                SELECT permission
+                FROM admin_permissions
+                WHERE admin_id = ?
+                ORDER BY permission
+                `,
+                [userId]
+            );
+
+        return json(
+            {
+                ok: true,
+                user_id: userId,
+                permissions:
+                    rows.map(
+                        row =>
+                            row.permission
+                    )
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Admin permissions:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось сохранить права администратора"
             },
             500,
             env
