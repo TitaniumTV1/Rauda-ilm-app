@@ -1357,8 +1357,10 @@ async function ensureEmailAuthSchema(db) {
             if (url.pathname === "/api/lessons" && request.method === "GET") {
                 return handleLessons(request, env);
             }
-            if (
-    url.pathname === "/api/admin/users/change-password" &&
+            if (url.pathname === "/api/admin/students/search" && request.method === "GET") {
+                return handleAdminStudentSearch(request,env);
+} 
+            if (url.pathname === "/api/admin/users/change-password" &&
     request.method === "POST"
 ) {
     return handleOwnerChangeAdminPassword(request, env);
@@ -1497,6 +1499,7 @@ async function handleRegister(request, env) {
         return json({ ok: false, error: "Не удалось зарегистрировать пользователя" }, 500, env);
     }
 }
+
 
 async function handleLogin(request, env) {
     if (!env.DB) return databaseMissing(env);
@@ -4365,6 +4368,253 @@ async function handleAdminCreateLesson(request, env) {
     } catch (error) {
         console.error("Create lesson error:", error);
         return json({ ok: false, error: "Не удалось создать урок" }, 500, env);
+    }
+}
+
+async function handleAdminStudentSearch(
+    request,
+    env
+) {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    const allowedRoles =
+        new Set([
+            "owner",
+            "superadmin",
+            "admin"
+        ]);
+
+    if (
+        !allowedRoles.has(
+            String(
+                auth.user.role ||
+                ""
+            ).toLowerCase()
+        )
+    ) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Недостаточно прав"
+            },
+            403,
+            env
+        );
+    }
+
+    try {
+
+        const url =
+            new URL(
+                request.url
+            );
+
+        const query =
+            String(
+                url.searchParams.get(
+                    "q"
+                ) || ""
+            )
+            .trim();
+
+
+        if (
+            query.length < 2
+        ) {
+            return json(
+                {
+                    ok: true,
+                    students: []
+                },
+                200,
+                env
+            );
+        }
+
+
+        const like =
+            "%" +
+            query +
+            "%";
+
+
+        const numericQuery =
+            Number(
+                query
+            );
+
+
+        let rows;
+
+
+        if (
+            Number.isFinite(
+                numericQuery
+            )
+        ) {
+
+            rows =
+                await all(
+                    env.DB,
+                    `
+                    SELECT
+                        id,
+                        account_id,
+                        login,
+                        username,
+                        first_name,
+                        last_name,
+                        email,
+                        telegram_id,
+                        role,
+                        status
+                    FROM users
+                    WHERE
+                        role = 'student'
+                        AND
+                        (
+                            CAST(id AS TEXT)
+                                LIKE ?
+                            OR
+                            CAST(account_id AS TEXT)
+                                LIKE ?
+                            OR
+                            CAST(telegram_id AS TEXT)
+                                LIKE ?
+                            OR
+                            login LIKE ?
+                            OR
+                            username LIKE ?
+                            OR
+                            first_name LIKE ?
+                            OR
+                            last_name LIKE ?
+                            OR
+                            email LIKE ?
+                        )
+                    ORDER BY
+                        first_name,
+                        last_name,
+                        id
+                    LIMIT 30
+                    `,
+                    [
+                        like,
+                        like,
+                        like,
+                        like,
+                        like,
+                        like,
+                        like,
+                        like
+                    ]
+                );
+
+        } else {
+
+            rows =
+                await all(
+                    env.DB,
+                    `
+                    SELECT
+                        id,
+                        account_id,
+                        login,
+                        username,
+                        first_name,
+                        last_name,
+                        email,
+                        telegram_id,
+                        role,
+                        status
+                    FROM users
+                    WHERE
+                        role = 'student'
+                        AND
+                        (
+                            login LIKE ?
+                            OR
+                            username LIKE ?
+                            OR
+                            first_name LIKE ?
+                            OR
+                            last_name LIKE ?
+                            OR
+                            email LIKE ?
+                            OR
+                            (
+                                COALESCE(
+                                    first_name,
+                                    ''
+                                )
+                                ||
+                                ' '
+                                ||
+                                COALESCE(
+                                    last_name,
+                                    ''
+                                )
+                            )
+                            LIKE ?
+                        )
+                    ORDER BY
+                        first_name,
+                        last_name,
+                        id
+                    LIMIT 30
+                    `,
+                    [
+                        like,
+                        like,
+                        like,
+                        like,
+                        like,
+                        like
+                    ]
+                );
+        }
+
+
+        return json(
+            {
+                ok: true,
+                students:
+                    rows || []
+            },
+            200,
+            env
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Student search error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось найти учеников"
+            },
+            500,
+            env
+        );
     }
 }
 
