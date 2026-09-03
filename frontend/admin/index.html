@@ -3358,6 +3358,51 @@ function switchAdminTab(tabName) {
       element.className = "status" + (message ? " visible" : "") + (type ? " " + type : "");
     }
 
+    function showLogin(message = "") {
+    state.user = null;
+
+    loginView?.classList.remove("hidden");
+    workspace?.classList.add("hidden");
+    logoutButton?.classList.add("hidden");
+
+    if (userName) {
+        userName.textContent = "";
+    }
+
+    if (message && loginStatus) {
+        setStatus(
+            loginStatus,
+            message,
+            "error"
+        );
+    }
+}
+
+function showWorkspace(user) {
+    state.user = user || null;
+
+    loginView?.classList.add("hidden");
+    workspace?.classList.remove("hidden");
+    logoutButton?.classList.remove("hidden");
+
+    if (userName) {
+        userName.textContent =
+            [
+                user?.first_name,
+                user?.last_name
+            ]
+                .filter(Boolean)
+                .join(" ") ||
+            user?.login ||
+            user?.username ||
+            `ID ${user?.account_id || user?.id || ""}`;
+    }
+
+    if (loginStatus) {
+        setStatus(loginStatus);
+    }
+}
+    
     function asPositiveInteger(value) {
       const number = Number(value);
       return Number.isInteger(number) && number > 0 ? number : null;
