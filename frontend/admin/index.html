@@ -5012,6 +5012,97 @@ async function loadAdminStudentGrades(
         `;
     }
 }
+    async function editAdminGrade(
+    type,
+    attemptId
+) {
+
+    if (!selectedAdminStudent) {
+        alert(
+            "Сначала выберите ученика"
+        );
+        return;
+    }
+
+    const currentValue =
+        prompt(
+            "Введите новый балл"
+        );
+
+    if (currentValue === null) {
+        return;
+    }
+
+    const score =
+        Number(
+            String(currentValue)
+                .replace(",", ".")
+        );
+
+    if (
+        !Number.isFinite(score) ||
+        score < 0
+    ) {
+        alert(
+            "Введите корректный балл"
+        );
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/admin/students/grade",
+                {
+                    method: "PATCH",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        type,
+                        attempt_id:
+                            Number(attemptId),
+                        score
+                    })
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+            alert(
+                data.error ||
+                "Не удалось изменить оценку"
+            );
+            return;
+        }
+
+        await loadAdminStudentGrades(
+            selectedAdminStudent.id
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Admin grade edit:",
+            error
+        );
+
+        alert(
+            "Ошибка соединения"
+        );
+    }
+}
+    
 </script>
   
 </body>
