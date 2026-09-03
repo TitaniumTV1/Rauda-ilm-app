@@ -1406,6 +1406,80 @@ async function ensureEmailAuthSchema(db) {
         env
     );
 }
+            if (
+    url.pathname === "/api/admin/programs" &&
+    request.method === "POST"
+) {
+    return handleAdminCreateProgram(
+        request,
+        env
+    );
+}
+
+if (
+    url.pathname === "/api/admin/courses" &&
+    request.method === "POST"
+) {
+    return handleAdminCreateCourse(
+        request,
+        env
+    );
+}
+
+const adminProgramRoute =
+    url.pathname.match(
+        /^\/api\/admin\/programs\/(\d+)$/
+    );
+
+if (
+    adminProgramRoute &&
+    request.method === "PATCH"
+) {
+    return handleAdminUpdateProgram(
+        request,
+        env,
+        Number(adminProgramRoute[1])
+    );
+}
+
+if (
+    adminProgramRoute &&
+    request.method === "DELETE"
+) {
+    return handleAdminDeleteProgram(
+        request,
+        env,
+        Number(adminProgramRoute[1])
+    );
+}
+
+const adminCourseRoute =
+    url.pathname.match(
+        /^\/api\/admin\/courses\/(\d+)$/
+    );
+
+if (
+    adminCourseRoute &&
+    request.method === "PATCH"
+) {
+    return handleAdminUpdateCourse(
+        request,
+        env,
+        Number(adminCourseRoute[1])
+    );
+}
+
+if (
+    adminCourseRoute &&
+    request.method === "DELETE"
+) {
+    return handleAdminDeleteCourse(
+        request,
+        env,
+        Number(adminCourseRoute[1])
+    );
+}
+            
             // Create the lesson first; the returned id is then used for file uploads.
             if (url.pathname === "/api/admin/lessons" && request.method === "POST") {
                 return handleAdminCreateLesson(request, env);
@@ -4363,6 +4437,922 @@ async function handleSingleLesson(request, env, lessonId) {
     } catch (error) {
         console.error("Single lesson error:", error);
         return json({ ok: false, error: "Не удалось получить урок" }, 500, env);
+    }
+}
+
+async function handleAdminCreateProgram(
+    request,
+    env
+) {
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        const body =
+            await readJson(
+                request
+            );
+
+        const name =
+            cleanText(
+                body?.name
+            );
+
+        const description =
+            cleanText(
+                body?.description
+            );
+
+        if (!name) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите название программы"
+                },
+                400,
+                env
+            );
+        }
+
+        const columns =
+            await tableColumns(
+                env.DB,
+                "programs"
+            );
+
+        const fields = [];
+        const values = [];
+
+        const add = (
+            choices,
+            value
+        ) => {
+
+            const column =
+                firstColumn(
+                    columns,
+                    choices
+                );
+
+            if (column) {
+                fields.push(
+                    column
+                );
+
+                values.push(
+                    value
+                );
+            }
+        };
+
+        add(
+            ["name", "title"],
+            name
+        );
+
+        add(
+            [
+                "description",
+                "summary"
+            ],
+            description || null
+        );
+
+        add(
+            [
+                "is_visible",
+                "visible",
+                "is_active"
+            ],
+            1
+        );
+
+        const result =
+            await run(
+                env.DB,
+                `
+                INSERT INTO programs (
+                    ${fields
+                        .map(
+                            quoteIdentifier
+                        )
+                        .join(", ")}
+                )
+                VALUES (
+                    ${fields
+                        .map(() => "?")
+                        .join(", ")}
+                )
+                `,
+                values
+            );
+
+        const program =
+            await first(
+                env.DB,
+                `
+                SELECT *
+                FROM programs
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [
+                    Number(
+                        result.meta
+                            .last_row_id
+                    )
+                ]
+            );
+
+        return json(
+            {
+                ok: true,
+                program
+            },
+            201,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Create program:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось создать программу"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleAdminCreateCourse(
+    request,
+    env
+) {
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        const body =
+            await readJson(
+                request
+            );
+
+        const name =
+            cleanText(
+                body?.name
+            );
+
+        const description =
+            cleanText(
+                body?.description
+            );
+
+        const programId =
+            positiveIntegerOrNull(
+                body?.program_id
+            );
+
+        if (!name) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите название курса"
+                },
+                400,
+                env
+            );
+        }
+
+        if (!programId) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Выберите программу"
+                },
+                400,
+                env
+            );
+        }
+
+        const program =
+            await first(
+                env.DB,
+                `
+                SELECT id
+                FROM programs
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [
+                    programId
+                ]
+            );
+
+        if (!program) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Программа не найдена"
+                },
+                404,
+                env
+            );
+        }
+
+        const columns =
+            await tableColumns(
+                env.DB,
+                "courses"
+            );
+
+        const fields = [];
+        const values = [];
+
+        const add = (
+            choices,
+            value
+        ) => {
+
+            const column =
+                firstColumn(
+                    columns,
+                    choices
+                );
+
+            if (column) {
+                fields.push(
+                    column
+                );
+
+                values.push(
+                    value
+                );
+            }
+        };
+
+        add(
+            ["program_id"],
+            programId
+        );
+
+        add(
+            ["name", "title"],
+            name
+        );
+
+        add(
+            [
+                "description",
+                "summary"
+            ],
+            description || null
+        );
+
+        add(
+            [
+                "is_visible",
+                "visible",
+                "is_active"
+            ],
+            1
+        );
+
+        const result =
+            await run(
+                env.DB,
+                `
+                INSERT INTO courses (
+                    ${fields
+                        .map(
+                            quoteIdentifier
+                        )
+                        .join(", ")}
+                )
+                VALUES (
+                    ${fields
+                        .map(() => "?")
+                        .join(", ")}
+                )
+                `,
+                values
+            );
+
+        const course =
+            await first(
+                env.DB,
+                `
+                SELECT *
+                FROM courses
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [
+                    Number(
+                        result.meta
+                            .last_row_id
+                    )
+                ]
+            );
+
+        return json(
+            {
+                ok: true,
+                course
+            },
+            201,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Create course:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось создать курс"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleAdminUpdateProgram(
+    request,
+    env,
+    programId
+) {
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        if (
+            !Number.isInteger(
+                programId
+            ) ||
+            programId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Некорректный ID программы"
+                },
+                400,
+                env
+            );
+        }
+
+        const body =
+            await readJson(
+                request
+            );
+
+        const name =
+            cleanText(
+                body?.name
+            );
+
+        const description =
+            cleanText(
+                body?.description
+            );
+
+        if (!name) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите название программы"
+                },
+                400,
+                env
+            );
+        }
+
+        const columns =
+            await tableColumns(
+                env.DB,
+                "programs"
+            );
+
+        const nameColumn =
+            firstColumn(
+                columns,
+                ["name", "title"]
+            );
+
+        const descriptionColumn =
+            firstColumn(
+                columns,
+                [
+                    "description",
+                    "summary"
+                ]
+            );
+
+        const updates = [];
+        const values = [];
+
+        if (nameColumn) {
+            updates.push(
+                `${quoteIdentifier(
+                    nameColumn
+                )} = ?`
+            );
+
+            values.push(
+                name
+            );
+        }
+
+        if (descriptionColumn) {
+            updates.push(
+                `${quoteIdentifier(
+                    descriptionColumn
+                )} = ?`
+            );
+
+            values.push(
+                description || null
+            );
+        }
+
+        if (!updates.length) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Нет доступных полей для изменения"
+                },
+                500,
+                env
+            );
+        }
+
+        values.push(
+            programId
+        );
+
+        await run(
+            env.DB,
+            `
+            UPDATE programs
+            SET
+                ${updates.join(", ")}
+            WHERE id = ?
+            `,
+            values
+        );
+
+        const program =
+            await first(
+                env.DB,
+                `
+                SELECT *
+                FROM programs
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [
+                    programId
+                ]
+            );
+
+        return json(
+            {
+                ok: true,
+                program
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Update program:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось изменить программу"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleAdminUpdateCourse(
+    request,
+    env,
+    courseId
+) {
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        const body =
+            await readJson(
+                request
+            );
+
+        const name =
+            cleanText(
+                body?.name
+            );
+
+        const description =
+            cleanText(
+                body?.description
+            );
+
+        const programId =
+            positiveIntegerOrNull(
+                body?.program_id
+            );
+
+        if (!name) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Введите название курса"
+                },
+                400,
+                env
+            );
+        }
+
+        if (!programId) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Выберите программу"
+                },
+                400,
+                env
+            );
+        }
+
+        const columns =
+            await tableColumns(
+                env.DB,
+                "courses"
+            );
+
+        const nameColumn =
+            firstColumn(
+                columns,
+                ["name", "title"]
+            );
+
+        const descriptionColumn =
+            firstColumn(
+                columns,
+                [
+                    "description",
+                    "summary"
+                ]
+            );
+
+        const updates = [
+            "program_id = ?"
+        ];
+
+        const values = [
+            programId
+        ];
+
+        if (nameColumn) {
+            updates.push(
+                `${quoteIdentifier(
+                    nameColumn
+                )} = ?`
+            );
+
+            values.push(
+                name
+            );
+        }
+
+        if (descriptionColumn) {
+            updates.push(
+                `${quoteIdentifier(
+                    descriptionColumn
+                )} = ?`
+            );
+
+            values.push(
+                description || null
+            );
+        }
+
+        values.push(
+            courseId
+        );
+
+        await run(
+            env.DB,
+            `
+            UPDATE courses
+            SET
+                ${updates.join(", ")}
+            WHERE id = ?
+            `,
+            values
+        );
+
+        const course =
+            await first(
+                env.DB,
+                `
+                SELECT *
+                FROM courses
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [
+                    courseId
+                ]
+            );
+
+        return json(
+            {
+                ok: true,
+                course
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Update course:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось изменить курс"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleAdminDeleteProgram(
+    request,
+    env,
+    programId
+) {
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        const courses =
+            await first(
+                env.DB,
+                `
+                SELECT COUNT(*) AS count
+                FROM courses
+                WHERE program_id = ?
+                `,
+                [
+                    programId
+                ]
+            );
+
+        if (
+            Number(
+                courses?.count || 0
+            ) > 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Сначала удалите или перенесите курсы этой программы"
+                },
+                409,
+                env
+            );
+        }
+
+        await run(
+            env.DB,
+            `
+            DELETE FROM programs
+            WHERE id = ?
+            `,
+            [
+                programId
+            ]
+        );
+
+        return json(
+            {
+                ok: true
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Delete program:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось удалить программу"
+            },
+            500,
+            env
+        );
+    }
+}
+
+
+async function handleAdminDeleteCourse(
+    request,
+    env,
+    courseId
+) {
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+
+        const lessons =
+            await first(
+                env.DB,
+                `
+                SELECT COUNT(*) AS count
+                FROM lessons
+                WHERE course_id = ?
+                `,
+                [
+                    courseId
+                ]
+            );
+
+        if (
+            Number(
+                lessons?.count || 0
+            ) > 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Сначала удалите или перенесите уроки этого курса"
+                },
+                409,
+                env
+            );
+        }
+
+        await run(
+            env.DB,
+            `
+            DELETE FROM courses
+            WHERE id = ?
+            `,
+            [
+                courseId
+            ]
+        );
+
+        return json(
+            {
+                ok: true
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Delete course:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось удалить курс"
+            },
+            500,
+            env
+        );
     }
 }
 
