@@ -83,35 +83,7 @@ if (
 ) {
     return handlePasswordReset(request, env);
 }
-            if (
-    url.pathname === "/api/grades" &&
-    request.method === "GET"
-) {
-    return handleGrades(
-        request,
-        env
-    );
-}
-
-if (
-    url.pathname === "/api/admin/students/search" &&
-    request.method === "GET"
-) {
-    return handleAdminStudentSearch(
-        request,
-        env
-    );
-}
-
-if (
-    url.pathname === "/api/admin/students/grades" &&
-    request.method === "GET"
-) {
-    return handleAdminStudentGrades(
-        request,
-        env
-    );
-}
+        
             
 async function handleEmailSendCode(request, env) {
     if (!env.DB) return databaseMissing(env);
@@ -1468,24 +1440,7 @@ async function ensureEmailAuthSchema(db) {
             ) {
                 return handleGrades(request, env);
             }
-            if (
-    url.pathname === "/api/admin/students/search" &&
-    request.method === "GET"
-) {
-    return handleAdminStudentSearch(
-        request,
-        env
-    );
-}
-            if (
-    url.pathname === "/api/admin/students/grades" &&
-    request.method === "GET"
-) {
-    return handleAdminStudentGrades(
-        request,
-        env
-    );
-}
+           
             if (
     url.pathname === "/api/grades/details" &&
     request.method === "GET"
