@@ -6419,36 +6419,10 @@ async function loadAdminProgramsManager() {
 
     try {
 
-        const response =
-            await fetch(
-                "/api/programs",
-                {
-                    credentials:
-                        "same-origin"
-                }
-            );
-
         const data =
-            await response
-                .json()
-                .catch(() => ({}));
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            container.innerHTML = `
-                <div class="rauda-admin-empty">
-                    ${raudaAdminEscape(
-                        data.error ||
-                        "Не удалось загрузить программы"
-                    )}
-                </div>
-            `;
-
-            return;
-        }
+    await api(
+        "/api/programs"
+    );
 
         raudaAdminPrograms =
             Array.isArray(
@@ -6611,36 +6585,10 @@ async function loadAdminCoursesManager() {
 
     try {
 
-        const response =
-            await fetch(
-                "/api/courses",
-                {
-                    credentials:
-                        "same-origin"
-                }
-            );
-
         const data =
-            await response
-                .json()
-                .catch(() => ({}));
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            container.innerHTML = `
-                <div class="rauda-admin-empty">
-                    ${raudaAdminEscape(
-                        data.error ||
-                        "Не удалось загрузить курсы"
-                    )}
-                </div>
-            `;
-
-            return;
-        }
+    await api(
+        "/api/courses"
+    );
 
         raudaAdminCourses =
             Array.isArray(
