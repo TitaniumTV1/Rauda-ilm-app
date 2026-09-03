@@ -2410,6 +2410,247 @@ td {
 }
 
 </style>
+
+  <style id="rauda-admin-content-manager-v1">
+
+.rauda-admin-modal[hidden] {
+    display: none !important;
+}
+
+.rauda-admin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 16px;
+}
+
+.rauda-admin-modal-backdrop {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(20, 29, 24, 0.48);
+    backdrop-filter: blur(4px);
+}
+
+.rauda-admin-modal-card {
+    position: relative;
+    z-index: 1;
+
+    width: min(100%, 540px);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+
+    padding: 20px;
+
+    border: 1px solid #d9ceb5;
+    border-radius: 22px;
+
+    background: #f9f4e7;
+    color: #183d2c;
+
+    box-shadow:
+        0 24px 70px
+        rgba(20, 35, 27, 0.22);
+}
+
+.rauda-admin-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+
+    margin-bottom: 18px;
+}
+
+.rauda-admin-modal-head h3 {
+    margin: 3px 0 0;
+    font-size: 20px;
+}
+
+.rauda-admin-modal-close {
+    width: 38px;
+    height: 38px;
+
+    flex: 0 0 auto;
+
+    border: 1px solid #d8cdb5;
+    border-radius: 11px;
+
+    background: #fffaf0;
+    color: #183d2c;
+
+    font-size: 24px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.rauda-admin-modal-fields {
+    display: grid;
+    gap: 13px;
+}
+
+.rauda-admin-modal-fields label {
+    display: block;
+    margin-bottom: 5px;
+
+    color: #6d726b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.rauda-admin-modal-fields input,
+.rauda-admin-modal-fields select,
+.rauda-admin-modal-fields textarea {
+    width: 100%;
+
+    border: 1px solid #d8ceb7;
+    border-radius: 12px;
+
+    background: #fffaf0;
+    color: #183d2c;
+
+    font: inherit;
+}
+
+.rauda-admin-modal-fields input,
+.rauda-admin-modal-fields select {
+    min-height: 44px;
+    padding: 0 12px;
+}
+
+.rauda-admin-modal-fields textarea {
+    padding: 12px;
+    resize: vertical;
+}
+
+.rauda-admin-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+
+    margin-top: 16px;
+}
+
+.rauda-admin-content-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+
+    width: 100%;
+    padding: 13px;
+
+    border: 1px solid #ded4bd;
+    border-radius: 14px;
+
+    background: #fffaf0;
+}
+
+.rauda-admin-content-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.rauda-admin-content-name {
+    color: #183d2c;
+    font-size: 14px;
+    font-weight: 800;
+
+    overflow-wrap: anywhere;
+}
+
+.rauda-admin-content-description {
+    margin-top: 4px;
+
+    color: #7b8078;
+    font-size: 12px;
+    line-height: 1.45;
+
+    overflow-wrap: anywhere;
+}
+
+.rauda-admin-content-meta {
+    margin-top: 5px;
+
+    color: #a18448;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.rauda-admin-content-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    flex: 0 0 auto;
+}
+
+.rauda-admin-content-actions button {
+    min-height: 34px;
+    padding: 0 10px;
+
+    border-radius: 9px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.rauda-admin-content-edit {
+    border: 1px solid #cbbc96;
+    background: #f2e6c9;
+    color: #5f4c20;
+}
+
+.rauda-admin-content-delete {
+    border: 1px solid #dfc5bc;
+    background: #f3dfd9;
+    color: #8e5045;
+}
+
+@media (max-width: 650px) {
+
+    .rauda-admin-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .rauda-admin-modal-card {
+        width: 100%;
+        max-height: 92vh;
+
+        border-radius: 22px 22px 0 0;
+    }
+
+    .rauda-admin-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .rauda-admin-modal-actions button {
+        width: 100%;
+    }
+
+    .rauda-admin-content-item {
+        flex-direction: column;
+    }
+
+    .rauda-admin-content-actions {
+        width: 100%;
+    }
+
+    .rauda-admin-content-actions button {
+        flex: 1;
+    }
+}
+
+</style>
 </head>
   <script>
 function switchAdminTab(tabName) {
@@ -5918,6 +6159,1300 @@ function switchAdminTab(tabName) {
             }
         );
 }
+
+</script>
+
+  <!-- =========================
+     RAUDA PROGRAM MODAL
+     ========================= -->
+
+<div
+    id="programAdminModal"
+    class="rauda-admin-modal"
+    hidden
+>
+    <div
+        class="rauda-admin-modal-backdrop"
+        onclick="closeProgramAdminModal()"
+    ></div>
+
+    <div class="rauda-admin-modal-card">
+
+        <div class="rauda-admin-modal-head">
+
+            <div>
+                <div class="rauda-admin-card-kicker">
+                    RAUDA ILM
+                </div>
+
+                <h3 id="programAdminModalTitle">
+                    Новая программа
+                </h3>
+            </div>
+
+            <button
+                type="button"
+                class="rauda-admin-modal-close"
+                onclick="closeProgramAdminModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <input
+            id="programAdminId"
+            type="hidden"
+        >
+
+        <div class="rauda-admin-modal-fields">
+
+            <div>
+                <label>
+                    Название программы
+                </label>
+
+                <input
+                    id="programAdminName"
+                    type="text"
+                    placeholder="Например: Основы исламских знаний"
+                >
+            </div>
+
+            <div>
+                <label>
+                    Описание
+                </label>
+
+                <textarea
+                    id="programAdminDescription"
+                    rows="5"
+                    placeholder="Описание программы"
+                ></textarea>
+            </div>
+
+        </div>
+
+        <div
+            id="programAdminStatus"
+            class="rauda-admin-status"
+        ></div>
+
+        <div class="rauda-admin-modal-actions">
+
+            <button
+                type="button"
+                class="rauda-admin-secondary"
+                onclick="closeProgramAdminModal()"
+            >
+                Отмена
+            </button>
+
+            <button
+                type="button"
+                class="rauda-admin-primary"
+                onclick="saveAdminProgram()"
+            >
+                Сохранить
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+
+<!-- =========================
+     RAUDA COURSE MODAL
+     ========================= -->
+
+<div
+    id="courseAdminModal"
+    class="rauda-admin-modal"
+    hidden
+>
+    <div
+        class="rauda-admin-modal-backdrop"
+        onclick="closeCourseAdminModal()"
+    ></div>
+
+    <div class="rauda-admin-modal-card">
+
+        <div class="rauda-admin-modal-head">
+
+            <div>
+                <div class="rauda-admin-card-kicker">
+                    RAUDA ILM
+                </div>
+
+                <h3 id="courseAdminModalTitle">
+                    Новый курс
+                </h3>
+            </div>
+
+            <button
+                type="button"
+                class="rauda-admin-modal-close"
+                onclick="closeCourseAdminModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <input
+            id="courseAdminId"
+            type="hidden"
+        >
+
+        <div class="rauda-admin-modal-fields">
+
+            <div>
+                <label>
+                    Программа
+                </label>
+
+                <select id="courseAdminProgram">
+                    <option value="">
+                        Выберите программу
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <label>
+                    Название курса
+                </label>
+
+                <input
+                    id="courseAdminName"
+                    type="text"
+                    placeholder="Название курса"
+                >
+            </div>
+
+            <div>
+                <label>
+                    Описание
+                </label>
+
+                <textarea
+                    id="courseAdminDescription"
+                    rows="5"
+                    placeholder="Описание курса"
+                ></textarea>
+            </div>
+
+        </div>
+
+        <div
+            id="courseAdminStatus"
+            class="rauda-admin-status"
+        ></div>
+
+        <div class="rauda-admin-modal-actions">
+
+            <button
+                type="button"
+                class="rauda-admin-secondary"
+                onclick="closeCourseAdminModal()"
+            >
+                Отмена
+            </button>
+
+            <button
+                type="button"
+                class="rauda-admin-primary"
+                onclick="saveAdminCourse()"
+            >
+                Сохранить
+            </button>
+
+        </div>
+
+    </div>
+</div>
+  <script id="rauda-admin-content-manager-script">
+
+let raudaAdminPrograms = [];
+let raudaAdminCourses = [];
+
+
+/* =========================================
+   ESCAPE
+   ========================================= */
+
+function raudaAdminEscape(value) {
+
+    return String(
+        value ?? ""
+    )
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* =========================================
+   LOAD PROGRAMS
+   ========================================= */
+
+async function loadAdminProgramsManager() {
+
+    const container =
+        document.getElementById(
+            "adminProgramsList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="rauda-admin-empty">
+            Загружаем программы...
+        </div>
+    `;
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/programs",
+                {
+                    credentials:
+                        "same-origin"
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            container.innerHTML = `
+                <div class="rauda-admin-empty">
+                    ${raudaAdminEscape(
+                        data.error ||
+                        "Не удалось загрузить программы"
+                    )}
+                </div>
+            `;
+
+            return;
+        }
+
+        raudaAdminPrograms =
+            Array.isArray(
+                data.programs
+            )
+                ? data.programs
+                : [];
+
+        renderAdminPrograms();
+
+        fillAdminProgramSelects();
+
+    } catch (error) {
+
+        console.error(
+            "Admin programs:",
+            error
+        );
+
+        container.innerHTML = `
+            <div class="rauda-admin-empty">
+                Ошибка загрузки программ.
+            </div>
+        `;
+    }
+}
+
+
+function renderAdminPrograms() {
+
+    const container =
+        document.getElementById(
+            "adminProgramsList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    if (!raudaAdminPrograms.length) {
+
+        container.innerHTML = `
+            <div class="rauda-admin-empty">
+                Программ пока нет.
+                Нажмите «+ Добавить».
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        raudaAdminPrograms
+            .map(
+                program => {
+
+                    const name =
+                        program.name ||
+                        program.title ||
+                        "Без названия";
+
+                    const description =
+                        program.description ||
+                        program.summary ||
+                        "";
+
+                    const coursesCount =
+                        raudaAdminCourses.filter(
+                            course =>
+                                Number(
+                                    course.program_id
+                                ) ===
+                                Number(
+                                    program.id
+                                )
+                        ).length;
+
+                    return `
+                        <div class="rauda-admin-content-item">
+
+                            <div class="rauda-admin-content-info">
+
+                                <div class="rauda-admin-content-name">
+                                    ${raudaAdminEscape(name)}
+                                </div>
+
+                                ${
+                                    description
+                                        ? `
+                                            <div class="rauda-admin-content-description">
+                                                ${raudaAdminEscape(description)}
+                                            </div>
+                                        `
+                                        : ""
+                                }
+
+                                <div class="rauda-admin-content-meta">
+                                    ${coursesCount}
+                                    ${
+                                        coursesCount === 1
+                                            ? "курс"
+                                            : "курсов"
+                                    }
+                                </div>
+
+                            </div>
+
+                            <div class="rauda-admin-content-actions">
+
+                                <button
+                                    type="button"
+                                    class="rauda-admin-content-edit"
+                                    onclick="editAdminProgram(${Number(
+                                        program.id
+                                    )})"
+                                >
+                                    Изменить
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="rauda-admin-content-delete"
+                                    onclick="deleteAdminProgram(${Number(
+                                        program.id
+                                    )})"
+                                >
+                                    Удалить
+                                </button>
+
+                            </div>
+
+                        </div>
+                    `;
+                }
+            )
+            .join("");
+}
+
+
+/* =========================================
+   LOAD COURSES
+   ========================================= */
+
+async function loadAdminCoursesManager() {
+
+    const container =
+        document.getElementById(
+            "adminCoursesList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="rauda-admin-empty">
+            Загружаем курсы...
+        </div>
+    `;
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/courses",
+                {
+                    credentials:
+                        "same-origin"
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            container.innerHTML = `
+                <div class="rauda-admin-empty">
+                    ${raudaAdminEscape(
+                        data.error ||
+                        "Не удалось загрузить курсы"
+                    )}
+                </div>
+            `;
+
+            return;
+        }
+
+        raudaAdminCourses =
+            Array.isArray(
+                data.courses
+            )
+                ? data.courses
+                : [];
+
+        renderAdminCourses();
+        renderAdminPrograms();
+
+        fillAdminProgramSelects();
+
+    } catch (error) {
+
+        console.error(
+            "Admin courses:",
+            error
+        );
+
+        container.innerHTML = `
+            <div class="rauda-admin-empty">
+                Ошибка загрузки курсов.
+            </div>
+        `;
+    }
+}
+
+
+function renderAdminCourses() {
+
+    const container =
+        document.getElementById(
+            "adminCoursesList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    if (!raudaAdminCourses.length) {
+
+        container.innerHTML = `
+            <div class="rauda-admin-empty">
+                Курсов пока нет.
+                Сначала создайте программу,
+                затем добавьте курс.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        raudaAdminCourses
+            .map(
+                course => {
+
+                    const name =
+                        course.name ||
+                        course.title ||
+                        "Без названия";
+
+                    const description =
+                        course.description ||
+                        course.summary ||
+                        "";
+
+                    const program =
+                        raudaAdminPrograms.find(
+                            item =>
+                                Number(
+                                    item.id
+                                ) ===
+                                Number(
+                                    course.program_id
+                                )
+                        );
+
+                    const programName =
+                        program?.name ||
+                        program?.title ||
+                        "Без программы";
+
+                    return `
+                        <div class="rauda-admin-content-item">
+
+                            <div class="rauda-admin-content-info">
+
+                                <div class="rauda-admin-content-name">
+                                    ${raudaAdminEscape(name)}
+                                </div>
+
+                                <div class="rauda-admin-content-meta">
+                                    ${raudaAdminEscape(programName)}
+                                </div>
+
+                                ${
+                                    description
+                                        ? `
+                                            <div class="rauda-admin-content-description">
+                                                ${raudaAdminEscape(description)}
+                                            </div>
+                                        `
+                                        : ""
+                                }
+
+                            </div>
+
+                            <div class="rauda-admin-content-actions">
+
+                                <button
+                                    type="button"
+                                    class="rauda-admin-content-edit"
+                                    onclick="editAdminCourse(${Number(
+                                        course.id
+                                    )})"
+                                >
+                                    Изменить
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="rauda-admin-content-delete"
+                                    onclick="deleteAdminCourse(${Number(
+                                        course.id
+                                    )})"
+                                >
+                                    Удалить
+                                </button>
+
+                            </div>
+
+                        </div>
+                    `;
+                }
+            )
+            .join("");
+}
+
+
+/* =========================================
+   PROGRAM SELECTS
+   ========================================= */
+
+function fillAdminProgramSelects() {
+
+    const selects = [
+        document.getElementById(
+            "courseAdminProgram"
+        ),
+        document.getElementById(
+            "lessonProgram"
+        )
+    ];
+
+    const options =
+        raudaAdminPrograms
+            .map(
+                program => {
+
+                    const name =
+                        program.name ||
+                        program.title ||
+                        "Программа";
+
+                    return `
+                        <option value="${Number(program.id)}">
+                            ${raudaAdminEscape(name)}
+                        </option>
+                    `;
+                }
+            )
+            .join("");
+
+    for (const select of selects) {
+
+        if (!select) {
+            continue;
+        }
+
+        const currentValue =
+            select.value;
+
+        select.innerHTML =
+            `
+            <option value="">
+                Выберите программу
+            </option>
+            ` +
+            options;
+
+        if (
+            currentValue &&
+            Array.from(
+                select.options
+            ).some(
+                option =>
+                    option.value ===
+                    currentValue
+            )
+        ) {
+            select.value =
+                currentValue;
+        }
+    }
+}
+
+
+/* =========================================
+   PROGRAM MODAL
+   ========================================= */
+
+function openProgramCreate() {
+
+    document.getElementById(
+        "programAdminId"
+    ).value = "";
+
+    document.getElementById(
+        "programAdminName"
+    ).value = "";
+
+    document.getElementById(
+        "programAdminDescription"
+    ).value = "";
+
+    document.getElementById(
+        "programAdminModalTitle"
+    ).textContent =
+        "Новая программа";
+
+    document.getElementById(
+        "programAdminStatus"
+    ).textContent = "";
+
+    document.getElementById(
+        "programAdminModal"
+    ).hidden = false;
+}
+
+
+function editAdminProgram(
+    programId
+) {
+
+    const program =
+        raudaAdminPrograms.find(
+            item =>
+                Number(item.id) ===
+                Number(programId)
+        );
+
+    if (!program) {
+        return;
+    }
+
+    document.getElementById(
+        "programAdminId"
+    ).value =
+        program.id;
+
+    document.getElementById(
+        "programAdminName"
+    ).value =
+        program.name ||
+        program.title ||
+        "";
+
+    document.getElementById(
+        "programAdminDescription"
+    ).value =
+        program.description ||
+        program.summary ||
+        "";
+
+    document.getElementById(
+        "programAdminModalTitle"
+    ).textContent =
+        "Редактировать программу";
+
+    document.getElementById(
+        "programAdminStatus"
+    ).textContent = "";
+
+    document.getElementById(
+        "programAdminModal"
+    ).hidden = false;
+}
+
+
+function closeProgramAdminModal() {
+
+    document.getElementById(
+        "programAdminModal"
+    ).hidden = true;
+}
+
+
+async function saveAdminProgram() {
+
+    const id =
+        Number(
+            document.getElementById(
+                "programAdminId"
+            ).value
+        );
+
+    const name =
+        document.getElementById(
+            "programAdminName"
+        ).value.trim();
+
+    const description =
+        document.getElementById(
+            "programAdminDescription"
+        ).value.trim();
+
+    const status =
+        document.getElementById(
+            "programAdminStatus"
+        );
+
+    if (!name) {
+        status.textContent =
+            "Введите название программы";
+        return;
+    }
+
+    status.textContent =
+        "Сохраняем...";
+
+    try {
+
+        const editing =
+            Number.isInteger(id) &&
+            id > 0;
+
+        const response =
+            await fetch(
+                editing
+                    ? "/api/admin/programs/" +
+                      encodeURIComponent(id)
+                    : "/api/admin/programs",
+                {
+                    method:
+                        editing
+                            ? "PATCH"
+                            : "POST",
+
+                    credentials:
+                        "same-origin",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            name,
+                            description
+                        })
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+            status.textContent =
+                data.error ||
+                "Не удалось сохранить программу";
+            return;
+        }
+
+        closeProgramAdminModal();
+
+        await Promise.all([
+            loadAdminProgramsManager(),
+            loadAdminCoursesManager()
+        ]);
+
+    } catch (error) {
+
+        console.error(
+            "Save program:",
+            error
+        );
+
+        status.textContent =
+            "Ошибка соединения";
+    }
+}
+
+
+async function deleteAdminProgram(
+    programId
+) {
+
+    const program =
+        raudaAdminPrograms.find(
+            item =>
+                Number(item.id) ===
+                Number(programId)
+        );
+
+    if (!program) {
+        return;
+    }
+
+    const name =
+        program.name ||
+        program.title ||
+        "программу";
+
+    if (
+        !confirm(
+            `Удалить программу «${name}»?`
+        )
+    ) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/admin/programs/" +
+                encodeURIComponent(
+                    programId
+                ),
+                {
+                    method: "DELETE",
+                    credentials:
+                        "same-origin"
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+            alert(
+                data.error ||
+                "Не удалось удалить программу"
+            );
+            return;
+        }
+
+        await Promise.all([
+            loadAdminProgramsManager(),
+            loadAdminCoursesManager()
+        ]);
+
+    } catch (error) {
+
+        console.error(
+            "Delete program:",
+            error
+        );
+
+        alert(
+            "Ошибка соединения"
+        );
+    }
+}
+
+
+/* =========================================
+   COURSE MODAL
+   ========================================= */
+
+function openCourseCreate() {
+
+    if (!raudaAdminPrograms.length) {
+
+        alert(
+            "Сначала создайте образовательную программу"
+        );
+
+        return;
+    }
+
+    fillAdminProgramSelects();
+
+    document.getElementById(
+        "courseAdminId"
+    ).value = "";
+
+    document.getElementById(
+        "courseAdminProgram"
+    ).value = "";
+
+    document.getElementById(
+        "courseAdminName"
+    ).value = "";
+
+    document.getElementById(
+        "courseAdminDescription"
+    ).value = "";
+
+    document.getElementById(
+        "courseAdminModalTitle"
+    ).textContent =
+        "Новый курс";
+
+    document.getElementById(
+        "courseAdminStatus"
+    ).textContent = "";
+
+    document.getElementById(
+        "courseAdminModal"
+    ).hidden = false;
+}
+
+
+function editAdminCourse(
+    courseId
+) {
+
+    const course =
+        raudaAdminCourses.find(
+            item =>
+                Number(item.id) ===
+                Number(courseId)
+        );
+
+    if (!course) {
+        return;
+    }
+
+    fillAdminProgramSelects();
+
+    document.getElementById(
+        "courseAdminId"
+    ).value =
+        course.id;
+
+    document.getElementById(
+        "courseAdminProgram"
+    ).value =
+        String(
+            course.program_id ||
+            ""
+        );
+
+    document.getElementById(
+        "courseAdminName"
+    ).value =
+        course.name ||
+        course.title ||
+        "";
+
+    document.getElementById(
+        "courseAdminDescription"
+    ).value =
+        course.description ||
+        course.summary ||
+        "";
+
+    document.getElementById(
+        "courseAdminModalTitle"
+    ).textContent =
+        "Редактировать курс";
+
+    document.getElementById(
+        "courseAdminStatus"
+    ).textContent = "";
+
+    document.getElementById(
+        "courseAdminModal"
+    ).hidden = false;
+}
+
+
+function closeCourseAdminModal() {
+
+    document.getElementById(
+        "courseAdminModal"
+    ).hidden = true;
+}
+
+
+async function saveAdminCourse() {
+
+    const id =
+        Number(
+            document.getElementById(
+                "courseAdminId"
+            ).value
+        );
+
+    const programId =
+        Number(
+            document.getElementById(
+                "courseAdminProgram"
+            ).value
+        );
+
+    const name =
+        document.getElementById(
+            "courseAdminName"
+        ).value.trim();
+
+    const description =
+        document.getElementById(
+            "courseAdminDescription"
+        ).value.trim();
+
+    const status =
+        document.getElementById(
+            "courseAdminStatus"
+        );
+
+    if (!programId) {
+        status.textContent =
+            "Выберите программу";
+        return;
+    }
+
+    if (!name) {
+        status.textContent =
+            "Введите название курса";
+        return;
+    }
+
+    status.textContent =
+        "Сохраняем...";
+
+    try {
+
+        const editing =
+            Number.isInteger(id) &&
+            id > 0;
+
+        const response =
+            await fetch(
+                editing
+                    ? "/api/admin/courses/" +
+                      encodeURIComponent(id)
+                    : "/api/admin/courses",
+                {
+                    method:
+                        editing
+                            ? "PATCH"
+                            : "POST",
+
+                    credentials:
+                        "same-origin",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            program_id:
+                                programId,
+                            name,
+                            description
+                        })
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            status.textContent =
+                data.error ||
+                "Не удалось сохранить курс";
+
+            return;
+        }
+
+        closeCourseAdminModal();
+
+        await loadAdminCoursesManager();
+
+    } catch (error) {
+
+        console.error(
+            "Save course:",
+            error
+        );
+
+        status.textContent =
+            "Ошибка соединения";
+    }
+}
+
+
+async function deleteAdminCourse(
+    courseId
+) {
+
+    const course =
+        raudaAdminCourses.find(
+            item =>
+                Number(item.id) ===
+                Number(courseId)
+        );
+
+    if (!course) {
+        return;
+    }
+
+    const name =
+        course.name ||
+        course.title ||
+        "курс";
+
+    if (
+        !confirm(
+            `Удалить курс «${name}»?`
+        )
+    ) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/admin/courses/" +
+                encodeURIComponent(
+                    courseId
+                ),
+                {
+                    method: "DELETE",
+                    credentials:
+                        "same-origin"
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            alert(
+                data.error ||
+                "Не удалось удалить курс"
+            );
+
+            return;
+        }
+
+        await loadAdminCoursesManager();
+
+    } catch (error) {
+
+        console.error(
+            "Delete course:",
+            error
+        );
+
+        alert(
+            "Ошибка соединения"
+        );
+    }
+}
+
+
+/* =========================================
+   INITIAL LOAD
+   ========================================= */
+
+async function initializeRaudaContentManager() {
+
+    await loadAdminProgramsManager();
+
+    await loadAdminCoursesManager();
+}
+
+
+/*
+ * Если пользователь уже вошёл,
+ * данные загрузятся после открытия страницы.
+ */
+window.addEventListener(
+    "load",
+    function () {
+
+        setTimeout(
+            initializeRaudaContentManager,
+            300
+        );
+    }
+);
 
 </script>
   
