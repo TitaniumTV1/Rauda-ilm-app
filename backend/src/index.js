@@ -4675,6 +4675,350 @@ async function handleAdminStudentSearch(
     }
 }
 
+async function handleAdminStudentGrades(
+    request,
+    env
+) {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    const role =
+        String(
+            auth.user.role || ""
+        ).toLowerCase();
+
+    if (
+        ![
+            "owner",
+            "superadmin",
+            "admin"
+        ].includes(role)
+    ) {
+        return json(
+            {
+                ok: false,
+                error: "Недостаточно прав"
+            },
+            403,
+            env
+        );
+    }
+
+    try {
+
+        const url =
+            new URL(
+                request.url
+            );
+
+        const userId =
+            Number(
+                url.searchParams.get(
+                    "user_id"
+                )
+            );
+
+        if (
+            !Number.isInteger(userId) ||
+            userId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error: "Некорректный ID ученика"
+                },
+                400,
+                env
+            );
+        }
+
+        const student =
+            await first(
+                env.DB,
+                `
+                SELECT
+                    id,
+                    account_id,
+                    login,
+                    username,
+                    first_name,
+                    last_name,
+                    email,
+                    status
+                FROM users
+                WHERE
+                    id = ?
+                    AND role = 'student'
+                LIMIT 1
+                `,
+                [
+                    userId
+                ]
+            );
+
+        if (!student) {
+            return json(
+                {
+                    ok: false,
+                    error: "Ученик не найден"
+                },
+                404,
+                env
+            );
+        }
+
+        const testAttempts =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    ta.id,
+                    ta.test_id AS assessment_id,
+                    ta.course_id,
+                    ta.attempt_number,
+                    ta.score,
+                    ta.max_score,
+                    ta.percentage,
+                    ta.passed,
+                    ta.submitted_at,
+
+                    t.title,
+                    t.passing_score,
+                    t.attempts_allowed,
+
+                    c.name AS course_name
+
+                FROM test_attempts ta
+
+                LEFT JOIN tests t
+                    ON t.id = ta.test_id
+
+                LEFT JOIN courses c
+                    ON c.id = ta.course_id
+
+                WHERE
+                    ta.user_id = ?
+                    AND ta.submitted_at IS NOT NULL
+
+                ORDER BY
+                    ta.submitted_at DESC,
+                    ta.id DESC
+                `,
+                [
+                    userId
+                ]
+            );
+
+        const examAttempts =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    ea.id,
+                    ea.exam_id AS assessment_id,
+                    ea.course_id,
+                    ea.attempt_number,
+                    ea.score,
+                    ea.max_score,
+                    ea.percentage,
+                    ea.passed,
+                    ea.grade,
+                    ea.submitted_at,
+
+                    e.title,
+                    e.passing_score,
+                    e.attempts_allowed,
+
+                    c.name AS course_name
+
+                FROM exam_attempts ea
+
+                LEFT JOIN exams e
+                    ON e.id = ea.exam_id
+
+                LEFT JOIN courses c
+                    ON c.id = ea.course_id
+
+                WHERE
+                    ea.user_id = ?
+                    AND ea.submitted_at IS NOT NULL
+
+                ORDER BY
+                    ea.submitted_at DESC,
+                    ea.id DESC
+                `,
+                [
+                    userId
+                ]
+            );
+
+        const grades = [];
+
+        for (
+            const item of testAttempts || []
+        ) {
+
+            grades.push({
+                type: "test",
+
+                attempt_id:
+                    Number(item.id),
+
+                assessment_id:
+                    Number(item.assessment_id),
+
+                course_id:
+                    Number(item.course_id),
+
+                course_name:
+                    item.course_name || "Курс",
+
+                title:
+                    item.title || "Тест",
+
+                attempt_number:
+                    Number(
+                        item.attempt_number
+                    ) || 1,
+
+                score:
+                    Number(item.score) || 0,
+
+                max_score:
+                    Number(item.max_score) || 100,
+
+                percentage:
+                    Number(item.percentage) || 0,
+
+                passing_score:
+                    Number(item.passing_score) || 60,
+
+                attempts_allowed:
+                    Number(item.attempts_allowed) || 1,
+
+                passed:
+                    Number(item.passed) === 1 ||
+                    Number(item.percentage) >=
+                    (
+                        Number(item.passing_score) || 60
+                    ),
+
+                submitted_at:
+                    item.submitted_at || null
+            });
+        }
+
+        for (
+            const item of examAttempts || []
+        ) {
+
+            grades.push({
+                type: "exam",
+
+                attempt_id:
+                    Number(item.id),
+
+                assessment_id:
+                    Number(item.assessment_id),
+
+                course_id:
+                    Number(item.course_id),
+
+                course_name:
+                    item.course_name || "Курс",
+
+                title:
+                    item.title || "Экзамен",
+
+                attempt_number:
+                    Number(
+                        item.attempt_number
+                    ) || 1,
+
+                score:
+                    Number(item.score) || 0,
+
+                max_score:
+                    Number(item.max_score) || 100,
+
+                percentage:
+                    Number(item.percentage) || 0,
+
+                passing_score:
+                    Number(item.passing_score) || 60,
+
+                attempts_allowed:
+                    Number(item.attempts_allowed) || 1,
+
+                passed:
+                    Number(item.passed) === 1 ||
+                    Number(item.percentage) >=
+                    (
+                        Number(item.passing_score) || 60
+                    ),
+
+                grade:
+                    item.grade || null,
+
+                submitted_at:
+                    item.submitted_at || null
+            });
+        }
+
+        grades.sort(
+            (a, b) =>
+                (
+                    Date.parse(
+                        b.submitted_at || ""
+                    ) || 0
+                ) -
+                (
+                    Date.parse(
+                        a.submitted_at || ""
+                    ) || 0
+                )
+        );
+
+        return json(
+            {
+                ok: true,
+                student,
+                grades
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Admin student grades:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось загрузить оценки ученика"
+            },
+            500,
+            env
+        );
+    }
+}
+
 async function handleLessonFileUpload(request, env, lessonId) {
     const auth = await requireAdmin(request, env);
     if (!auth.ok) return authError(auth, env);
