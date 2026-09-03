@@ -1595,16 +1595,46 @@ a:focus:not(:focus-visible) {
     }
 
     function showWorkspace(user) {
-      state.user = user;
 
-      loginView.classList.add("hidden");
-      workspace.classList.remove("hidden");
-      logoutButton.classList.remove("hidden");
+    state.user = user;
 
-      userName.textContent = `${user.first_name || user.login || "Пользователь"} · ${user.role}`;
-      setStatus(loginStatus);
+    loginView.classList.add(
+        "hidden"
+    );
+
+    workspace.classList.remove(
+        "hidden"
+    );
+
+    logoutButton.classList.remove(
+        "hidden"
+    );
+
+    userName.textContent =
+        `${user.first_name || user.login || "Пользователь"} · ${user.role}`;
+
+    const ownerPanel =
+        document.getElementById(
+            "ownerAdminPasswordPanel"
+        );
+
+    if (ownerPanel) {
+
+        const role =
+            String(
+                user.role || ""
+            ).toLowerCase();
+
+        ownerPanel.style.display =
+            role === "owner"
+                ? "block"
+                : "none";
     }
 
+    setStatus(
+        loginStatus
+    );
+}
     function resetLessonForm() {
       $("#lesson-form").reset();
       $("#is-visible").checked = true;
@@ -2163,6 +2193,98 @@ document
     });
 
     initialise();
+    async function ownerChangeAdminPassword() {
+
+    const userId =
+        Number(
+            document.getElementById(
+                "ownerAdminUserId"
+            ).value
+        );
+
+    const password =
+        document.getElementById(
+            "ownerAdminNewPassword"
+        ).value;
+
+    const repeat =
+        document.getElementById(
+            "ownerAdminRepeatPassword"
+        ).value;
+
+    const result =
+        document.getElementById(
+            "ownerAdminPasswordResult"
+        );
+
+    if (!userId) {
+        result.textContent =
+            "Укажите ID администратора";
+        return;
+    }
+
+    if (password.length < 8) {
+        result.textContent =
+            "Минимум 8 символов";
+        return;
+    }
+
+    if (password !== repeat) {
+        result.textContent =
+            "Пароли не совпадают";
+        return;
+    }
+
+    result.textContent =
+        "Сохраняем...";
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/admin/users/change-password",
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        new_password: password
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.ok) {
+            result.textContent =
+                data.error ||
+                "Не удалось изменить пароль";
+            return;
+        }
+
+        result.textContent =
+            "Пароль изменён";
+
+        document.getElementById(
+            "ownerAdminNewPassword"
+        ).value = "";
+
+        document.getElementById(
+            "ownerAdminRepeatPassword"
+        ).value = "";
+
+    } catch (error) {
+
+        console.error(error);
+
+        result.textContent =
+            "Ошибка соединения";
+    }
+}
   </script>
 
 <script id="rauda-assessment-admin-v1-script">
@@ -3379,6 +3501,43 @@ document
 
 </script>
 
+  <section id="ownerAdminPasswordPanel" style="display:none; margin-top:24px;">
+
+    <h2>Управление администраторами</h2>
+
+    <div style="display:grid; gap:10px; max-width:420px;">
+
+        <input
+            id="ownerAdminUserId"
+            type="number"
+            placeholder="ID администратора"
+        >
+
+        <input
+            id="ownerAdminNewPassword"
+            type="password"
+            placeholder="Новый пароль"
+        >
+
+        <input
+            id="ownerAdminRepeatPassword"
+            type="password"
+            placeholder="Повторите пароль"
+        >
+
+        <button
+            type="button"
+            onclick="ownerChangeAdminPassword()"
+        >
+            Сменить пароль администратора
+        </button>
+
+        <div id="ownerAdminPasswordResult"></div>
+
+    </div>
+
+</section>
+  
 </body>
 </html>
 
