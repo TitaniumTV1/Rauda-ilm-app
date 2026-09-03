@@ -5107,7 +5107,15 @@ raudaAssessmentData = result;
                         )
                         ?.value
                 );
+          
+if (!type || !assessmentId) {
+    adminStatus(
+        "Сначала выберите тест или экзамен.",
+        true
+    );
 
+    return;
+}
 
             const result =
                 await api(
