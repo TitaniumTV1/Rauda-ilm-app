@@ -3857,44 +3857,64 @@ return data.lesson;
     async function initialise() {
     renderSelectedFiles();
 
-    try {
-        const result = await api("/api/auth/me");
+    let result;
 
-        if (
-            !ADMIN_ROLES.has(
-                String(result.user?.role || "").toLowerCase()
-            )
-        ) {
-            showLogin(
-                "У этой учётной записи нет прав администратора."
-            );
+    try {
+        result = await api("/api/auth/me");
+    } catch (error) {
+
+        if (error?.status === 401) {
+            showLogin("");
             return;
         }
 
-        showWorkspace(result.user);
+        console.error(
+            "Auth check:",
+            error
+        );
 
-        await Promise.all([
-            loadPrograms(),
-            loadCourses()
-        ]);
+        showLogin(
+            "Не удалось проверить авторизацию."
+        );
 
+        return;
+    }
+
+    if (
+        !ADMIN_ROLES.has(
+            String(
+                result.user?.role || ""
+            ).toLowerCase()
+        )
+    ) {
+        showLogin(
+            "У этой учётной записи нет прав администратора."
+        );
+        return;
+    }
+
+    showWorkspace(result.user);
+
+    try {
         await initializeRaudaContentManager();
+    } catch (error) {
+        console.error(
+            "Content manager:",
+            error
+        );
+    }
 
+    try {
         if (
             typeof window.loadRaudaAssessmentDashboard ===
             "function"
         ) {
             await window.loadRaudaAssessmentDashboard();
         }
-
     } catch (error) {
-
-        if (error?.status === 401) {
-            localStorage.removeItem(TOKEN_KEY);
-        }
-
-        showLogin(
-            "Сессия истекла. Войдите снова."
+        console.error(
+            "Assessment dashboard:",
+            error
         );
     }
 }
