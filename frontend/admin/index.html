@@ -4962,6 +4962,14 @@ raudaAssessmentData = result;
                         ?.value
                 );
 
+          if (!userId || !type || !assessmentId) {
+    adminStatus(
+        "Сначала выберите ученика и тест или экзамен.",
+        true
+    );
+
+    return;
+}
 
             const openValue =
                 document
@@ -5035,19 +5043,15 @@ raudaAssessmentData = result;
                 );
 
 
-            if (
-                !result.data ||
-                !result.data.ok
-            ) {
+            if (!result?.ok) {
+    adminStatus(
+        result?.error ||
+        "Ошибка",
+        true
+    );
 
-                adminStatus(
-                    result.data?.error ||
-                    "\u041e\u0448\u0438\u0431\u043a\u0430",
-                    true
-                );
-
-                return;
-            }
+    return;
+}
 
 
             adminStatus(
