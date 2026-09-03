@@ -5192,7 +5192,7 @@ if (!type || !assessmentId) {
 
             const result =
                 await api(
-                    "/admin/assessment-access" +
+                    "/api/admin/assessment-access" +
                     "?user_id=" +
                     encodeURIComponent(
                         userId
@@ -5212,13 +5212,11 @@ if (!type || !assessmentId) {
                 );
 
 
-            if (
-                !result.data ||
-                !result.data.ok
-            ) {
+            if (!result?.ok)
+            {
 
                 adminStatus(
-                    result.data?.error ||
+                    result?.error ||
                     "\u041e\u0448\u0438\u0431\u043a\u0430",
                     true
                 );
