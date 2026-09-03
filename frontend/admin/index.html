@@ -2611,7 +2611,19 @@ align-items: flex-end;
     position: relative;
     z-index: 10;
 }
-    
+   .admin-add-title {
+    color: #173d2c !important;
+    font-size: 19px !important;
+    font-weight: 800 !important;
+    opacity: 1 !important;
+}
+
+    .rauda-admin-card-head h3 {
+    color: #173d2c !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    opacity: 1 !important;
+}
 </style>
 
   <style id="rauda-admin-content-manager-v1">
@@ -2852,7 +2864,14 @@ align-items: flex-end;
         flex: 1;
     }
 }
-
+[data-admin-panel="content"] h2,
+[data-admin-panel="content"] h3,
+[data-admin-panel="content"] h4 {
+    color: #173d2c !important;
+    opacity: 1 !important;
+    font-weight: 800 !important;
+}
+    
 </style>
 </head>
   <script>
@@ -3552,7 +3571,7 @@ function switchAdminTab(tabName) {
                 Администраторы
             </div>
 
-            <h3>
+            <h3 class="admin-add-title">
     Добавить администратора
 </h3>
         </div>
