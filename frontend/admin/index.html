@@ -3436,8 +3436,14 @@ function switchAdminTab(tabName) {
     }
 
     function renderSelectedFiles() {
-      const files = [...$("#files").files];
-      selectedFiles.replaceChildren();
+    const fileInput = $("#files");
+
+    if (!fileInput || !selectedFiles) {
+        return;
+    }
+
+    const files = [...fileInput.files];
+    selectedFiles.replaceChildren();
 
       if (!files.length) {
         const empty = document.createElement("p");
