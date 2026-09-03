@@ -5353,6 +5353,10 @@ async function handleAdminGrantRetake(
 
     try {
 
+        await ensureAssessmentRetakePermissionsTable(
+            env.DB
+        );
+
         const body =
             await readJson(
                 request
@@ -5382,8 +5386,7 @@ async function handleAdminGrantRetake(
             return json(
                 {
                     ok: false,
-                    error:
-                        "Некорректный тип"
+                    error: "Некорректный тип"
                 },
                 400,
                 env
@@ -5399,10 +5402,38 @@ async function handleAdminGrantRetake(
             return json(
                 {
                     ok: false,
-                    error:
-                        "Некорректные данные"
+                    error: "Некорректные данные"
                 },
                 400,
+                env
+            );
+        }
+
+        const student =
+            await first(
+                env.DB,
+                `
+                SELECT
+                    id,
+                    role
+                FROM users
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [userId]
+            );
+
+        if (
+            !student ||
+            String(student.role).toLowerCase() !==
+                "student"
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error: "Ученик не найден"
+                },
+                404,
                 env
             );
         }
@@ -5412,23 +5443,11 @@ async function handleAdminGrantRetake(
                 ? "exams"
                 : "tests";
 
-        const attemptTable =
-            type === "exam"
-                ? "exam_attempts"
-                : "test_attempts";
-
-        const assessmentColumn =
-            type === "exam"
-                ? "exam_id"
-                : "test_id";
-
         const assessment =
             await first(
                 env.DB,
                 `
-                SELECT
-                    id,
-                    attempts_allowed
+                SELECT id
                 FROM ${assessmentTable}
                 WHERE id = ?
                 LIMIT 1
@@ -5448,50 +5467,73 @@ async function handleAdminGrantRetake(
             );
         }
 
-        const attemptCountRow =
+        await run(
+            env.DB,
+            `
+            INSERT INTO assessment_retake_permissions (
+                user_id,
+                assessment_type,
+                assessment_id,
+                extra_attempts,
+                granted_by,
+                granted_at
+            )
+            VALUES (?, ?, ?, 1, ?, CURRENT_TIMESTAMP)
+
+            ON CONFLICT(
+                user_id,
+                assessment_type,
+                assessment_id
+            )
+            DO UPDATE SET
+                extra_attempts =
+                    extra_attempts + 1,
+                granted_by =
+                    excluded.granted_by,
+                granted_at =
+                    CURRENT_TIMESTAMP
+            `,
+            [
+                userId,
+                type,
+                assessmentId,
+                auth.user.id
+            ]
+        );
+
+        const permission =
             await first(
                 env.DB,
                 `
                 SELECT
-                    COUNT(*) AS count
-                FROM ${attemptTable}
+                    extra_attempts,
+                    granted_at
+                FROM assessment_retake_permissions
                 WHERE
                     user_id = ?
-                    AND ${assessmentColumn} = ?
-                    AND submitted_at IS NOT NULL
+                    AND assessment_type = ?
+                    AND assessment_id = ?
+                LIMIT 1
                 `,
                 [
                     userId,
+                    type,
                     assessmentId
                 ]
             );
 
-        const usedAttempts =
-            Number(
-                attemptCountRow?.count || 0
-            );
-
-        /*
-         * В текущей структуре attempts_allowed
-         * хранится у самого теста/экзамена,
-         * а не отдельно для ученика.
-         *
-         * Поэтому просто увеличивать его нельзя:
-         * это дало бы пересдачу всем ученикам.
-         *
-         * Пока возвращаем специальный ответ.
-         */
-
         return json(
             {
-                ok: false,
-                needs_personal_retake_storage: true,
-                used_attempts:
-                    usedAttempts,
-                error:
-                    "Для персональной пересдачи нужна отдельная таблица разрешений"
+                ok: true,
+                extra_attempts:
+                    Number(
+                        permission?.extra_attempts
+                    ) || 0,
+                granted_at:
+                    permission?.granted_at ||
+                    null
             },
-            409,
+            200,
             env
         );
 
@@ -6532,12 +6574,38 @@ async function handleGradesDetails(
                         attempts.length;
 
 
-                    const remaining =
-                        Math.max(
-                            0,
-                            item.attempts_allowed -
-                            used
-                        );
+                    const permission =
+    retakePermissions.find(
+        row =>
+            String(
+                row.assessment_type
+            ) === item.type &&
+            Number(
+                row.assessment_id
+            ) ===
+            Number(
+                item.assessment_id
+            )
+    );
+
+const extraAttempts =
+    Math.max(
+        0,
+        Number(
+            permission?.extra_attempts
+        ) || 0
+    );
+
+const totalAllowed =
+    item.attempts_allowed +
+    extraAttempts;
+
+const remaining =
+    Math.max(
+        0,
+        totalAllowed -
+        used
+    );
 
 
                     let inDateWindow =
@@ -6637,7 +6705,13 @@ async function handleGradesDetails(
                                 used,
 
                             attempts_allowed:
-                                item.attempts_allowed,
+    totalAllowed,
+
+base_attempts_allowed:
+    item.attempts_allowed,
+
+extra_attempts:
+    extraAttempts,
 
                             attempts_remaining:
                                 remaining
@@ -7529,6 +7603,58 @@ function isSuccessfulTributeEvent(type, status) {
     const successStatuses = new Set(["paid", "succeeded", "success", "active", "completed", "complete"]);
     if (successStatuses.has(status)) return true;
     return /(payment|invoice|subscription).*(success|succeed|paid|complete|active)/i.test(type);
+}
+
+async function ensureAssessmentRetakePermissionsTable(
+    db
+) {
+
+    await run(
+        db,
+        `
+        CREATE TABLE IF NOT EXISTS
+        assessment_retake_permissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            user_id INTEGER NOT NULL,
+
+            assessment_type TEXT NOT NULL
+                CHECK (
+                    assessment_type IN (
+                        'test',
+                        'exam'
+                    )
+                ),
+
+            assessment_id INTEGER NOT NULL,
+
+            extra_attempts INTEGER
+                NOT NULL DEFAULT 0,
+
+            granted_by INTEGER,
+
+            granted_at TEXT
+                NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            UNIQUE (
+                user_id,
+                assessment_type,
+                assessment_id
+            )
+        )
+        `
+    );
+
+    await run(
+        db,
+        `
+        CREATE INDEX IF NOT EXISTS
+        idx_retake_permissions_user
+        ON assessment_retake_permissions(
+            user_id
+        )
+        `
+    );
 }
 
 async function ensureAuthSessionsTable(db) {
