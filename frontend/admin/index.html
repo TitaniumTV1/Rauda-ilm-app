@@ -2490,7 +2490,78 @@ td {
         max-width: 100%;
     }
 }
-    
+
+    .admin-menu-wrap {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.admin-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+
+    padding: 0;
+
+    border: 1px solid #ded3ba;
+    border-radius: 12px;
+
+    background: #fffdf8;
+    color: #173d2c;
+
+    font-size: 23px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.admin-menu-dropdown {
+    display: none;
+
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+
+    z-index: 1000;
+
+    min-width: 150px;
+
+    padding: 6px;
+
+    border: 1px solid #ded3ba;
+    border-radius: 12px;
+
+    background: #fffdf8;
+
+    box-shadow:
+        0 12px 30px
+        rgba(23, 61, 44, .15);
+}
+
+.admin-menu-dropdown.open {
+    display: block;
+}
+
+.admin-menu-dropdown button {
+    width: 100%;
+
+    padding: 11px 13px;
+
+    border: 0;
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: #9d2f2f;
+
+    text-align: left;
+    font-weight: 700;
+
+    cursor: pointer;
+}
 </style>
 
   <style id="rauda-admin-content-manager-v1">
@@ -2853,13 +2924,32 @@ function switchAdminTab(tabName) {
                 ></div>
             </div>
 
-            <button
-                id="logoutButton"
-                type="button"
-                class="rauda-admin-logout hidden"
-            >
-                Выйти
-            </button>
+            <div
+    id="adminMenuWrap"
+    class="admin-menu-wrap hidden"
+>
+    <button
+        id="adminMenuButton"
+        type="button"
+        class="admin-menu-button"
+        aria-label="Меню"
+        onclick="toggleAdminMenu()"
+    >
+        ☰
+    </button>
+
+    <div
+        id="adminMenuDropdown"
+        class="admin-menu-dropdown"
+    >
+        <button
+            type="button"
+            onclick="logoutAdminAccount()"
+        >
+            Выйти
+        </button>
+    </div>
+</div>
         </div>
 
 
@@ -3568,7 +3658,9 @@ function switchAdminTab(tabName) {
 
     loginView?.classList.remove("hidden");
     workspace?.classList.add("hidden");
-    logoutButton?.classList.add("hidden");
+    document
+    .getElementById("adminMenuWrap")
+    ?.classList.add("hidden");
 
     if (userName) {
         userName.textContent = "";
@@ -3588,7 +3680,9 @@ function showWorkspace(user) {
 
     loginView?.classList.add("hidden");
     workspace?.classList.remove("hidden");
-    logoutButton?.classList.remove("hidden");
+    document
+    .getElementById("adminMenuWrap")
+    ?.classList.remove("hidden");
 
     if (userName) {
         userName.textContent =
@@ -3983,6 +4077,34 @@ return data.lesson;
       return uploaded;
     }
 
+    function toggleAdminMenu() {
+    document
+        .getElementById(
+            "adminMenuDropdown"
+        )
+        ?.classList.toggle(
+            "open"
+        );
+}
+
+async function logoutAdminAccount() {
+    try {
+        await fetch(
+            "/api/auth/logout",
+            {
+                method: "POST",
+                credentials: "same-origin"
+            }
+        );
+    } finally {
+        localStorage.removeItem(
+            TOKEN_KEY
+        );
+
+        window.location.reload();
+    }
+}
+    
     async function initialise() {
     renderSelectedFiles();
 
