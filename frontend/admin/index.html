@@ -4106,10 +4106,15 @@ async function searchAdminRoleUsers() {
         return;
     }
 
-    const query =
-        String(
-            input.value || ""
-        ).trim();
+    const rawQuery =
+    String(
+        input.value || ""
+    ).trim();
+
+const query =
+    rawQuery.startsWith("@")
+        ? rawQuery.slice(1)
+        : rawQuery;
 
     results.replaceChildren();
 
