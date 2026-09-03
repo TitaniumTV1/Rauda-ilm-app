@@ -4422,6 +4422,327 @@ document
     </div>
 
 </section>
+
+  <script id="rauda-admin-student-search-v1">
+
+let selectedAdminStudent = null;
+
+function escapeAdminHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+async function searchAdminStudents() {
+
+    const input =
+        document.getElementById(
+            "adminStudentSearch"
+        );
+
+    const results =
+        document.getElementById(
+            "adminStudentSearchResults"
+        );
+
+    if (!input || !results) {
+        return;
+    }
+
+    const query =
+        input.value.trim();
+
+    if (query.length < 2) {
+        results.innerHTML = `
+            <div class="rauda-admin-empty">
+                Введите минимум 2 символа.
+            </div>
+        `;
+        return;
+    }
+
+    results.innerHTML = `
+        <div class="rauda-admin-empty">
+            Ищем ученика...
+        </div>
+    `;
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/admin/students/search?q=" +
+                encodeURIComponent(query),
+                {
+                    method: "GET",
+                    credentials: "same-origin"
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (!response.ok || !data.ok) {
+
+            results.innerHTML = `
+                <div class="rauda-admin-empty">
+                    ${escapeAdminHtml(
+                        data.error ||
+                        "Не удалось выполнить поиск"
+                    )}
+                </div>
+            `;
+
+            return;
+        }
+
+        const students =
+            Array.isArray(data.students)
+                ? data.students
+                : [];
+
+        if (!students.length) {
+
+            results.innerHTML = `
+                <div class="rauda-admin-empty">
+                    Ученики не найдены.
+                </div>
+            `;
+
+            return;
+        }
+
+        window.__raudaAdminStudents =
+            students;
+
+        results.innerHTML =
+            students.map(
+                student => {
+
+                    const fullName =
+                        [
+                            student.first_name,
+                            student.last_name
+                        ]
+                        .filter(Boolean)
+                        .join(" ") ||
+                        student.login ||
+                        student.username ||
+                        "Ученик";
+
+                    const meta =
+                        [
+                            student.account_id
+                                ? "ID: " + student.account_id
+                                : null,
+
+                            student.login
+                                ? "Логин: " + student.login
+                                : null,
+
+                            student.email || null
+                        ]
+                        .filter(Boolean)
+                        .join(" · ");
+
+                    return `
+                        <button
+                            type="button"
+                            class="rauda-admin-student-result"
+                            onclick="selectAdminStudent(${Number(student.id)})"
+                        >
+                            <div class="rauda-admin-student-result-name">
+                                ${escapeAdminHtml(fullName)}
+                            </div>
+
+                            <div class="rauda-admin-student-result-meta">
+                                ${escapeAdminHtml(
+                                    meta ||
+                                    "Пользователь #" + student.id
+                                )}
+                            </div>
+                        </button>
+                    `;
+                }
+            ).join("");
+
+    } catch (error) {
+
+        console.error(
+            "Student search:",
+            error
+        );
+
+        results.innerHTML = `
+            <div class="rauda-admin-empty">
+                Ошибка соединения.
+            </div>
+        `;
+    }
+}
+
+function selectAdminStudent(userId) {
+
+    const students =
+        Array.isArray(
+            window.__raudaAdminStudents
+        )
+            ? window.__raudaAdminStudents
+            : [];
+
+    const student =
+        students.find(
+            item =>
+                Number(item.id) ===
+                Number(userId)
+        );
+
+    if (!student) {
+        return;
+    }
+
+    selectedAdminStudent =
+        student;
+
+    const box =
+        document.getElementById(
+            "adminSelectedStudent"
+        );
+
+    const name =
+        document.getElementById(
+            "adminSelectedStudentName"
+        );
+
+    const meta =
+        document.getElementById(
+            "adminSelectedStudentMeta"
+        );
+
+    const results =
+        document.getElementById(
+            "adminStudentSearchResults"
+        );
+
+    const fullName =
+        [
+            student.first_name,
+            student.last_name
+        ]
+        .filter(Boolean)
+        .join(" ") ||
+        student.login ||
+        student.username ||
+        "Ученик";
+
+    const details =
+        [
+            student.account_id
+                ? "ID " + student.account_id
+                : null,
+
+            student.login
+                ? "@" + student.login
+                : null,
+
+            student.email || null
+        ]
+        .filter(Boolean)
+        .join(" · ");
+
+    if (name) {
+        name.textContent =
+            fullName;
+    }
+
+    if (meta) {
+        meta.textContent =
+            details ||
+            "Пользователь #" +
+            student.id;
+    }
+
+    if (box) {
+        box.hidden = false;
+    }
+
+    if (results) {
+        results.innerHTML = "";
+    }
+
+    loadAdminStudentGrades(
+        student.id
+    );
+}
+
+function clearSelectedAdminStudent() {
+
+    selectedAdminStudent =
+        null;
+
+    const box =
+        document.getElementById(
+            "adminSelectedStudent"
+        );
+
+    const grades =
+        document.getElementById(
+            "adminStudentGrades"
+        );
+
+    if (box) {
+        box.hidden = true;
+    }
+
+    if (grades) {
+        grades.innerHTML = `
+            <div class="rauda-admin-empty">
+                Найдите и выберите ученика.
+            </div>
+        `;
+    }
+}
+
+async function loadAdminStudentGrades(userId) {
+
+    const container =
+        document.getElementById(
+            "adminStudentGrades"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="rauda-admin-empty">
+            Ученик выбран.
+            Теперь подключим его оценки и пересдачи.
+        </div>
+    `;
+}
+
+document
+    .getElementById(
+        "adminStudentSearch"
+    )
+    ?.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchAdminStudents();
+            }
+        }
+    );
+
+</script>
   
 </body>
 </html>
