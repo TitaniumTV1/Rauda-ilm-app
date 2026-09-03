@@ -3478,6 +3478,93 @@ function showWorkspace(user) {
         setStatus(loginStatus);
     }
 }
+    $("#login-form")?.addEventListener(
+    "submit",
+    async (event) => {
+        event.preventDefault();
+
+        const button = $("#login-button");
+
+        if (!button) {
+            return;
+        }
+
+        button.disabled = true;
+
+        setStatus(
+            loginStatus,
+            "Выполняется вход…",
+            "loading"
+        );
+
+        try {
+            const response = await fetch(
+                "/api/auth/login",
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        login: $("#login")?.value.trim() || "",
+                        password: $("#password")?.value || ""
+                    })
+                }
+            );
+
+            const result =
+                await response
+                    .json()
+                    .catch(() => ({}));
+
+            if (
+                !response.ok ||
+                result.ok === false
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Не удалось войти"
+                );
+            }
+
+            if (
+                !ADMIN_ROLES.has(
+                    String(
+                        result.user?.role || ""
+                    ).toLowerCase()
+                )
+            ) {
+                throw new Error(
+                    "У этой учётной записи нет прав администратора."
+                );
+            }
+
+            if (result.token) {
+                localStorage.setItem(
+                    TOKEN_KEY,
+                    result.token
+                );
+            }
+
+            showWorkspace(
+                result.user
+            );
+
+        } catch (error) {
+
+            setStatus(
+                loginStatus,
+                error?.message ||
+                    "Не удалось войти",
+                "error"
+            );
+
+        } finally {
+            button.disabled = false;
+        }
+    }
+);
     
     function asPositiveInteger(value) {
       const number = Number(value);
