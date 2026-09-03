@@ -1371,6 +1371,16 @@ async function ensureEmailAuthSchema(db) {
         env
     );
 }
+            if (
+    url.pathname === "/api/admin/students/grade" &&
+    request.method === "PATCH"
+) {
+    return handleAdminUpdateStudentGrade(
+        request,
+        env
+    );
+}
+        
             if (url.pathname === "/api/admin/users/change-password" &&
     request.method === "POST"
 ) {
@@ -4967,6 +4977,323 @@ async function handleAdminStudentGrades(
                 ok: false,
                 error:
                     "Не удалось загрузить оценки ученика"
+            },
+            500,
+            env
+        );
+    }
+}
+
+async function handleAdminUpdateStudentGrade(
+    request,
+    env
+) {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    const role =
+        String(
+            auth.user.role || ""
+        ).toLowerCase();
+
+    if (
+        ![
+            "owner",
+            "superadmin",
+            "admin"
+        ].includes(role)
+    ) {
+        return json(
+            {
+                ok: false,
+                error: "Недостаточно прав"
+            },
+            403,
+            env
+        );
+    }
+
+    try {
+
+        const body =
+            await readJson(
+                request
+            );
+
+        const type =
+            String(
+                body?.type || ""
+            ).toLowerCase();
+
+        const attemptId =
+            Number(
+                body?.attempt_id
+            );
+
+        const newScore =
+            Number(
+                body?.score
+            );
+
+        if (
+            ![
+                "test",
+                "exam"
+            ].includes(type)
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Некорректный тип оценки"
+                },
+                400,
+                env
+            );
+        }
+
+        if (
+            !Number.isInteger(
+                attemptId
+            ) ||
+            attemptId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Некорректный ID попытки"
+                },
+                400,
+                env
+            );
+        }
+
+        if (
+            !Number.isFinite(
+                newScore
+            ) ||
+            newScore < 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Некорректный балл"
+                },
+                400,
+                env
+            );
+        }
+
+        const table =
+            type === "exam"
+                ? "exam_attempts"
+                : "test_attempts";
+
+        const assessmentTable =
+            type === "exam"
+                ? "exams"
+                : "tests";
+
+        const assessmentColumn =
+            type === "exam"
+                ? "exam_id"
+                : "test_id";
+
+        const attempt =
+            await first(
+                env.DB,
+                `
+                SELECT
+                    id,
+                    user_id,
+                    ${assessmentColumn}
+                        AS assessment_id,
+                    course_id,
+                    max_score
+                FROM ${table}
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [
+                    attemptId
+                ]
+            );
+
+        if (!attempt) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Попытка не найдена"
+                },
+                404,
+                env
+            );
+        }
+
+        const assessment =
+            await first(
+                env.DB,
+                `
+                SELECT
+                    passing_score,
+                    max_score
+                FROM ${assessmentTable}
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [
+                    attempt.assessment_id
+                ]
+            );
+
+        const maxScore =
+            Math.max(
+                1,
+                Number(
+                    attempt.max_score ||
+                    assessment?.max_score ||
+                    100
+                )
+            );
+
+        if (
+            newScore > maxScore
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        `Максимальный балл: ${maxScore}`
+                },
+                400,
+                env
+            );
+        }
+
+        const percentage =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    Math.round(
+                        (
+                            newScore /
+                            maxScore
+                        ) *
+                        100
+                    )
+                )
+            );
+
+        const passingScore =
+            Number(
+                assessment
+                    ?.passing_score
+            ) || 60;
+
+        const passed =
+            percentage >=
+            passingScore
+                ? 1
+                : 0;
+
+        if (
+            type === "exam"
+        ) {
+
+            const grade =
+                defaultGradeFromPercentage(
+                    percentage
+                );
+
+            await run(
+                env.DB,
+                `
+                UPDATE exam_attempts
+                SET
+                    score = ?,
+                    max_score = ?,
+                    percentage = ?,
+                    passed = ?,
+                    grade = ?
+                WHERE id = ?
+                `,
+                [
+                    newScore,
+                    maxScore,
+                    percentage,
+                    passed,
+                    grade,
+                    attemptId
+                ]
+            );
+
+        } else {
+
+            await run(
+                env.DB,
+                `
+                UPDATE test_attempts
+                SET
+                    score = ?,
+                    max_score = ?,
+                    percentage = ?,
+                    passed = ?
+                WHERE id = ?
+                `,
+                [
+                    newScore,
+                    maxScore,
+                    percentage,
+                    passed,
+                    attemptId
+                ]
+            );
+        }
+
+        return json(
+            {
+                ok: true,
+                attempt_id:
+                    attemptId,
+                score:
+                    newScore,
+                max_score:
+                    maxScore,
+                percentage,
+                passed:
+                    passed === 1
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Admin grade update:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось изменить оценку"
             },
             500,
             env
