@@ -1380,7 +1380,17 @@ async function ensureEmailAuthSchema(db) {
         env
     );
 }
-        
+
+      if (
+    url.pathname === "/api/admin/students/retake" &&
+    request.method === "POST"
+) {
+    return handleAdminGrantRetake(
+        request,
+        env
+    );
+}
+            
             if (url.pathname === "/api/admin/users/change-password" &&
     request.method === "POST"
 ) {
@@ -5294,6 +5304,209 @@ async function handleAdminUpdateStudentGrade(
                 ok: false,
                 error:
                     "Не удалось изменить оценку"
+            },
+            500,
+            env
+        );
+    }
+}
+
+async function handleAdminGrantRetake(
+    request,
+    env
+) {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    const role =
+        String(
+            auth.user.role || ""
+        ).toLowerCase();
+
+    if (
+        ![
+            "owner",
+            "superadmin",
+            "admin"
+        ].includes(role)
+    ) {
+        return json(
+            {
+                ok: false,
+                error: "Недостаточно прав"
+            },
+            403,
+            env
+        );
+    }
+
+    try {
+
+        const body =
+            await readJson(
+                request
+            );
+
+        const type =
+            String(
+                body?.type || ""
+            ).toLowerCase();
+
+        const assessmentId =
+            Number(
+                body?.assessment_id
+            );
+
+        const userId =
+            Number(
+                body?.user_id
+            );
+
+        if (
+            ![
+                "test",
+                "exam"
+            ].includes(type)
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Некорректный тип"
+                },
+                400,
+                env
+            );
+        }
+
+        if (
+            !Number.isInteger(assessmentId) ||
+            assessmentId <= 0 ||
+            !Number.isInteger(userId) ||
+            userId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Некорректные данные"
+                },
+                400,
+                env
+            );
+        }
+
+        const assessmentTable =
+            type === "exam"
+                ? "exams"
+                : "tests";
+
+        const attemptTable =
+            type === "exam"
+                ? "exam_attempts"
+                : "test_attempts";
+
+        const assessmentColumn =
+            type === "exam"
+                ? "exam_id"
+                : "test_id";
+
+        const assessment =
+            await first(
+                env.DB,
+                `
+                SELECT
+                    id,
+                    attempts_allowed
+                FROM ${assessmentTable}
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [assessmentId]
+            );
+
+        if (!assessment) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Тест или экзамен не найден"
+                },
+                404,
+                env
+            );
+        }
+
+        const attemptCountRow =
+            await first(
+                env.DB,
+                `
+                SELECT
+                    COUNT(*) AS count
+                FROM ${attemptTable}
+                WHERE
+                    user_id = ?
+                    AND ${assessmentColumn} = ?
+                    AND submitted_at IS NOT NULL
+                `,
+                [
+                    userId,
+                    assessmentId
+                ]
+            );
+
+        const usedAttempts =
+            Number(
+                attemptCountRow?.count || 0
+            );
+
+        /*
+         * В текущей структуре attempts_allowed
+         * хранится у самого теста/экзамена,
+         * а не отдельно для ученика.
+         *
+         * Поэтому просто увеличивать его нельзя:
+         * это дало бы пересдачу всем ученикам.
+         *
+         * Пока возвращаем специальный ответ.
+         */
+
+        return json(
+            {
+                ok: false,
+                needs_personal_retake_storage: true,
+                used_attempts:
+                    usedAttempts,
+                error:
+                    "Для персональной пересдачи нужна отдельная таблица разрешений"
+            },
+            409,
+            env
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Admin retake grant:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось разрешить пересдачу"
             },
             500,
             env
