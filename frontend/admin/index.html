@@ -4713,20 +4713,14 @@ document
                     );
 
 
-                if (
-                    !result.data ||
-                    !result.data.ok
-                ) {
-                    throw new Error(
-                        result.data?.error ||
-                        "Dashboard error"
-                    );
-                }
+               if (!result?.ok) {
+    throw new Error(
+        result?.error ||
+        "Dashboard error"
+    );
+}
 
-
-                raudaAssessmentData =
-                    result.data;
-
+raudaAssessmentData = result;
 
                 const studentSelect =
                     document.getElementById(
