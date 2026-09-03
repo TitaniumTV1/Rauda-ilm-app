@@ -3959,17 +3959,26 @@ async function handleCourses(request, env) {
 }
 
 async function handleLessons(request, env) {
+
     const auth =
-        await requireUser(request, env);
+        await requireUser(
+            request,
+            env
+        );
 
     if (!auth.ok) {
-        return authError(auth, env);
+        return authError(
+            auth,
+            env
+        );
     }
 
     try {
+
         await ensureLessonProgressTable(
             env.DB
         );
+
 
         const lessons =
             await listContentRows(
@@ -3980,10 +3989,17 @@ async function handleLessons(request, env) {
                 auth.user
             );
 
+
         const lessonsWithProgress =
             await Promise.all(
+
                 lessons.map(
+
                     async lesson => {
+
+                        /* =========================
+                           ПРОГРЕСС
+                           ========================= */
 
                         const progress =
                             await first(
@@ -4004,6 +4020,7 @@ async function handleLessons(request, env) {
                                 ]
                             );
 
+
                         const percent =
                             clampProgress(
                                 progress
@@ -4016,6 +4033,7 @@ async function handleLessons(request, env) {
                                 )
                             );
 
+
                         const completed =
                             Number(
                                 progress
@@ -4023,18 +4041,66 @@ async function handleLessons(request, env) {
                             ) === 1 ||
                             percent >= 100;
 
+
+                        /* =========================
+                           ФАЙЛЫ УРОКА
+                           ========================= */
+
+                        let files = [];
+
+                        try {
+
+                            const filesResult =
+                                await env.DB
+                                    .prepare(
+                                        `
+                                        SELECT *
+                                        FROM lesson_files
+                                        WHERE lesson_id = ?
+                                        ORDER BY id ASC
+                                        `
+                                    )
+                                    .bind(
+                                        lesson.id
+                                    )
+                                    .all();
+
+
+                            files =
+                                filesResult
+                                    ?.results ||
+                                [];
+
+                        } catch (fileError) {
+
+                            console.error(
+                                "Lesson files error:",
+                                lesson.id,
+                                fileError
+                            );
+                        }
+
+
+                        /* =========================
+                           ОТВЕТ
+                           ========================= */
+
                         return {
+
                             ...lesson,
 
                             progress_percent:
                                 percent,
 
                             is_completed:
-                                completed
+                                completed,
+
+                            files
                         };
                     }
                 )
             );
+
 
         const completedLessonIds =
             lessonsWithProgress
@@ -4044,19 +4110,25 @@ async function handleLessons(request, env) {
                 )
                 .map(
                     lesson =>
-                        Number(lesson.id)
+                        Number(
+                            lesson.id
+                        )
                 );
+
 
         return json(
             {
                 ok: true,
+
                 lessons:
                     lessonsWithProgress,
+
                 completedLessonIds
             },
             200,
             env
         );
+
 
     } catch (error) {
 
@@ -4064,6 +4136,7 @@ async function handleLessons(request, env) {
             "Lessons error:",
             error
         );
+
 
         return json(
             {
