@@ -2414,7 +2414,83 @@ td {
         font-size: 23px;
     }
 }
+@media (max-width: 600px) {
 
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .rauda-admin-shell {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        overflow-x: hidden;
+    }
+
+    .rauda-admin-tab-panel,
+    .rauda-admin-card,
+    .rauda-admin-grid,
+    .rauda-admin-page-head {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .rauda-admin-grid {
+        grid-template-columns:
+            minmax(0, 1fr) !important;
+    }
+
+    .rauda-admin-card {
+        padding: 14px !important;
+    }
+
+    .rauda-admin-student-search {
+        display: grid !important;
+        grid-template-columns:
+            minmax(0, 1fr) !important;
+        gap: 10px !important;
+        width: 100%;
+    }
+
+    .rauda-admin-student-search input,
+    .rauda-admin-student-search button,
+    .rauda-admin-card input,
+    .rauda-admin-card select,
+    .rauda-admin-card textarea {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .rauda-admin-tabs {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .rauda-admin-tab {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .buttons {
+        width: 100%;
+    }
+
+    .buttons .button,
+    .rauda-admin-primary {
+        max-width: 100%;
+    }
+}
+    
 </style>
 
   <style id="rauda-admin-content-manager-v1">
