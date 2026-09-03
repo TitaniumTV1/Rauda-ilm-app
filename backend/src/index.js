@@ -15,7 +15,6 @@ const tableColumnsCache = new Map();
 
 export default {
     async fetch(request, env) {
-        await makePasswordHashForOwner();
         const url = new URL(request.url);
 
         try {
@@ -6570,13 +6569,6 @@ async function hashPassword(password) {
     return `pbkdf2$${PASSWORD_ITERATIONS}$${bytesToBase64(salt)}$${bytesToBase64(hash)}`;
 }
 
-async function makePasswordHashForOwner() {
-    const newPassword = "RaudaIlm2026!";
-
-    const hash = await hashPassword(newPassword);
-
-    console.log("OWNER_PASSWORD_HASH:", hash);
-}
 async function verifyPassword(password, stored) {
     try {
         const parts = String(stored).split(/[$:.]/);
