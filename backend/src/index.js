@@ -1397,6 +1397,16 @@ async function ensureEmailAuthSchema(db) {
     return handleOwnerChangeAdminPassword(request, env);
 }
 
+            if (
+    url.pathname === "/api/admin/users/role" &&
+    request.method === "POST"
+) {
+    return handleOwnerChangeUserRole(
+        request,
+        env
+    );
+}
+            
                      if (
     url.pathname === "/api/admin/users/search" &&
     request.method === "GET"
@@ -4300,6 +4310,202 @@ async function handleLessons(request, env) {
         );
     }
 }
+
+async function handleOwnerChangeUserRole(
+    request,
+    env
+) {
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    const currentRole =
+        String(
+            auth.user?.role || ""
+        ).toLowerCase();
+
+    if (currentRole !== "owner") {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Только владелец может изменять роли пользователей"
+            },
+            403,
+            env
+        );
+    }
+
+    try {
+        const body =
+            await readJson(request);
+
+        const userId =
+            positiveIntegerOrNull(
+                body?.user_id
+            );
+
+        const newRole =
+            String(
+                body?.role || ""
+            )
+                .trim()
+                .toLowerCase();
+
+        if (!userId) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Укажите user_id"
+                },
+                400,
+                env
+            );
+        }
+
+        const allowedRoles =
+            new Set([
+                "student",
+                "admin",
+                "superadmin"
+            ]);
+
+        if (
+            !allowedRoles.has(
+                newRole
+            )
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Недопустимая роль"
+                },
+                400,
+                env
+            );
+        }
+
+        /*
+         * Не даём владельцу случайно
+         * лишить самого себя доступа.
+         */
+        if (
+            Number(auth.user.id) ===
+            Number(userId)
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Нельзя изменить роль своей учётной записи владельца"
+                },
+                400,
+                env
+            );
+        }
+
+        const targetUser =
+            await first(
+                env.DB,
+                `
+                SELECT
+                    id,
+                    role
+                FROM users
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [
+                    userId
+                ]
+            );
+
+        if (!targetUser) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Пользователь не найден"
+                },
+                404,
+                env
+            );
+        }
+
+        if (
+            String(
+                targetUser.role || ""
+            ).toLowerCase() ===
+            "owner"
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Нельзя изменить роль владельца"
+                },
+                403,
+                env
+            );
+        }
+
+        await run(
+            env.DB,
+            `
+            UPDATE users
+            SET role = ?
+            WHERE id = ?
+            `,
+            [
+                newRole,
+                userId
+            ]
+        );
+
+        const user =
+            await getUserById(
+                env.DB,
+                userId
+            );
+
+        return json(
+            {
+                ok: true,
+                user
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Change user role:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось изменить роль пользователя"
+            },
+            500,
+            env
+        );
+    }
+}
+
 async function handleOwnerChangeAdminPassword(request, env) {
 
     const auth =
