@@ -5102,6 +5102,90 @@ async function loadAdminStudentGrades(
         );
     }
 }
+
+    async function grantAdminRetake(
+    type,
+    assessmentId,
+    userId
+) {
+
+    if (!selectedAdminStudent) {
+        alert(
+            "Сначала выберите ученика"
+        );
+        return;
+    }
+
+    const confirmed =
+        confirm(
+            "Разрешить этому ученику ещё одну попытку?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/admin/students/retake",
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        type,
+                        assessment_id:
+                            Number(assessmentId),
+                        user_id:
+                            Number(userId)
+                    })
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+            alert(
+                data.error ||
+                "Не удалось разрешить пересдачу"
+            );
+            return;
+        }
+
+        alert(
+            "Пересдача разрешена. Дополнительных попыток: " +
+            Number(
+                data.extra_attempts || 0
+            )
+        );
+
+        await loadAdminStudentGrades(
+            selectedAdminStudent.id
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Admin retake:",
+            error
+        );
+
+        alert(
+            "Ошибка соединения"
+        );
+    }
+}
     
 </script>
   
