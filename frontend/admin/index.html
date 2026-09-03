@@ -2675,6 +2675,82 @@ function switchAdminTab(tabName) {
 }
 </script>
 <body>
+
+  <section id="login-view">
+    <div class="card login-card">
+
+      <h2>Вход в админ-панель</h2>
+
+      <p>
+        Войдите под учётной записью администратора RAUDA ILM.
+      </p>
+
+      <form id="login-form">
+
+        <div class="field">
+          <label for="login">Логин</label>
+
+          <input
+            id="login"
+            type="text"
+            autocomplete="username"
+            placeholder="Введите логин"
+            required
+          >
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="password">Пароль</label>
+
+          <div class="password-wrap">
+            <input
+              id="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Введите пароль"
+              required
+            >
+
+            <button
+              id="password-toggle"
+              class="password-toggle"
+              type="button"
+              aria-label="Показать пароль"
+              title="Показать пароль"
+            >
+              👁
+            </button>
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button
+            id="login-button"
+            class="button primary"
+            type="submit"
+          >
+            Войти
+          </button>
+
+          <a
+            href="/"
+            class="button ghost back-button"
+          >
+            Назад
+          </a>
+        </div>
+
+        <div
+          id="login-status"
+          class="status"
+        ></div>
+
+      </form>
+
+    </div>
+  </section>
+
+
   <main id="workspace" class="workspace hidden">
 
     <div class="rauda-admin-shell">
