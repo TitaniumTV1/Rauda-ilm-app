@@ -3384,127 +3384,41 @@ function switchAdminTab(tabName) {
     }
 
     async function api(path, options = {}) {
-      const headers = new Headers(options.headers || {});
+    const token = localStorage.getItem(TOKEN_KEY);
 
-      if (token()) {
-        headers.set("Authorization", `Bearer ${token()}`);
-      }
+    const headers = new Headers(options.headers || {});
 
-      const response =
-    await fetch(
-        path,
-        {
-            ...options,
+    if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+    }
 
-            credentials:
-                "same-origin",
+    const response = await fetch(path, {
+        ...options,
+        credentials: "same-origin",
+        headers
+    });
 
-            headers
-        }
-    );
-      const payload = await response.json().catch(() => ({
+    const payload = await response.json().catch(() => ({
         ok: false,
         error: "Сервер вернул неверный ответ"
-      }));
+    }));
 
-      if (!response.ok || payload.ok === false) {
-        const error = new Error(payload.error || `Ошибка ${response.status}`);
-        error.status = response.status;
-        throw error;
-      }
-
-      return payload;
-    }
-
-    function showLogin(message = "") {
-      state.user = null;
-      state.lesson = null;
-      localStorage.removeItem(TOKEN_KEY);
-
-      loginView.classList.remove("hidden");
-      workspace.classList.add("hidden");
-      logoutButton.classList.add("hidden");
-      userName.textContent = "";
-
-      if (message) {
-        setStatus(loginStatus, message, "error");
-      }
-    }
-
-    function showWorkspace(user) {
-
-    state.user = user;
-
-    loginView.classList.add(
-        "hidden"
-    );
-
-    workspace.classList.remove(
-        "hidden"
-    );
-
-    logoutButton.classList.remove(
-        "hidden"
-    );
-
-    userName.textContent =
-        `${user.first_name || user.login || "Пользователь"} · ${user.role}`;
-
-    const ownerPanel =
-        document.getElementById(
-            "ownerAdminPasswordPanel"
+    if (!response.ok || payload.ok === false) {
+        const error = new Error(
+            payload.error || `Ошибка ${response.status}`
         );
 
-    if (ownerPanel) {
+        error.status = response.status;
 
-        const role =
-            String(
-                user.role || ""
-            ).toLowerCase();
+        if (response.status === 401) {
+            localStorage.removeItem(TOKEN_KEY);
+        }
 
-        ownerPanel.style.display =
-            role === "owner"
-                ? "block"
-                : "none";
+        throw error;
     }
 
-    setStatus(
-        loginStatus
-    );
+    return payload;
 }
-    function resetLessonForm() {
-      $("#lesson-form").reset();
-      $("#is-visible").checked = true;
-      $("#lesson-number").value = "0";
-      $("#sort-order").value = "0";
-      $("#file-order").value = "0";
-
-      state.lesson = null;
-      createdLesson.classList.remove("visible");
-      createdLessonText.textContent = "";
-
-      setStatus(lessonStatus);
-      renderSelectedFiles();
-    }
-
-    function setOptions(select, rows, placeholder) {
-      const previous = select.value;
-      select.replaceChildren();
-
-      const empty = document.createElement("option");
-      empty.value = "";
-      empty.textContent = placeholder;
-      select.append(empty);
-
-      for (const row of rows) {
-        const option = document.createElement("option");
-        option.value = String(row.id);
-        option.textContent = row.title || row.name || `#${row.id}`;
-        select.append(option);
-      }
-
-      select.value = previous;
-    }
 
     async function loadPrograms() {
       const result = await api("/api/programs");
@@ -3669,67 +3583,30 @@ function switchAdminTab(tabName) {
         );
     }
 
-    const response =
-        await fetch(
-            "/api/admin/lessons/" +
-            encodeURIComponent(
-                lessonId
-            ),
-            {
-                method: "PATCH",
+    const data = await api(
+    "/api/admin/lessons/" +
+    encodeURIComponent(lessonId),
+    {
+        method: "PATCH",
 
-                credentials:
-                    "same-origin",
+        headers: {
+            "Content-Type": "application/json"
+        },
 
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify({
-                        program_id:
-                            programId,
-
-                        course_id:
-                            courseId,
-
-                        title,
-
-                        description,
-
-                        content,
-
-                        lesson_number:
-                            lessonNumber,
-
-                        sort_order:
-                            sortOrder,
-
-                        is_visible:
-                            isVisible
-                    })
-            }
-        );
-
-    const data =
-        await response
-            .json()
-            .catch(
-                () => ({})
-            );
-
-    if (
-        !response.ok ||
-        !data.ok
-    ) {
-        throw new Error(
-            data.error ||
-            "Не удалось изменить урок."
-        );
+        body: JSON.stringify({
+            program_id: programId,
+            course_id: courseId,
+            title,
+            description,
+            content,
+            lesson_number: lessonNumber,
+            sort_order: sortOrder,
+            is_visible: isVisible
+        })
     }
+);
 
-    return data.lesson;
+return data.lesson;
 }
 
     async function uploadFiles(lesson) {
@@ -3861,7 +3738,7 @@ $("#password-toggle")?.addEventListener("click", () => {
       }
     });
 
-    $("#lesson-form").addEventListener("submit", async (event) => {
+    $("#lesson-form")?.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const button = $("#save-button");
@@ -4139,121 +4016,7 @@ document
         searchAdminUsers
     );
 
-    async function searchAdminUsers() {
-    const input =
-        document.getElementById(
-            "adminUserSearch"
-        );
-
-    const results =
-        document.getElementById(
-            "adminUserSearchResults"
-        );
-
-    const query =
-        String(input?.value || "").trim();
-
-    results.replaceChildren();
-
-    if (!query) {
-        results.textContent =
-            "Введите ID или данные пользователя";
-        return;
-    }
-
-    try {
-        const data = await api(
-            "/api/admin/users/search?q=" +
-            encodeURIComponent(query)
-        );
-
-        const users =
-            Array.isArray(data.users)
-                ? data.users
-                : [];
-
-        if (!users.length) {
-            results.textContent =
-                "Пользователь не найден";
-            return;
-        }
-
-        for (const user of users) {
-            const card =
-                document.createElement("div");
-
-            card.className = "note";
-            card.style.marginBottom = "10px";
-
-            const username =
-                user.username
-                    ? ` (@${String(
-                        user.username
-                    ).replace(/^@/, "")})`
-                    : "";
-
-            const title =
-                document.createElement("h4");
-
-            title.textContent =
-                "Привязанный аккаунт: " +
-                (user.account_id ?? "—") +
-                username;
-
-            const telegramId =
-                document.createElement("p");
-
-            telegramId.textContent =
-                "Telegram ID: " +
-                (
-                    Number(user.telegram_id) > 0
-                        ? user.telegram_id
-                        : "Не привязан"
-                );
-
-            const login =
-                document.createElement("p");
-
-            login.textContent =
-                "Логин: " +
-                (user.login || "Не установлен");
-
-            card.append(
-                title,
-                telegramId,
-                login
-            );
-
-            results.append(card);
-        }
-    } catch (error) {
-        results.textContent =
-            error.message ||
-            "Ошибка поиска пользователя";
-    }
-}
-
-
-document
-    .getElementById(
-        "adminUserSearchButton"
-    )
-    ?.addEventListener(
-        "click",
-        searchAdminUsers
-    );
     
-    $("#new-lesson-button").addEventListener("click", resetLessonForm);
-
-    logoutButton.addEventListener("click", async () => {
-      try {
-        await api("/api/auth/logout", { method: "POST" });
-      } catch {}
-
-      showLogin();
-    });
-
-    initialise();
     async function ownerChangeAdminPassword() {
 
     const userId =
