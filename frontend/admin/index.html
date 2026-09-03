@@ -3808,7 +3808,7 @@ $("#password-toggle")?.addEventListener("click", () => {
     ? "Показать пароль"
     : "Скрыть пароль";
 });
-    $("#login-form").addEventListener("submit", async (event) => {
+    $("#login-form")?.addEventListener("submit", async (event) => {
       event.preventDefault();
 
       const button = $("#login-button");
