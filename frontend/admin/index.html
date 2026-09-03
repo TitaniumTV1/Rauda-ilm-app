@@ -5193,7 +5193,15 @@ if (!type || !assessmentId) {
                     )
                     ?.value;
 
+if (!userId || !type || !assessmentId) {
+    adminStatus(
+        "Сначала выберите ученика и тест или экзамен.",
+        true
+    );
 
+    return;
+}
+          
             const result =
                 await api(
                     "/api/admin/assessment-access" +
