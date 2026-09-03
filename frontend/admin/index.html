@@ -4519,9 +4519,18 @@ document
         `;
 
 
-        workspace.appendChild(
-            block
-        );
+        const gradesPanel =
+    document.querySelector(
+        '[data-admin-panel="grades"]'
+    );
+
+if (!gradesPanel) {
+    return;
+}
+
+gradesPanel.appendChild(
+    block
+);
 
 
         document
