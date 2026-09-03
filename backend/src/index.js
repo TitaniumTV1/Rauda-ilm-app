@@ -8545,6 +8545,83 @@ async function requireAdmin(request, env) {
     if (!isAdmin(auth.user)) return { ok: false, status: 403, error: "Требуются права администратора" };
     return auth;
 }
+const ADMIN_PERMISSION_KEYS = new Set([
+    "content",
+    "students",
+    "grades",
+    "assessments",
+    "schedule",
+    "payments",
+    "certificates"
+]);
+
+async function requireAdminPermission(
+    request,
+    env,
+    permission
+) {
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return auth;
+    }
+
+    const role =
+        String(
+            auth.user?.role || ""
+        ).toLowerCase();
+
+    // Владелец и суперадмин имеют все права
+    if (
+        role === "owner" ||
+        role === "superadmin"
+    ) {
+        return auth;
+    }
+
+    if (
+        !ADMIN_PERMISSION_KEYS.has(
+            permission
+        )
+    ) {
+        return {
+            ok: false,
+            status: 403,
+            error: "Неизвестное разрешение"
+        };
+    }
+
+    const row =
+        await first(
+            env.DB,
+            `
+            SELECT id
+            FROM admin_permissions
+            WHERE admin_id = ?
+              AND permission = ?
+            LIMIT 1
+            `,
+            [
+                auth.user.id,
+                permission
+            ]
+        );
+
+    if (!row) {
+        return {
+            ok: false,
+            status: 403,
+            error:
+                "У администратора нет этого разрешения"
+        };
+    }
+
+    return auth;
+}
 
 async function createSession(db, userId) {
     await ensureAuthSessionsTable(db);
