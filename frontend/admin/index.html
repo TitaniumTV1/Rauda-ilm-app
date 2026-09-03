@@ -3976,7 +3976,7 @@ $("#password-toggle")?.addEventListener("click", () => {
 
     $("#files")?.addEventListener("change", renderSelectedFiles);
 
-    programSelect.addEventListener("change", () => {
+    programSelect?.addEventListener("change", () => {
       $("#program-id-manual").value = "";
 
       loadCourses().catch((error) => {
