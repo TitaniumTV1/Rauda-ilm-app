@@ -1427,6 +1427,15 @@ async function ensureEmailAuthSchema(db) {
             ) {
                 return handleGrades(request, env);
             }
+            if (
+    url.pathname === "/api/grades/details" &&
+    request.method === "GET"
+) {
+    return handleGradesDetails(
+        request,
+        env
+    );
+}
 
             if (url.pathname === "/api/webhooks/tribute" && request.method === "POST") {
                 return handleTributeWebhook(request, env);
@@ -5014,7 +5023,567 @@ async function handleGrades(
         );
     }
 }
+async function handleGradesDetails(
+    request,
+    env
+) {
 
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+
+    try {
+
+        const scales =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    course_id,
+                    min_score,
+                    max_score,
+                    grade,
+                    description
+                FROM grading_scales
+                ORDER BY
+                    course_id,
+                    min_score DESC
+                `
+            );
+
+
+        /* =========================
+           ТЕСТЫ
+           ========================= */
+
+        const tests =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    ta.id AS attempt_id,
+                    ta.test_id AS assessment_id,
+                    ta.course_id,
+                    ta.attempt_number,
+                    ta.score,
+                    ta.max_score,
+                    ta.percentage,
+                    ta.passed,
+                    ta.submitted_at,
+
+                    t.title,
+                    t.passing_score,
+                    t.attempts_allowed,
+                    t.is_active,
+                    t.starts_at,
+                    t.ends_at,
+                    t.subject_id,
+                    t.book_id,
+
+                    c.name AS course_name
+
+                FROM test_attempts ta
+
+                LEFT JOIN tests t
+                    ON t.id = ta.test_id
+
+                LEFT JOIN courses c
+                    ON c.id = ta.course_id
+
+                WHERE
+                    ta.user_id = ?
+                    AND ta.submitted_at
+                        IS NOT NULL
+
+                ORDER BY
+                    ta.submitted_at DESC,
+                    ta.id DESC
+                `,
+                [
+                    auth.user.id
+                ]
+            );
+
+
+        /* =========================
+           ЭКЗАМЕНЫ
+           ========================= */
+
+        const exams =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    ea.id AS attempt_id,
+                    ea.exam_id AS assessment_id,
+                    ea.course_id,
+                    ea.attempt_number,
+                    ea.score,
+                    ea.max_score,
+                    ea.percentage,
+                    ea.passed,
+                    ea.grade AS stored_grade,
+                    ea.submitted_at,
+
+                    e.title,
+                    e.passing_score,
+                    e.attempts_allowed,
+                    e.is_active,
+                    e.starts_at,
+                    e.ends_at,
+                    e.subject_id,
+                    e.book_id,
+
+                    c.name AS course_name
+
+                FROM exam_attempts ea
+
+                LEFT JOIN exams e
+                    ON e.id = ea.exam_id
+
+                LEFT JOIN courses c
+                    ON c.id = ea.course_id
+
+                WHERE
+                    ea.user_id = ?
+                    AND ea.submitted_at
+                        IS NOT NULL
+
+                ORDER BY
+                    ea.submitted_at DESC,
+                    ea.id DESC
+                `,
+                [
+                    auth.user.id
+                ]
+            );
+
+
+        const grouped =
+            new Map();
+
+
+        function addAttempt(
+            row,
+            type
+        ) {
+
+            const assessmentId =
+                Number(
+                    row.assessment_id
+                );
+
+
+            const key =
+                type +
+                ":" +
+                assessmentId;
+
+
+            if (!grouped.has(key)) {
+
+                grouped.set(
+                    key,
+                    {
+                        type,
+
+                        assessment_id:
+                            assessmentId,
+
+                        title:
+                            row.title ||
+                            (
+                                type === "exam"
+                                    ? "Экзамен"
+                                    : "Тест"
+                            ),
+
+                        course: {
+                            id:
+                                Number(
+                                    row.course_id
+                                ) || null,
+
+                            name:
+                                row.course_name ||
+                                "Курс"
+                        },
+
+                        subject:
+                            null,
+
+                        book:
+                            null,
+
+                        passing_score:
+                            Number(
+                                row.passing_score
+                            ) || 60,
+
+                        attempts_allowed:
+                            Math.max(
+                                1,
+                                Number(
+                                    row.attempts_allowed
+                                ) || 1
+                            ),
+
+                        is_active:
+                            Number(
+                                row.is_active
+                            ) === 1,
+
+                        starts_at:
+                            row.starts_at ||
+                            null,
+
+                        ends_at:
+                            row.ends_at ||
+                            null,
+
+                        attempts:
+                            []
+                    }
+                );
+            }
+
+
+            const percentage =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        Number(
+                            row.percentage
+                        ) || 0
+                    )
+                );
+
+
+            grouped
+                .get(key)
+                .attempts
+                .push({
+                    attempt_id:
+                        Number(
+                            row.attempt_id
+                        ),
+
+                    attempt_number:
+                        Number(
+                            row.attempt_number
+                        ) || 1,
+
+                    score:
+                        Number(
+                            row.score
+                        ) || 0,
+
+                    max_score:
+                        Number(
+                            row.max_score
+                        ) || 100,
+
+                    percentage,
+
+                    passed:
+                        percentage >=
+                        (
+                            Number(
+                                row.passing_score
+                            ) || 60
+                        ),
+
+                    grade:
+                        resolveCourseGrade(
+                            percentage,
+                            row.course_id,
+                            scales
+                        ),
+
+                    submitted_at:
+                        row.submitted_at ||
+                        null
+                });
+        }
+
+
+        for (
+            const row of tests || []
+        ) {
+            addAttempt(
+                row,
+                "test"
+            );
+        }
+
+
+        for (
+            const row of exams || []
+        ) {
+            addAttempt(
+                row,
+                "exam"
+            );
+        }
+
+
+        const now =
+            Date.now();
+
+
+        const assessments =
+            Array.from(
+                grouped.values()
+            )
+            .map(
+                item => {
+
+                    const attempts =
+                        item.attempts
+                            .slice()
+                            .sort(
+                                (a, b) =>
+                                    Number(
+                                        b.attempt_id
+                                    ) -
+                                    Number(
+                                        a.attempt_id
+                                    )
+                            );
+
+
+                    let bestAttempt =
+                        null;
+
+
+                    for (
+                        const attempt of attempts
+                    ) {
+
+                        if (
+                            !bestAttempt ||
+                            attempt.percentage >
+                                bestAttempt.percentage
+                        ) {
+                            bestAttempt =
+                                attempt;
+                        }
+                    }
+
+
+                    const used =
+                        attempts.length;
+
+
+                    const remaining =
+                        Math.max(
+                            0,
+                            item.attempts_allowed -
+                            used
+                        );
+
+
+                    let inDateWindow =
+                        true;
+
+
+                    if (
+                        item.starts_at
+                    ) {
+
+                        const start =
+                            Date.parse(
+                                item.starts_at
+                            );
+
+                        if (
+                            !Number.isNaN(
+                                start
+                            ) &&
+                            now < start
+                        ) {
+                            inDateWindow =
+                                false;
+                        }
+                    }
+
+
+                    if (
+                        item.ends_at
+                    ) {
+
+                        const end =
+                            Date.parse(
+                                item.ends_at
+                            );
+
+                        if (
+                            !Number.isNaN(
+                                end
+                            ) &&
+                            now > end
+                        ) {
+                            inDateWindow =
+                                false;
+                        }
+                    }
+
+
+                    const canAttempt =
+                        item.is_active &&
+                        inDateWindow &&
+                        remaining > 0;
+
+
+                    return {
+                        type:
+                            item.type,
+
+                        assessment_id:
+                            item.assessment_id,
+
+                        title:
+                            item.title,
+
+                        course:
+                            item.course,
+
+                        subject:
+                            item.subject,
+
+                        book:
+                            item.book,
+
+                        passing_score:
+                            item.passing_score,
+
+                        best_attempt:
+                            bestAttempt ||
+                            {
+                                score: 0,
+                                max_score: 100,
+                                percentage: 0,
+                                passed: false,
+                                grade: "—"
+                            },
+
+                        attempts,
+
+                        access: {
+                            can_attempt:
+                                canAttempt,
+
+                            is_retake:
+                                used > 0,
+
+                            attempts_used:
+                                used,
+
+                            attempts_allowed:
+                                item.attempts_allowed,
+
+                            attempts_remaining:
+                                remaining
+                        }
+                    };
+                }
+            );
+
+
+        const total =
+            assessments.length;
+
+
+        const passed =
+            assessments.filter(
+                item =>
+                    item.best_attempt
+                        ?.passed
+            ).length;
+
+
+        const failed =
+            total -
+            passed;
+
+
+        const average =
+            total
+                ? Math.round(
+                    assessments.reduce(
+                        (
+                            sum,
+                            item
+                        ) =>
+                            sum +
+                            Number(
+                                item
+                                    .best_attempt
+                                    ?.percentage ||
+                                0
+                            ),
+                        0
+                    ) /
+                    total
+                )
+                : 0;
+
+
+        return json(
+            {
+                ok: true,
+
+                summary: {
+                    total,
+                    passed,
+                    failed,
+
+                    average_percentage:
+                        average,
+
+                    average_grade:
+                        defaultGradeFromPercentage(
+                            average
+                        )
+                },
+
+                assessments
+            },
+            200,
+            env
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Grades details error:",
+            error
+        );
+
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось загрузить данные оценок"
+            },
+            500,
+            env
+        );
+    }
+}
 async function handleTributeWebhook(request, env) {
     if (!env.DB) return databaseMissing(env);
 
