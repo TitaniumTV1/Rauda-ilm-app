@@ -1357,6 +1357,12 @@ async function ensureEmailAuthSchema(db) {
             if (url.pathname === "/api/lessons" && request.method === "GET") {
                 return handleLessons(request, env);
             }
+            if (
+    url.pathname === "/api/admin/users/change-password" &&
+    request.method === "POST"
+) {
+    return handleOwnerChangeAdminPassword(request, env);
+}
 
                      if (
     url.pathname === "/api/admin/users/search" &&
@@ -4148,6 +4154,152 @@ async function handleLessons(request, env) {
             env
         );
     }
+}
+async function handleOwnerChangeAdminPassword(request, env) {
+
+    const auth =
+        await requireUser(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    if (auth.user.role !== "owner") {
+        return json(
+            {
+                ok: false,
+                error: "Только владелец может менять пароли администраторов"
+            },
+            403,
+            env
+        );
+    }
+
+    let body;
+
+    try {
+        body = await request.json();
+    } catch {
+        return json(
+            {
+                ok: false,
+                error: "Некорректные данные"
+            },
+            400,
+            env
+        );
+    }
+
+    const userId =
+        Number(body.user_id);
+
+    const newPassword =
+        String(
+            body.new_password || ""
+        );
+
+    if (
+        !Number.isInteger(userId) ||
+        userId <= 0
+    ) {
+        return json(
+            {
+                ok: false,
+                error: "Некорректный ID администратора"
+            },
+            400,
+            env
+        );
+    }
+
+    if (newPassword.length < 8) {
+        return json(
+            {
+                ok: false,
+                error: "Пароль должен содержать минимум 8 символов"
+            },
+            400,
+            env
+        );
+    }
+
+    const targetUser =
+        await first(
+            env.DB,
+            `
+            SELECT
+                id,
+                login,
+                role
+            FROM users
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [userId]
+        );
+
+    if (!targetUser) {
+        return json(
+            {
+                ok: false,
+                error: "Администратор не найден"
+            },
+            404,
+            env
+        );
+    }
+
+    if (
+        ![
+            "admin",
+            "superadmin"
+        ].includes(targetUser.role)
+    ) {
+        return json(
+            {
+                ok: false,
+                error: "Можно менять пароль только администраторам"
+            },
+            403,
+            env
+        );
+    }
+
+    const passwordHash =
+        await hashPassword(
+            newPassword
+        );
+
+    await env.DB
+        .prepare(
+            `
+            UPDATE users
+            SET
+                password_hash = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `
+        )
+        .bind(
+            passwordHash,
+            userId
+        )
+        .run();
+
+    return json(
+        {
+            ok: true,
+            message: "Пароль администратора изменён"
+        },
+        200,
+        env
+    );
 }
 async function handleSingleLesson(request, env, lessonId) {
     const auth = await requireUser(request, env);
