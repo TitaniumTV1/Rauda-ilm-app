@@ -2866,9 +2866,23 @@ function switchAdminTab(tabName) {
 
                     </div>
 
+<div
+    id="adminLessonsList"
+    class="rauda-admin-list"
+    style="margin-bottom:16px;"
+>
+    <div class="rauda-admin-empty">
+        Выберите курс, чтобы увидеть уроки.
+    </div>
+</div>
 
+<input
+    id="editingLessonId"
+    type="hidden"
+>
+                  
                     <form
-                        id="lessonForm"
+                        id="lesson-form"
                         class="rauda-admin-form-grid"
                     >
 
@@ -3583,6 +3597,141 @@ function switchAdminTab(tabName) {
       return result.lesson;
     }
 
+    async function updateLesson(
+    lessonId
+) {
+
+    const courseId =
+        Number(
+            document.getElementById(
+                "lessonCourse"
+            )?.value
+        ) || null;
+
+    const programId =
+        Number(
+            document.getElementById(
+                "lessonProgram"
+            )?.value
+        ) || null;
+
+    const title =
+        document.getElementById(
+            "lessonTitle"
+        )?.value?.trim() ||
+        "";
+
+    const description =
+        document.getElementById(
+            "lessonDescription"
+        )?.value?.trim() ||
+        "";
+
+    const content =
+        document.getElementById(
+            "lessonContent"
+        )?.value?.trim() ||
+        "";
+
+    const lessonNumber =
+        Number(
+            document.getElementById(
+                "lessonNumber"
+            )?.value
+        ) || 0;
+
+    const sortOrder =
+        Number(
+            document.getElementById(
+                "lessonSortOrder"
+            )?.value
+        ) || 0;
+
+    const visibleElement =
+        document.getElementById(
+            "lessonVisible"
+        );
+
+    const isVisible =
+        visibleElement
+            ? visibleElement.checked
+            : true;
+
+    if (!courseId) {
+        throw new Error(
+            "Выберите курс."
+        );
+    }
+
+    if (!title) {
+        throw new Error(
+            "Введите название урока."
+        );
+    }
+
+    const response =
+        await fetch(
+            "/api/admin/lessons/" +
+            encodeURIComponent(
+                lessonId
+            ),
+            {
+                method: "PATCH",
+
+                credentials:
+                    "same-origin",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        program_id:
+                            programId,
+
+                        course_id:
+                            courseId,
+
+                        title,
+
+                        description,
+
+                        content,
+
+                        lesson_number:
+                            lessonNumber,
+
+                        sort_order:
+                            sortOrder,
+
+                        is_visible:
+                            isVisible
+                    })
+            }
+        );
+
+    const data =
+        await response
+            .json()
+            .catch(
+                () => ({})
+            );
+
+    if (
+        !response.ok ||
+        !data.ok
+    ) {
+        throw new Error(
+            data.error ||
+            "Не удалось изменить урок."
+        );
+    }
+
+    return data.lesson;
+}
+
     async function uploadFiles(lesson) {
       const files = [...$("#files").files];
 
@@ -3713,41 +3862,117 @@ $("#password-toggle").addEventListener("click", () => {
     });
 
     $("#lesson-form").addEventListener("submit", async (event) => {
-      event.preventDefault();
+    event.preventDefault();
 
-      const button = $("#save-button");
-      button.disabled = true;
+    const button = $("#save-button");
 
-      setStatus(lessonStatus, "Создаём урок…", "loading");
+    const editingLessonId =
+        Number(
+            document.getElementById(
+                "editingLessonId"
+            )?.value
+        ) || 0;
 
-      try {
-        const lesson = state.lesson || await createLesson();
-        const uploaded = await uploadFiles(lesson);
+    button.disabled = true;
 
-        setStatus(
-          lessonStatus,
-          uploaded
-            ? `Урок создан. Загружено материалов: ${uploaded}.`
-            : "Урок создан. Материалы можно добавить позже.",
-          "success"
-        );
+    setStatus(
+        lessonStatus,
+        editingLessonId
+            ? "Сохраняем изменения…"
+            : "Создаём урок…",
+        "loading"
+    );
 
-        $("#files").value = "";
-        renderSelectedFiles();
-      } catch (error) {
-        if (error.status === 401) {
-          showLogin("Сессия истекла. Войдите снова.");
+    try {
+
+        let lesson;
+
+        if (editingLessonId) {
+
+            lesson =
+                await updateLesson(
+                    editingLessonId
+                );
+
+        } else {
+
+            lesson =
+                state.lesson ||
+                await createLesson();
         }
 
+        const uploaded =
+            await uploadFiles(
+                lesson
+            );
+
         setStatus(
-          lessonStatus,
-          error.message || "Не удалось сохранить урок",
-          "error"
+            lessonStatus,
+
+            editingLessonId
+                ? (
+                    uploaded
+                        ? `Урок обновлён. Загружено новых материалов: ${uploaded}.`
+                        : "Изменения урока сохранены."
+                )
+                : (
+                    uploaded
+                        ? `Урок создан. Загружено материалов: ${uploaded}.`
+                        : "Урок создан. Материалы можно добавить позже."
+                ),
+
+            "success"
         );
-      } finally {
-        button.disabled = false;
-      }
-    });
+
+        state.lesson =
+            null;
+
+        const courseId =
+            Number(
+                lesson.course_id ||
+                document.getElementById(
+                    "lessonCourse"
+                )?.value ||
+                0
+            );
+
+        if (
+            typeof resetAdminLessonForm ===
+            "function"
+        ) {
+            resetAdminLessonForm();
+        }
+
+        if (
+            courseId &&
+            typeof loadAdminLessonsManager ===
+            "function"
+        ) {
+            await loadAdminLessonsManager(
+                courseId
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Save lesson:",
+            error
+        );
+
+        setStatus(
+            lessonStatus,
+            error?.message ||
+                "Не удалось сохранить урок.",
+            "error"
+        );
+
+    } finally {
+
+        button.disabled =
+            false;
+    }
+});
 
     $("#files").addEventListener("change", renderSelectedFiles);
 
@@ -7455,7 +7680,440 @@ window.addEventListener(
 );
 
 </script>
-  
+
+  <script id="rauda-admin-lessons-manager-v1">
+
+async function loadAdminLessonsManager(
+    courseId
+) {
+
+    const container =
+        document.getElementById(
+            "adminLessonsList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    if (!courseId) {
+
+        container.innerHTML = `
+            <div class="rauda-admin-empty">
+                Выберите курс, чтобы увидеть уроки.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="rauda-admin-empty">
+            Загружаем уроки...
+        </div>
+    `;
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/lessons?course_id=" +
+                encodeURIComponent(
+                    courseId
+                ),
+                {
+                    credentials:
+                        "same-origin"
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            container.innerHTML = `
+                <div class="rauda-admin-empty">
+                    ${raudaAdminEscape(
+                        data.error ||
+                        "Не удалось загрузить уроки"
+                    )}
+                </div>
+            `;
+
+            return;
+        }
+
+        const lessons =
+            Array.isArray(
+                data.lessons
+            )
+                ? data.lessons
+                : [];
+
+        window.__raudaAdminLessons =
+            lessons;
+
+        if (!lessons.length) {
+
+            container.innerHTML = `
+                <div class="rauda-admin-empty">
+                    В этом курсе пока нет уроков.
+                </div>
+            `;
+
+            return;
+        }
+
+        container.innerHTML =
+            lessons
+                .map(
+                    lesson => {
+
+                        return `
+                            <div class="rauda-admin-content-item">
+
+                                <div class="rauda-admin-content-info">
+
+                                    <div class="rauda-admin-content-name">
+                                        ${raudaAdminEscape(
+                                            lesson.title ||
+                                            "Урок"
+                                        )}
+                                    </div>
+
+                                    <div class="rauda-admin-content-meta">
+                                        Урок №${Number(
+                                            lesson.lesson_number
+                                        ) || 0}
+                                        ·
+                                        ${
+                                            Number(
+                                                lesson.is_visible
+                                            ) === 1
+                                                ? "Опубликован"
+                                                : "Скрыт"
+                                        }
+                                    </div>
+
+                                    ${
+                                        lesson.description
+                                            ? `
+                                                <div class="rauda-admin-content-description">
+                                                    ${raudaAdminEscape(
+                                                        lesson.description
+                                                    )}
+                                                </div>
+                                            `
+                                            : ""
+                                    }
+
+                                </div>
+
+                                <div class="rauda-admin-content-actions">
+
+                                    <button
+                                        type="button"
+                                        class="rauda-admin-content-edit"
+                                        onclick="editAdminLesson(${Number(
+                                            lesson.id
+                                        )})"
+                                    >
+                                        Изменить
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="rauda-admin-content-delete"
+                                        onclick="deleteAdminLesson(${Number(
+                                            lesson.id
+                                        )})"
+                                    >
+                                        Удалить
+                                    </button>
+
+                                </div>
+
+                            </div>
+                        `;
+                    }
+                )
+                .join("");
+
+    } catch (error) {
+
+        console.error(
+            "Admin lessons:",
+            error
+        );
+
+        container.innerHTML = `
+            <div class="rauda-admin-empty">
+                Ошибка загрузки уроков.
+            </div>
+        `;
+    }
+}
+
+
+function editAdminLesson(
+    lessonId
+) {
+
+    const lessons =
+        Array.isArray(
+            window.__raudaAdminLessons
+        )
+            ? window.__raudaAdminLessons
+            : [];
+
+    const lesson =
+        lessons.find(
+            item =>
+                Number(item.id) ===
+                Number(lessonId)
+        );
+
+    if (!lesson) {
+        return;
+    }
+
+    document.getElementById(
+        "editingLessonId"
+    ).value =
+        lesson.id;
+
+    document.getElementById(
+        "lessonProgram"
+    ).value =
+        String(
+            lesson.program_id ||
+            ""
+        );
+
+    document.getElementById(
+        "lessonCourse"
+    ).value =
+        String(
+            lesson.course_id ||
+            ""
+        );
+
+    document.getElementById(
+        "lessonNumber"
+    ).value =
+        lesson.lesson_number ?? "";
+
+    document.getElementById(
+        "lessonSortOrder"
+    ).value =
+        lesson.sort_order ?? "";
+
+    document.getElementById(
+        "lessonTitle"
+    ).value =
+        lesson.title || "";
+
+    document.getElementById(
+        "lessonDescription"
+    ).value =
+        lesson.description || "";
+
+    document.getElementById(
+        "lessonContent"
+    ).value =
+        lesson.content || "";
+
+    document.getElementById(
+        "lessonVisible"
+    ).checked =
+        Number(
+            lesson.is_visible
+        ) !== 0;
+
+    const button =
+        document.getElementById(
+    "save-button"
+);
+
+    if (button) {
+        button.textContent =
+            "Сохранить изменения";
+    }
+
+    document.getElementById(
+        "lessonStatus"
+    ).textContent =
+        "Редактирование урока";
+
+    document.getElementById(
+        "lesson-form"
+    )?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+
+function resetAdminLessonForm() {
+
+    document.getElementById(
+        "editingLessonId"
+    ).value = "";
+
+    document.getElementById(
+        "lessonNumber"
+    ).value = "";
+
+    document.getElementById(
+        "lessonSortOrder"
+    ).value = "";
+
+    document.getElementById(
+        "lessonTitle"
+    ).value = "";
+
+    document.getElementById(
+        "lessonDescription"
+    ).value = "";
+
+    document.getElementById(
+        "lessonContent"
+    ).value = "";
+
+    document.getElementById(
+        "lessonFiles"
+    ).value = "";
+
+    document.getElementById(
+        "lessonVisible"
+    ).checked = true;
+
+    const button =
+        document.getElementById(
+    "save-button"
+);
+
+    if (button) {
+        button.textContent =
+            "Создать урок";
+    }
+}
+
+
+async function deleteAdminLesson(
+    lessonId
+) {
+
+    const lessons =
+        Array.isArray(
+            window.__raudaAdminLessons
+        )
+            ? window.__raudaAdminLessons
+            : [];
+
+    const lesson =
+        lessons.find(
+            item =>
+                Number(item.id) ===
+                Number(lessonId)
+        );
+
+    if (!lesson) {
+        return;
+    }
+
+    if (
+        !confirm(
+            `Удалить урок «${lesson.title || "Урок"}»?`
+        )
+    ) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/admin/lessons/" +
+                encodeURIComponent(
+                    lessonId
+                ),
+                {
+                    method: "DELETE",
+                    credentials:
+                        "same-origin"
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            alert(
+                data.error ||
+                "Не удалось удалить урок"
+            );
+
+            return;
+        }
+
+        const courseId =
+            Number(
+                document.getElementById(
+                    "lessonCourse"
+                ).value
+            );
+
+        await loadAdminLessonsManager(
+            courseId
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Delete lesson:",
+            error
+        );
+
+        alert(
+            "Ошибка соединения"
+        );
+    }
+}
+
+
+document
+    .getElementById(
+        "lessonCourse"
+    )
+    ?.addEventListener(
+        "change",
+        function () {
+
+            const courseId =
+                Number(
+                    this.value
+                );
+
+            loadAdminLessonsManager(
+                courseId
+            );
+        }
+    );
+
+</script>
 </body>
 </html>
 
