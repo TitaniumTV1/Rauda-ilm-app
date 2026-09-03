@@ -4708,7 +4708,9 @@ function clearSelectedAdminStudent() {
     }
 }
 
-async function loadAdminStudentGrades(userId) {
+async function loadAdminStudentGrades(
+    userId
+) {
 
     const container =
         document.getElementById(
@@ -4721,27 +4723,295 @@ async function loadAdminStudentGrades(userId) {
 
     container.innerHTML = `
         <div class="rauda-admin-empty">
-            Ученик выбран.
-            Теперь подключим его оценки и пересдачи.
+            Загружаем оценки...
         </div>
     `;
-}
 
-document
-    .getElementById(
-        "adminStudentSearch"
-    )
-    ?.addEventListener(
-        "keydown",
-        function (event) {
+    try {
 
-            if (event.key === "Enter") {
-                event.preventDefault();
-                searchAdminStudents();
-            }
+        const response =
+            await fetch(
+                "/api/admin/students/grades?user_id=" +
+                encodeURIComponent(
+                    userId
+                ),
+                {
+                    method: "GET",
+                    credentials: "same-origin"
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            container.innerHTML = `
+                <div class="rauda-admin-empty">
+                    ${escapeAdminHtml(
+                        data.error ||
+                        "Не удалось загрузить оценки"
+                    )}
+                </div>
+            `;
+
+            return;
         }
-    );
 
+        const grades =
+            Array.isArray(
+                data.grades
+            )
+                ? data.grades
+                : [];
+
+        if (!grades.length) {
+
+            container.innerHTML = `
+                <div class="rauda-admin-empty">
+                    У ученика пока нет результатов тестов или экзаменов.
+                </div>
+            `;
+
+            return;
+        }
+
+        container.innerHTML =
+            grades
+                .map(
+                    item => {
+
+                        const percentage =
+                            Math.max(
+                                0,
+                                Math.min(
+                                    100,
+                                    Number(
+                                        item.percentage
+                                    ) || 0
+                                )
+                            );
+
+                        const passed =
+                            Boolean(
+                                item.passed
+                            );
+
+                        const typeName =
+                            item.type === "exam"
+                                ? "Экзамен"
+                                : "Тест";
+
+                        const statusText =
+                            passed
+                                ? "Сдано"
+                                : "Не сдано";
+
+                        const statusClass =
+                            passed
+                                ? "passed"
+                                : "failed";
+
+                        const submittedAt =
+                            item.submitted_at
+                                ? new Date(
+                                    item.submitted_at
+                                ).toLocaleString(
+                                    "ru-RU"
+                                )
+                                : "—";
+
+                        return `
+                            <article
+                                class="rauda-admin-grade-card"
+                            >
+
+                                <div
+                                    class="rauda-admin-grade-kind"
+                                >
+                                    ${escapeAdminHtml(
+                                        typeName
+                                    )}
+                                </div>
+
+                                <div
+                                    class="rauda-admin-grade-title"
+                                >
+                                    ${escapeAdminHtml(
+                                        item.title ||
+                                        typeName
+                                    )}
+                                </div>
+
+                                <div
+                                    class="rauda-admin-grade-course"
+                                >
+                                    ${escapeAdminHtml(
+                                        item.course_name ||
+                                        "Курс"
+                                    )}
+                                </div>
+
+                                <div
+                                    class="rauda-admin-grade-score-row"
+                                >
+
+                                    <div
+                                        class="rauda-admin-grade-score"
+                                    >
+                                        ${percentage}%
+                                    </div>
+
+                                    <div
+                                        class="rauda-admin-grade-status ${statusClass}"
+                                    >
+                                        ${statusText}
+                                    </div>
+
+                                </div>
+
+                                <div
+                                    class="rauda-admin-grade-meta"
+                                >
+
+                                    <div
+                                        class="rauda-admin-grade-meta-item"
+                                    >
+                                        <div
+                                            class="rauda-admin-grade-meta-label"
+                                        >
+                                            Баллы
+                                        </div>
+
+                                        <div
+                                            class="rauda-admin-grade-meta-value"
+                                        >
+                                            ${Number(
+                                                item.score
+                                            ) || 0}
+                                            /
+                                            ${Number(
+                                                item.max_score
+                                            ) || 100}
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="rauda-admin-grade-meta-item"
+                                    >
+                                        <div
+                                            class="rauda-admin-grade-meta-label"
+                                        >
+                                            Попытка
+                                        </div>
+
+                                        <div
+                                            class="rauda-admin-grade-meta-value"
+                                        >
+                                            №${Number(
+                                                item.attempt_number
+                                            ) || 1}
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="rauda-admin-grade-meta-item"
+                                    >
+                                        <div
+                                            class="rauda-admin-grade-meta-label"
+                                        >
+                                            Проходной балл
+                                        </div>
+
+                                        <div
+                                            class="rauda-admin-grade-meta-value"
+                                        >
+                                            ${Number(
+                                                item.passing_score
+                                            ) || 60}%
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="rauda-admin-grade-meta-item"
+                                    >
+                                        <div
+                                            class="rauda-admin-grade-meta-label"
+                                        >
+                                            Дата
+                                        </div>
+
+                                        <div
+                                            class="rauda-admin-grade-meta-value"
+                                        >
+                                            ${escapeAdminHtml(
+                                                submittedAt
+                                            )}
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div
+                                    class="rauda-admin-grade-actions"
+                                >
+
+                                    <button
+                                        type="button"
+                                        class="rauda-admin-grade-edit"
+                                        onclick="editAdminGrade(
+                                            '${item.type}',
+                                            ${Number(
+                                                item.attempt_id
+                                            )}
+                                        )"
+                                    >
+                                        Изменить оценку
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="rauda-admin-grade-retake"
+                                        onclick="grantAdminRetake(
+                                            '${item.type}',
+                                            ${Number(
+                                                item.assessment_id
+                                            )},
+                                            ${Number(
+                                                userId
+                                            )}
+                                        )"
+                                    >
+                                        Разрешить пересдачу
+                                    </button>
+
+                                </div>
+
+                            </article>
+                        `;
+                    }
+                )
+                .join("");
+
+    } catch (error) {
+
+        console.error(
+            "Admin grades load:",
+            error
+        );
+
+        container.innerHTML = `
+            <div class="rauda-admin-empty">
+                Ошибка соединения.
+            </div>
+        `;
+    }
+}
 </script>
   
 </body>
