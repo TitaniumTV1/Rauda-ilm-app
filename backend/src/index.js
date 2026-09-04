@@ -1400,7 +1400,13 @@ async function ensureEmailAuthSchema(db) {
             if (
     url.pathname === "/api/admin/users/role" &&
     request.method === "POST"
-)
+) {
+    return handleOwnerChangeUserRole(
+        request,
+        env
+    );
+}
+
             if (
     url.pathname === "/api/admin/users/permissions" &&
     (
@@ -1412,7 +1418,12 @@ async function ensureEmailAuthSchema(db) {
         request,
         env
     );
-} {
+} 
+            
+            if (
+    url.pathname === "/api/admin/users/search" &&
+    request.method === "GET"
+) {
     return handleOwnerChangeUserRole(
         request,
         env
