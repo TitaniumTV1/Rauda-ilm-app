@@ -8029,7 +8029,10 @@ async function saveAdminProgram() {
 
         closeProgramAdminModal();
 
-        
+       await Promise.all([
+    loadAdminProgramsManager(),
+    loadAdminCoursesManager()
+]); 
 
     } catch (error) {
 
