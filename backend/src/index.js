@@ -1420,16 +1420,6 @@ async function ensureEmailAuthSchema(db) {
     );
 } 
             
-            if (
-    url.pathname === "/api/admin/users/search" &&
-    request.method === "GET"
-) {
-    return handleOwnerChangeUserRole(
-        request,
-        env
-    );
-}
-            
                      if (
     url.pathname === "/api/admin/users/search" &&
     request.method === "GET"
