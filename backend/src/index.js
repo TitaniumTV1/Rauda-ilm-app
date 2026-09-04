@@ -1475,6 +1475,22 @@ if (
     );
 }
 
+            const adminSemesterRoute =
+    url.pathname.match(
+        /^\/api\/admin\/semesters\/(\d+)$/
+    );
+
+if (
+    adminSemesterRoute &&
+    request.method === "PATCH"
+) {
+    return handleAdminUpdateSemester(
+        request,
+        env,
+        Number(adminSemesterRoute[1])
+    );
+}
+            
 const adminCourseRoute =
     url.pathname.match(
         /^\/api\/admin\/courses\/(\d+)$/
@@ -5475,6 +5491,167 @@ async function handleAdminUpdateProgram(
     }
 }
 
+async function handleAdminUpdateSemester(
+    request,
+    env,
+    semesterId
+) {
+    if (!env.DB) {
+        return databaseMissing(env);
+    }
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+        const body =
+            await readJson(request);
+
+        const semester =
+            await first(
+                env.DB,
+                `
+                SELECT
+                    id,
+                    price_rub,
+                    access_months,
+                    payment_enabled
+                FROM semesters
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [semesterId]
+            );
+
+        if (!semester) {
+            return json(
+                {
+                    ok: false,
+                    error: "Семестр не найден"
+                },
+                404,
+                env
+            );
+        }
+
+        const priceRub =
+            Number(body?.price_rub);
+
+        const accessMonths =
+            Number(body?.access_months);
+
+        const paymentEnabled =
+            body?.payment_enabled === false ||
+            body?.payment_enabled === 0 ||
+            body?.payment_enabled === "0"
+                ? 0
+                : 1;
+
+        if (
+            !Number.isInteger(priceRub) ||
+            priceRub < 0 ||
+            priceRub > 1000000
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error: "Укажите правильную цену"
+                },
+                400,
+                env
+            );
+        }
+
+        if (
+            !Number.isInteger(accessMonths) ||
+            accessMonths < 1 ||
+            accessMonths > 36
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Срок доступа должен быть от 1 до 36 месяцев"
+                },
+                400,
+                env
+            );
+        }
+
+        await run(
+            env.DB,
+            `
+            UPDATE semesters
+            SET
+                price_rub = ?,
+                access_months = ?,
+                payment_enabled = ?
+            WHERE id = ?
+            `,
+            [
+                priceRub,
+                accessMonths,
+                paymentEnabled,
+                semesterId
+            ]
+        );
+
+        const updated =
+            await first(
+                env.DB,
+                `
+                SELECT
+                    id,
+                    course_id,
+                    program_id,
+                    number,
+                    name,
+                    price_rub,
+                    access_months,
+                    payment_enabled
+                FROM semesters
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [semesterId]
+            );
+
+        return json(
+            {
+                ok: true,
+                semester: updated
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Update semester error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось изменить настройки семестра"
+            },
+            500,
+            env
+        );
+    }
+}
 
 async function handleAdminUpdateCourse(
     request,
