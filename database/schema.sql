@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_name TEXT,
     phone TEXT,
     role TEXT NOT NULL DEFAULT 'student'
-        CHECK (role IN ('student', 'admin', 'superadmin')),
+    CHECK (role IN ('student', 'admin', 'superadmin', 'owner')),
     status TEXT NOT NULL DEFAULT 'active'
         CHECK (status IN ('active', 'pending_payment', 'restricted', 'blocked')),
     blocked_reason TEXT,
