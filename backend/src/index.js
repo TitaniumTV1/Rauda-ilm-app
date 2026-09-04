@@ -1475,6 +1475,15 @@ if (
     );
 }
 
+            if (
+    url.pathname === "/api/admin/semesters" &&
+    request.method === "GET"
+) {
+    return handleAdminGetSemesters(
+        request,
+        env
+    );
+}
             const adminSemesterRoute =
     url.pathname.match(
         /^\/api\/admin\/semesters\/(\d+)$/
@@ -5646,6 +5655,88 @@ async function handleAdminUpdateSemester(
                 ok: false,
                 error:
                     "Не удалось изменить настройки семестра"
+            },
+            500,
+            env
+        );
+    }
+}
+
+async function handleAdminGetSemesters(
+    request,
+    env
+) {
+    if (!env.DB) {
+        return databaseMissing(env);
+    }
+
+    const auth =
+        await requireAdmin(
+            request,
+            env
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    try {
+        const result =
+            await env.DB
+                .prepare(`
+                    SELECT
+                        s.id,
+                        s.course_id,
+                        s.program_id,
+                        s.number,
+                        s.name,
+                        s.description,
+                        s.price_rub,
+                        s.access_months,
+                        s.payment_enabled,
+                        s.is_active,
+                        p.name AS program_name,
+                        c.name AS course_name
+                    FROM semesters s
+
+                    LEFT JOIN programs p
+                        ON p.id = s.program_id
+
+                    LEFT JOIN courses c
+                        ON c.id = s.course_id
+
+                    ORDER BY
+                        s.program_id ASC,
+                        s.number ASC
+                `)
+                .all();
+
+        return json(
+            {
+                ok: true,
+                semesters:
+                    Array.isArray(result?.results)
+                        ? result.results
+                        : []
+            },
+            200,
+            env
+        );
+
+    } catch (error) {
+        console.error(
+            "Get semesters error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось загрузить семестры"
             },
             500,
             env
