@@ -78,6 +78,11 @@ CREATE TABLE IF NOT EXISTS semesters (
     number INTEGER NOT NULL,
     name TEXT,
     description TEXT,
+
+    price_rub INTEGER NOT NULL DEFAULT 3000,
+    access_months INTEGER NOT NULL DEFAULT 3,
+    payment_enabled INTEGER NOT NULL DEFAULT 1,
+
     is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -85,6 +90,78 @@ CREATE TABLE IF NOT EXISTS semesters (
     FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE CASCADE,
 
     UNIQUE(program_id, number)
+);
+
+-- =========================================================
+-- ДОСТУП ПОЛЬЗОВАТЕЛЯ К СЕМЕСТРУ
+-- =========================================================
+
+CREATE TABLE IF NOT EXISTS user_semesters (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    user_id INTEGER NOT NULL,
+    semester_id INTEGER NOT NULL,
+
+    status TEXT NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'expired', 'blocked')),
+
+    access_until TEXT NOT NULL,
+
+    payment_source TEXT,
+    external_payment_id TEXT,
+
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(user_id, semester_id),
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (semester_id)
+        REFERENCES semesters(id)
+        ON DELETE CASCADE
+);
+
+-- =========================================================
+-- ЗАКАЗЫ TRIBUTE
+-- =========================================================
+
+CREATE TABLE IF NOT EXISTS tribute_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    order_uid TEXT NOT NULL UNIQUE,
+
+    user_id INTEGER NOT NULL,
+    semester_id INTEGER NOT NULL,
+
+    amount_rub INTEGER NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'RUB',
+
+    status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (
+            status IN (
+                'pending',
+                'paid',
+                'failed',
+                'cancelled'
+            )
+        ),
+
+    tribute_order_id TEXT,
+    tribute_payment_id TEXT,
+
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    paid_at TEXT,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (semester_id)
+        REFERENCES semesters(id)
+        ON DELETE CASCADE
 );
 
 -- Дисциплины
