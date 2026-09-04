@@ -5522,6 +5522,20 @@ async function handleAdminUpdateSemester(
         );
     }
 
+    if (
+    String(auth.user?.role || "")
+        .toLowerCase() !== "owner"
+) {
+    return json(
+        {
+            ok: false,
+            error: "Доступно только владельцу"
+        },
+        403,
+        env
+    );
+}
+    
     try {
         const body =
             await readJson(request);
