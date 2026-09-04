@@ -3163,6 +3163,38 @@ function switchAdminTab(tabName) {
                         </div>
                     </div>
 
+                  <div
+    style="
+        margin-top:32px;
+        padding-top:24px;
+        border-top:1px solid var(--rauda-border);
+    "
+>
+    <div style="margin-bottom:18px;">
+        <h3 style="margin:0;">
+            Оплата семестров
+        </h3>
+
+        <p
+            style="
+                margin:6px 0 0;
+                color:var(--rauda-muted);
+            "
+        >
+            Здесь можно менять цену и срок доступа
+            без изменения кода.
+        </p>
+    </div>
+
+    <div
+        id="adminSemestersList"
+        class="rauda-admin-list"
+    >
+        <div class="rauda-admin-empty">
+            Семестры загружаются...
+        </div>
+    </div>
+</div>
                 </section>
 
 
@@ -3737,8 +3769,13 @@ function switchAdminTab(tabName) {
   <script>
     const TOKEN_KEY = "rauda_ilm_admin_token";
     const ADMIN_ROLES = new Set(["owner", "superadmin", "admin"]);
-    const state = { user: null, lesson: null, programs: [], courses: [] };
-
+    const state = {
+    user: null,
+    lesson: null,
+    programs: [],
+    courses: [],
+    semesters: []
+};
     const $ = (selector) => document.querySelector(selector);
     const loginView = $("#login-view");
     const workspace = $("#workspace");
@@ -3785,7 +3822,22 @@ function switchAdminTab(tabName) {
 
 function showWorkspace(user) {
     state.user = user || null;
+  
+const semesterPaymentsOwnerBlock =
+    document.getElementById(
+        "semesterPaymentsOwnerBlock"
+    );
 
+if (semesterPaymentsOwnerBlock) {
+    semesterPaymentsOwnerBlock.style.display =
+        state.user?.role === "owner"
+            ? ""
+            : "none";
+}
+
+if (state.user?.role === "owner") {
+    loadAdminSemestersManager();
+}
     loginView?.classList.add("hidden");
     workspace?.classList.remove("hidden");
     document
@@ -7032,11 +7084,377 @@ function raudaAdminEscape(value) {
         .replaceAll("'", "&#039;");
 }
 
+    function renderAdminSemesters() {
+
+    const container =
+        document.getElementById(
+            "adminSemestersList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    if (!state.semesters.length) {
+
+        container.innerHTML = `
+            <div class="rauda-admin-empty">
+                Семестров пока нет
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        state.semesters
+            .map((semester) => {
+
+                const id =
+                    Number(semester.id);
+
+                const number =
+                    Number(semester.number);
+
+                const price =
+                    Number(
+                        semester.price_rub ??
+                        3000
+                    );
+
+                const months =
+                    Number(
+                        semester.access_months ??
+                        3
+                    );
+
+                const paymentEnabled =
+                    Number(
+                        semester.payment_enabled
+                    ) !== 0;
+
+                return `
+                    <div
+                        class="card"
+                        style="
+                            padding:18px;
+                            margin-bottom:12px;
+                        "
+                    >
+
+                        <div
+                            style="
+                                display:flex;
+                                justify-content:space-between;
+                                gap:16px;
+                                margin-bottom:16px;
+                            "
+                        >
+
+                            <div>
+                                <strong>
+                                    ${raudaAdminEscape(
+                                        semester.name ||
+                                        (
+                                            number +
+                                            " семестр"
+                                        )
+                                    )}
+                                </strong>
+
+                                <div
+                                    style="
+                                        margin-top:4px;
+                                        color:var(--rauda-muted);
+                                        font-size:13px;
+                                    "
+                                >
+                                    ${raudaAdminEscape(
+                                        semester.program_name ||
+                                        ""
+                                    )}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="form-grid"
+                        >
+
+                            <div class="field">
+                                <label>
+                                    Цена, ₽
+                                </label>
+
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    id="semesterPrice-${id}"
+                                    value="${price}"
+                                >
+                            </div>
+
+                            <div class="field">
+                                <label>
+                                    Срок доступа, месяцев
+                                </label>
+
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="36"
+                                    step="1"
+                                    id="semesterMonths-${id}"
+                                    value="${months}"
+                                >
+                            </div>
+
+                            <div
+                                class="field full"
+                            >
+                                <label
+                                    class="switch-row"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        id="semesterPayment-${id}"
+                                        ${
+                                            paymentEnabled
+                                                ? "checked"
+                                                : ""
+                                        }
+                                    >
+
+                                    Принимать оплату
+                                </label>
+                            </div>
+
+                        </div>
+
+                        <div class="buttons">
+
+                            <button
+                                type="button"
+                                class="button primary"
+                                onclick="saveAdminSemester(${id})"
+                            >
+                                Сохранить
+                            </button>
+
+                        </div>
+
+                        <div
+                            id="semesterStatus-${id}"
+                            class="status"
+                        ></div>
+
+                    </div>
+                `;
+            })
+            .join("");
+}
+
+    async function saveAdminSemester(id) {
+
+    const priceInput =
+        document.getElementById(
+            "semesterPrice-" + id
+        );
+
+    const monthsInput =
+        document.getElementById(
+            "semesterMonths-" + id
+        );
+
+    const paymentInput =
+        document.getElementById(
+            "semesterPayment-" + id
+        );
+
+    const status =
+        document.getElementById(
+            "semesterStatus-" + id
+        );
+
+    if (
+        !priceInput ||
+        !monthsInput ||
+        !paymentInput
+    ) {
+        return;
+    }
+
+    const price =
+        Number(priceInput.value);
+
+    const months =
+        Number(monthsInput.value);
+
+    if (
+        !Number.isInteger(price) ||
+        price < 0
+    ) {
+        alert(
+            "Укажите правильную цену"
+        );
+
+        return;
+    }
+
+    if (
+        !Number.isInteger(months) ||
+        months < 1
+    ) {
+        alert(
+            "Укажите срок доступа"
+        );
+
+        return;
+    }
+
+    if (status) {
+        status.className =
+            "status visible loading";
+
+        status.textContent =
+            "Сохраняем...";
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/admin/semesters/" +
+                encodeURIComponent(id),
+                {
+                    method: "PATCH",
+
+                    credentials:
+                        "same-origin",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            price_rub: price,
+                            access_months: months,
+                            payment_enabled:
+                                paymentInput.checked
+                        })
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+            throw new Error(
+                data.error ||
+                "Не удалось сохранить"
+            );
+        }
+
+        if (status) {
+
+            status.className =
+                "status visible success";
+
+            status.textContent =
+                "Сохранено";
+        }
+
+        await loadAdminSemestersManager();
+
+    } catch (error) {
+
+        if (status) {
+
+            status.className =
+                "status visible error";
+
+            status.textContent =
+                error.message ||
+                "Не удалось сохранить";
+        }
+    }
+}
 
 /* =========================================
    LOAD PROGRAMS
    ========================================= */
+async function loadAdminSemestersManager() {
 
+    const container =
+        document.getElementById(
+            "adminSemestersList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="rauda-admin-empty">
+            Семестры загружаются...
+        </div>
+    `;
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/admin/semesters",
+                {
+                    credentials:
+                        "same-origin"
+                }
+            );
+
+        const data =
+            await response
+                .json()
+                .catch(() => ({}));
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+            throw new Error(
+                data.error ||
+                "Не удалось загрузить семестры"
+            );
+        }
+
+        state.semesters =
+            Array.isArray(data.semesters)
+                ? data.semesters
+                : [];
+
+        renderAdminSemesters();
+
+    } catch (error) {
+
+        container.innerHTML = `
+            <div class="rauda-admin-empty">
+                ${raudaAdminEscape(
+                    error.message ||
+                    "Не удалось загрузить семестры"
+                )}
+            </div>
+        `;
+    }
+}
+    
 async function loadAdminProgramsManager() {
 
     const container =
@@ -7609,10 +8027,7 @@ async function saveAdminProgram() {
 
         closeProgramAdminModal();
 
-        await Promise.all([
-            loadAdminProgramsManager(),
-            loadAdminCoursesManager()
-        ]);
+        
 
     } catch (error) {
 
@@ -7686,10 +8101,11 @@ async function deleteAdminProgram(
             return;
         }
 
-        await Promise.all([
-            loadAdminProgramsManager(),
-            loadAdminCoursesManager()
-        ]);
+       await Promise.all([
+    loadAdminProgramsManager(),
+    loadAdminCoursesManager(),
+    loadAdminSemestersManager()
+]);
 
     } catch (error) {
 
