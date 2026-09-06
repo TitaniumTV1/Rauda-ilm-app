@@ -4980,72 +4980,47 @@ async function handleAdminSettings(
 
     if (request.method === "GET") {
 
-    const rows =
-        await all(
-            env.DB,
-            `
-            SELECT
-                key,
-                value,
-                updated_at
-            FROM app_settings
-            WHERE key IN (?, ?, ?, ?, ?, ?)
-            ORDER BY key
-            `,
-            APP_SETTING_KEYS
+        const rows =
+            await all(
+                env.DB,
+                `
+                SELECT
+                    key,
+                    value,
+                    updated_at
+                FROM app_settings
+                WHERE key IN (?, ?, ?, ?, ?, ?)
+                ORDER BY key
+                `,
+                APP_SETTING_KEYS
+            );
+
+        const settings = {};
+
+        for (const row of rows || []) {
+            settings[row.key] =
+                row.value;
+        }
+
+        return json(
+            {
+                ok: true,
+                settings
+            },
+            200,
+            env
         );
-
-    const settings = {};
-
-    for (const row of rows || []) {
-        settings[row.key] =
-            row.value;
-    }
-
-    if (request.method === "GET") {
-
-    const rows =
-        await all(
-            env.DB,
-            `
-            SELECT
-                key,
-                value,
-                updated_at
-            FROM app_settings
-            WHERE key IN (?, ?, ?, ?, ?, ?)
-            ORDER BY key
-            `,
-            APP_SETTING_KEYS
-        );
-
-    const settings = {};
-
-    for (const row of rows || []) {
-        settings[row.key] =
-            row.value;
     }
 
     return json(
         {
-            ok: true,
-            settings
+            ok: false,
+            error: "Метод пока не поддерживается"
         },
-        200,
+        405,
         env
     );
 }
-
-return json(
-    {
-        ok: false,
-        error: "Метод пока не поддерживается"
-    },
-    405,
-    env
-);
-}
-
 
 async function handleAdminCreateProgram(
     request,
