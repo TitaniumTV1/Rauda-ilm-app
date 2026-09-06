@@ -5012,14 +5012,219 @@ async function handleAdminSettings(
         );
     }
 
+    if (request.method === "PUT") {
+
+    const body =
+        await readJson(request);
+
+    if (
+        !body ||
+        typeof body !== "object" ||
+        Array.isArray(body)
+    ) {
+        return json(
+            {
+                ok: false,
+                error: "Некорректные настройки"
+            },
+            400,
+            env
+        );
+    }
+
+    const input =
+        body.settings &&
+        typeof body.settings === "object" &&
+        !Array.isArray(body.settings)
+            ? body.settings
+            : body;
+
+        for (const key of Object.keys(input)) {
+    if (!APP_SETTING_KEY_SET.has(key)) {
+        return json(
+            {
+                ok: false,
+                error: `Недопустимая настройка: ${key}`
+            },
+            400,
+            env
+        );
+    }
+}
+        const updates = {};
+
+if (
+    Object.prototype.hasOwnProperty.call(
+        input,
+        "school_name"
+    )
+) {
+    const value =
+        String(input.school_name ?? "").trim();
+
+    if (
+        value.length < 1 ||
+        value.length > 120
+    ) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Название должно содержать от 1 до 120 символов"
+            },
+            400,
+            env
+        );
+    }
+
+    updates.school_name = value;
+}
+        for (const key of APP_BOOLEAN_SETTING_KEYS) {
+    if (
+        !Object.prototype.hasOwnProperty.call(
+            input,
+            key
+        )
+    ) {
+        continue;
+    }
+
+    const normalized =
+        normalizeSettingBoolean(
+            input[key]
+        );
+
+    if (normalized === null) {
+        return json(
+            {
+                ok: false,
+                error:
+                    `Некорректное значение ${key}`
+            },
+            400,
+            env
+        );
+    }
+
+    updates[key] = normalized;
+}
+        if (
+    Object.prototype.hasOwnProperty.call(
+        input,
+        "support_url"
+    )
+) {
+    const value =
+        String(input.support_url ?? "").trim();
+
+    if (
+        value.length > 500 ||
+        (
+            value &&
+            !isSafeHttpsUrl(value)
+        )
+    ) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Некорректная ссылка поддержки"
+            },
+            400,
+            env
+        );
+    }
+
+    updates.support_url = value;
+}
+
+if (
+    Object.prototype.hasOwnProperty.call(
+        input,
+        "telegram_channel"
+    )
+) {
+    const value =
+        String(input.telegram_channel ?? "").trim();
+
+    if (
+        value.length > 500 ||
+        (
+            value &&
+            !isSafeTelegramValue(value)
+        )
+    ) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Некорректная ссылка Telegram"
+            },
+            400,
+            env
+        );
+    }
+
+    updates.telegram_channel = value;
+}
+
+        if (
+    Object.keys(updates).length === 0
+) {
     return json(
         {
             ok: false,
-            error: "Метод пока не поддерживается"
+            error:
+                "Нет настроек для изменения"
         },
-        405,
+        400,
         env
     );
+}
+        
+  for (
+    const [key, value]
+    of Object.entries(updates)
+) {
+    await run(
+        env.DB,
+        `
+        INSERT INTO app_settings (
+            key,
+            value,
+            updated_at
+        )
+        VALUES (
+            ?,
+            ?,
+            CURRENT_TIMESTAMP
+        )
+        ON CONFLICT(key)
+        DO UPDATE SET
+            value = excluded.value,
+            updated_at = CURRENT_TIMESTAMP
+        `,
+        [key, value]
+    );
+}
+
+return json(
+    {
+        ok: true
+    },
+    200,
+    env
+);
+}
+
+return json(
+    {
+        ok: false,
+        error: "Метод не поддерживается"
+    },
+    405,
+    env
+);
 }
 
 async function handleAdminCreateProgram(
@@ -9195,6 +9400,63 @@ const APP_BOOLEAN_SETTING_KEYS =
         "payments_enabled",
         "maintenance_mode"
     ]);
+
+function normalizeSettingBoolean(value) {
+    if (
+        value === true ||
+        value === 1 ||
+        value === "1" ||
+        value === "true"
+    ) {
+        return "1";
+    }
+
+    if (
+        value === false ||
+        value === 0 ||
+        value === "0" ||
+        value === "false"
+    ) {
+        return "0";
+    }
+
+    return null;
+}
+
+function isSafeHttpsUrl(value) {
+    try {
+        const url = new URL(value);
+
+        return (
+            url.protocol === "https:" &&
+            Boolean(url.hostname)
+        );
+    } catch {
+        return false;
+    }
+}
+
+function isSafeTelegramValue(value) {
+    if (
+        /^@[a-zA-Z0-9_]{5,32}$/.test(value)
+    ) {
+        return true;
+    }
+
+    try {
+        const url = new URL(value);
+
+        return (
+            url.protocol === "https:" &&
+            (
+                url.hostname === "t.me" ||
+                url.hostname === "telegram.me"
+            )
+        );
+    } catch {
+        return false;
+    }
+}
 
 async function requireAdminPermission(
     request,
