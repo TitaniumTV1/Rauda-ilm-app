@@ -3099,6 +3099,15 @@ function switchAdminTab(tabName) {
                 Администраторы
             </button>
 
+          <button
+    type="button"
+    class="rauda-admin-tab"
+    data-admin-tab="settings"
+    onclick="switchAdminTab('settings')"
+>
+    Настройки
+</button>
+          
         </div>
 
 
@@ -3764,9 +3773,139 @@ function switchAdminTab(tabName) {
             </section>
 
         </section>
+      
+<button
+    type="button"
+    class="rauda-admin-tab"
+    data-admin-tab="settings"
+    onclick="switchAdminTab('settings')"
+>
+    Настройки
+</button>
+      
+    </div>
+<section
+    class="rauda-admin-tab-panel"
+    data-admin-panel="settings"
+>
+    <div class="rauda-admin-page-head">
+        <div>
+            <div class="rauda-admin-kicker">
+                Система
+            </div>
 
+            <h2>
+                Настройки
+            </h2>
+
+            <p>
+                Основные настройки RAUDA ILM.
+            </p>
+        </div>
     </div>
 
+    <section class="rauda-admin-card">
+
+        <div class="rauda-admin-card-head">
+            <div>
+                <div class="rauda-admin-card-kicker">
+                    Основное
+                </div>
+
+                <h3>
+                    Общие настройки
+                </h3>
+            </div>
+        </div>
+<div class="rauda-admin-form-grid">
+
+    <div class="rauda-admin-form-full">
+        <label>
+            Название школы
+        </label>
+
+        <input
+            id="settingsSchoolName"
+            type="text"
+            maxlength="120"
+            placeholder="RAUDA ILM"
+        >
+    </div>
+
+    <div class="rauda-admin-form-full">
+        <label>
+            Ссылка поддержки
+        </label>
+
+        <input
+            id="settingsSupportUrl"
+            type="url"
+            placeholder="https://..."
+        >
+    </div>
+
+    <div class="rauda-admin-form-full">
+        <label>
+            Telegram-канал
+        </label>
+
+        <input
+            id="settingsTelegramChannel"
+            type="text"
+            placeholder="@channel или https://t.me/..."
+        >
+    </div>
+
+  <div class="rauda-admin-form-full">
+    <label class="rauda-checkbox-row">
+        <input
+            id="settingsRegistrationEnabled"
+            type="checkbox"
+        >
+        Разрешить регистрацию
+    </label>
+</div>
+
+<div class="rauda-admin-form-full">
+    <label class="rauda-checkbox-row">
+        <input
+            id="settingsPaymentsEnabled"
+            type="checkbox"
+        >
+        Разрешить оплату
+    </label>
+</div>
+
+<div class="rauda-admin-form-full">
+    <label class="rauda-checkbox-row">
+        <input
+            id="settingsMaintenanceMode"
+            type="checkbox"
+        >
+        Режим технических работ
+    </label>
+</div>
+
+  <div class="rauda-admin-form-full">
+    <button
+        id="settingsSaveButton"
+        type="button"
+        class="rauda-admin-primary rauda-admin-wide"
+        onclick="saveAdminSettings()"
+    >
+        Сохранить настройки
+    </button>
+</div>
+
+<div
+    id="settingsStatus"
+    class="rauda-admin-status rauda-admin-form-full"
+></div>
+  
+</div>
+    </section>
+
+</section>
 </main>
   <script>
     const TOKEN_KEY = "rauda_ilm_admin_token";
@@ -3793,6 +3932,7 @@ function switchAdminTab(tabName) {
 
     function token() {
       return localStorage.getItem(TOKEN_KEY) || "";
+      
     }
 
     function setStatus(element, message = "", type = "") {
@@ -3949,6 +4089,7 @@ if (state.user?.role === "owner") {
             button.disabled = false;
         }
     }
+      
 );
     
     function asPositiveInteger(value) {
@@ -6850,6 +6991,9 @@ function switchAdminTab(tabName) {
                 );
             }
         );
+  if (tabName === "settings") {
+    loadAdminSettings();
+}
 }
 
 </script>
@@ -8780,7 +8924,186 @@ function resetAdminLessonForm() {
     }
 }
 
+async function loadAdminSettings() {
+    const status =
+        document.getElementById(
+            "settingsStatus"
+        );
 
+    try {
+        if (status) {
+            status.textContent =
+                "Загружаем настройки...";
+        }
+
+        const result =
+            await api(
+                "/api/admin/settings"
+            );
+
+        const settings =
+            result?.settings || {};
+
+        const schoolName =
+            document.getElementById(
+                "settingsSchoolName"
+            );
+
+        const supportUrl =
+            document.getElementById(
+                "settingsSupportUrl"
+            );
+
+        const telegramChannel =
+            document.getElementById(
+                "settingsTelegramChannel"
+            );
+
+        const registrationEnabled =
+            document.getElementById(
+                "settingsRegistrationEnabled"
+            );
+
+        const paymentsEnabled =
+            document.getElementById(
+                "settingsPaymentsEnabled"
+            );
+
+        const maintenanceMode =
+            document.getElementById(
+                "settingsMaintenanceMode"
+            );
+
+        if (schoolName) {
+            schoolName.value =
+                settings.school_name || "";
+        }
+
+        if (supportUrl) {
+            supportUrl.value =
+                settings.support_url || "";
+        }
+
+        if (telegramChannel) {
+            telegramChannel.value =
+                settings.telegram_channel || "";
+        }
+
+        if (registrationEnabled) {
+            registrationEnabled.checked =
+                settings.registration_enabled === "1";
+        }
+
+        if (paymentsEnabled) {
+            paymentsEnabled.checked =
+                settings.payments_enabled === "1";
+        }
+
+        if (maintenanceMode) {
+            maintenanceMode.checked =
+                settings.maintenance_mode === "1";
+        }
+
+        if (status) {
+            status.textContent = "";
+        }
+
+    } catch (error) {
+        if (status) {
+            status.textContent =
+                error?.message ||
+                "Не удалось загрузить настройки";
+        }
+    }
+}
+
+    async function saveAdminSettings() {
+    const button =
+        document.getElementById(
+            "settingsSaveButton"
+        );
+
+    const status =
+        document.getElementById(
+            "settingsStatus"
+        );
+
+    try {
+        if (button) {
+            button.disabled = true;
+        }
+
+        if (status) {
+            status.textContent =
+                "Сохраняем настройки...";
+        }
+
+        await api(
+            "/api/admin/settings",
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    school_name:
+                        document.getElementById(
+                            "settingsSchoolName"
+                        )?.value || "",
+
+                    support_url:
+                        document.getElementById(
+                            "settingsSupportUrl"
+                        )?.value || "",
+
+                    telegram_channel:
+                        document.getElementById(
+                            "settingsTelegramChannel"
+                        )?.value || "",
+
+                    registration_enabled:
+                        Boolean(
+                            document.getElementById(
+                                "settingsRegistrationEnabled"
+                            )?.checked
+                        ),
+
+                    payments_enabled:
+                        Boolean(
+                            document.getElementById(
+                                "settingsPaymentsEnabled"
+                            )?.checked
+                        ),
+
+                    maintenance_mode:
+                        Boolean(
+                            document.getElementById(
+                                "settingsMaintenanceMode"
+                            )?.checked
+                        )
+                })
+            }
+        );
+
+        if (status) {
+            status.textContent =
+                "Настройки сохранены";
+        }
+
+    } catch (error) {
+        if (status) {
+            status.textContent =
+                error?.message ||
+                "Не удалось сохранить настройки";
+        }
+
+    } finally {
+        if (button) {
+            button.disabled = false;
+        }
+    }
+}
+    
 async function deleteAdminLesson(
     lessonId
 ) {
