@@ -1439,6 +1439,23 @@ async function ensureEmailAuthSchema(db) {
     );
 }
 
+            /*
+ * ADMIN SETTINGS
+ */
+ 
+            if (
+    url.pathname === "/api/admin/settings" &&
+    (
+        request.method === "GET" ||
+        request.method === "PUT"
+    )
+) {
+    return handleAdminSettings(
+        request,
+        env
+    );
+}
+            
 if (
     url.pathname === "/api/admin/courses" &&
     request.method === "POST"
@@ -4938,6 +4955,97 @@ async function handleSingleLesson(request, env, lessonId) {
         return json({ ok: false, error: "Не удалось получить урок" }, 500, env);
     }
 }
+
+async function handleAdminSettings(
+    request,
+    env
+) {
+    if (!env.DB) {
+        return databaseMissing(env);
+    }
+
+    const auth =
+        await requireAdminPermission(
+            request,
+            env,
+            "settings"
+        );
+
+    if (!auth.ok) {
+        return authError(
+            auth,
+            env
+        );
+    }
+
+    if (request.method === "GET") {
+
+    const rows =
+        await all(
+            env.DB,
+            `
+            SELECT
+                key,
+                value,
+                updated_at
+            FROM app_settings
+            WHERE key IN (?, ?, ?, ?, ?, ?)
+            ORDER BY key
+            `,
+            APP_SETTING_KEYS
+        );
+
+    const settings = {};
+
+    for (const row of rows || []) {
+        settings[row.key] =
+            row.value;
+    }
+
+    if (request.method === "GET") {
+
+    const rows =
+        await all(
+            env.DB,
+            `
+            SELECT
+                key,
+                value,
+                updated_at
+            FROM app_settings
+            WHERE key IN (?, ?, ?, ?, ?, ?)
+            ORDER BY key
+            `,
+            APP_SETTING_KEYS
+        );
+
+    const settings = {};
+
+    for (const row of rows || []) {
+        settings[row.key] =
+            row.value;
+    }
+
+    return json(
+        {
+            ok: true,
+            settings
+        },
+        200,
+        env
+    );
+}
+
+return json(
+    {
+        ok: false,
+        error: "Метод пока не поддерживается"
+    },
+    405,
+    env
+);
+}
+
 
 async function handleAdminCreateProgram(
     request,
@@ -9093,6 +9201,26 @@ const ADMIN_PERMISSION_KEYS = new Set([
     "certificates",
     "settings"
 ]);
+
+const APP_SETTING_KEYS = Object.freeze([
+    "school_name",
+    "registration_enabled",
+    "payments_enabled",
+    "maintenance_mode",
+    "support_url",
+    "telegram_channel"
+]);
+
+const APP_SETTING_KEY_SET =
+    new Set(APP_SETTING_KEYS);
+
+const APP_BOOLEAN_SETTING_KEYS =
+    new Set([
+        "registration_enabled",
+        "payments_enabled",
+        "maintenance_mode"
+    ]);
+
 async function requireAdminPermission(
     request,
     env,
@@ -10664,8 +10792,8 @@ function corsHeaders(env) {
             env.CORS_ORIGIN || "*",
 
         "Access-Control-Allow-Methods":
-            "GET, POST, PATCH, DELETE, OPTIONS",
-
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+        
         "Access-Control-Allow-Headers":
             "Authorization, Content-Type, Range, X-Session-Token, X-Tribute-Webhook-Secret, X-Webhook-Secret",
 
