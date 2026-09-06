@@ -9090,9 +9090,9 @@ const ADMIN_PERMISSION_KEYS = new Set([
     "assessments",
     "schedule",
     "payments",
-    "certificates"
+    "certificates",
+    "settings"
 ]);
-
 async function requireAdminPermission(
     request,
     env,
