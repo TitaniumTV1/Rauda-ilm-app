@@ -27,6 +27,15 @@ export default {
                 });
             }
             
+if (
+    url.pathname === "/api/webhooks/telegram" &&
+    request.method === "POST"
+) {
+    return handleTelegramWebhook(
+        request,
+        env
+    );
+}
 if (env.DB) {
     await ensureAccountIdSchema(env.DB);
 }
