@@ -1,3 +1,4 @@
+// trigger deploy
 import {
     syncTelegramUser,
     getBotAccess,
