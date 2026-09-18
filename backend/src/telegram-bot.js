@@ -68,6 +68,10 @@ async function sendWelcome(
     env,
     chatId
 ) {
+ console.log(
+    "RAUDA Telegram ID:",
+    chatId
+);
     return sendMessage(
         env,
         chatId,
