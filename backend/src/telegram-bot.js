@@ -225,33 +225,49 @@ async function handleCallback(env, callback) {
     // -----------------------------------------------------
 
     if (data === "admin_courses") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "courses"
-            )
-        ) {
-            return;
-        }
-
-        return sendMessage(
+    if (
+        !await requirePermission(
             env,
             chatId,
-            [
-                "📚 <b>Курсы</b>",
-                "",
-                "Здесь будет управление:",
-                "",
-                "• программами",
-                "• семестрами",
-                "• дисциплинами",
-                "• уроками",
-                "• материалами"
-            ].join("\n"),
-            backToAdminKeyboard()
-        );
+            "courses"
+        )
+    ) {
+        return;
     }
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "📚 <b>Управление курсами</b>",
+            "",
+            "Здесь можно создавать и настраивать",
+            "учебные курсы RAUDA ILM."
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "➕ Создать курс",
+                        callback_data: "admin_course_create"
+                    }
+                ],
+                [
+                    {
+                        text: "📚 Список курсов",
+                        callback_data: "admin_course_list"
+                    }
+                ],
+                [
+                    {
+                        text: "⬅️ Админ-панель",
+                        callback_data: "admin"
+                    }
+                ]
+            ]
+        }
+    );
+}
 
 
     // -----------------------------------------------------
