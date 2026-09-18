@@ -1,3 +1,8 @@
+import {
+    syncTelegramUser,
+    getBotAccess
+} from "./bot-access.js";
+
 const TELEGRAM_API = "https://api.telegram.org";
 
 export async function handleTelegramWebhook(request, env) {
