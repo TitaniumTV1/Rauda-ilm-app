@@ -307,7 +307,7 @@ async function handleCallback(env, callback) {
         is_persistent: true
     }
 );
-
+}
 
     // -----------------------------------------------------
     // УЧЕНИКИ
