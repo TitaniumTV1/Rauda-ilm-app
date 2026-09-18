@@ -160,17 +160,31 @@ async function handleMessage(env, message) {
     // КУРСЫ
     // -----------------------------------------------------
 
-    if (text === "➕ Создать курс") {
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "➕ <b>Создание курса</b>",
-                "",
-                "Сейчас настроим создание нового курса."
-            ].join("\n")
-        );
-    }
+   if (text === "➕ Создать курс") {
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "➕ <b>Создание курса</b>",
+            "",
+            "Отправьте название курса.",
+            "",
+            "Например:",
+            "<i>Подготовительный курс</i>"
+        ].join("\n"),
+        {
+            keyboard: [
+                [
+                    {
+                        text: "❌ Отмена"
+                    }
+                ]
+            ],
+            resize_keyboard: true,
+            is_persistent: true
+        }
+    );
+}
 
 
     if (text === "📚 Список курсов") {
