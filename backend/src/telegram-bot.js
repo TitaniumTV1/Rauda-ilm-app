@@ -1,3 +1,4 @@
+// deploy trigger
 // trigger deploy
 import {
     syncTelegramUser,
