@@ -1,6 +1,8 @@
 import { verifyTelegramInitData } from "./telegram.js";
 import { handleAssessmentRequest } from "./assessment.js";
 
+import { handleTelegramWebhook } from "./telegram-bot.js";
+
 const SESSION_DAYS = 30;
 const SESSION_COOKIE_NAME =
     "__Host-rauda_session";
