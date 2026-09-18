@@ -83,54 +83,113 @@ export async function handleTelegramWebhook(request, env) {
 
 async function handleMessage(env, message) {
     const chatId = message.chat.id;
+
     const text = String(
         message.text || ""
     ).trim();
 
-    if (text === "➕ Создать курс") {
-    return sendMessage(
-        env,
-        chatId,
-        [
-            "➕ <b>Создание курса</b>",
-            "",
-            "Сейчас настроим создание нового курса."
-        ].join("\n")
-    );
-}
 
-if (text === "📚 Список курсов") {
-    return sendMessage(
-        env,
-        chatId,
-        [
-            "📚 <b>Список курсов</b>",
-            "",
-            "Сейчас подключим сюда курсы из базы."
-        ].join("\n")
-    );
-}
+    // -----------------------------------------------------
+    // НИЖНЯЯ НАВИГАЦИЯ
+    // -----------------------------------------------------
 
-if (text === "⬅️ Админ-панель") {
-    const access = await getBotAccess(
-        env,
-        chatId
-    );
+    const menuCallbacks = {
+        "📚 Программа курса": "program",
+        "🛒 Оформить заказ": "order",
+        "ℹ️ О школе": "about",
+        "💬 Поддержка": "support",
 
-    if (!access.isAdmin) {
-        return accessDenied(
+        "⚙️ Управление": "admin",
+
+        "📚 Курсы": "admin_courses",
+        "👥 Ученики": "admin_students",
+        "👨‍👩‍👧‍👦 Группы": "admin_groups",
+        "📝 Экзамены": "admin_exams",
+        "💳 Оплата": "admin_payments",
+        "📜 Сертификаты": "admin_certificates",
+        "📊 Статистика": "admin_stats",
+        "👮 Администраторы": "admin_staff"
+    };
+
+
+    if (menuCallbacks[text]) {
+        return handleCallback(
+            env,
+            {
+                message: {
+                    chat: {
+                        id: chatId
+                    }
+                },
+                data: menuCallbacks[text]
+            }
+        );
+    }
+
+
+    if (text === "⬅️ Главное меню") {
+        return sendWelcome(
             env,
             chatId
         );
     }
 
-    return sendAdminMenu(
-        env,
-        chatId,
-        access
-    );
-}
-    
+
+    if (text === "⬅️ Админ-панель") {
+        const access = await getBotAccess(
+            env,
+            chatId
+        );
+
+        if (!access.isAdmin) {
+            return accessDenied(
+                env,
+                chatId
+            );
+        }
+
+        return sendAdminMenu(
+            env,
+            chatId,
+            access
+        );
+    }
+
+
+    // -----------------------------------------------------
+    // КУРСЫ
+    // -----------------------------------------------------
+
+    if (text === "➕ Создать курс") {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "➕ <b>Создание курса</b>",
+                "",
+                "Сейчас настроим создание нового курса."
+            ].join("\n")
+        );
+    }
+
+
+    if (text === "📚 Список курсов") {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "📚 <b>Список курсов</b>",
+                "",
+                "Сейчас подключим сюда курсы из базы."
+            ].join("\n")
+        );
+    }
+
+
+    // -----------------------------------------------------
+    // КОМАНДЫ
+    // -----------------------------------------------------
+
     if (text.startsWith("/admin_add ")) {
         return addAdministrator(
             env,
@@ -138,6 +197,7 @@ if (text === "⬅️ Админ-панель") {
             text
         );
     }
+
 
     if (text.startsWith("/admin_remove ")) {
         return removeAdministrator(
@@ -147,12 +207,12 @@ if (text === "⬅️ Админ-панель") {
         );
     }
 
+
     return sendWelcome(
         env,
         chatId
     );
 }
-
 
 // =========================================================
 // ГЛАВНОЕ МЕНЮ
@@ -167,38 +227,31 @@ async function sendWelcome(env, chatId) {
     const keyboard = [
         [
             {
-                text: "📚 Программа курса",
-                callback_data: "program"
+                text: "📚 Программа курса"
+            },
+            {
+                text: "🛒 Оформить заказ"
             }
         ],
         [
             {
-                text: "🛒 Оформить заказ",
-                callback_data: "order"
-            }
-        ],
-        [
+                text: "ℹ️ О школе"
+            },
             {
-                text: "ℹ️ О школе",
-                callback_data: "about"
-            }
-        ],
-        [
-            {
-                text: "💬 Поддержка",
-                callback_data: "support"
+                text: "💬 Поддержка"
             }
         ]
     ];
 
+
     if (access.isAdmin) {
         keyboard.push([
             {
-                text: "⚙️ Управление",
-                callback_data: "admin"
+                text: "⚙️ Управление"
             }
         ]);
     }
+
 
     return sendMessage(
         env,
@@ -208,20 +261,17 @@ async function sendWelcome(env, chatId) {
             "",
             "Онлайн-школа исламских дисциплин.",
             "",
-            "📚 <b>Подготовительный курс</b>",
-            "",
-            "Доступ к урокам и учебным материалам RAUDA ILM.",
-            "",
-            "💳 <b>Стоимость: 1 500 ₽</b>",
-            "",
             "Выберите нужный раздел:"
         ].join("\n"),
         {
-            inline_keyboard: keyboard
+            keyboard,
+            resize_keyboard: true,
+            is_persistent: true,
+            input_field_placeholder:
+                "Выберите раздел..."
         }
     );
 }
-
 
 // =========================================================
 // CALLBACK
@@ -948,7 +998,8 @@ async function sendAdminMenu(
     chatId,
     access
 ) {
-    const keyboard = [];
+    const buttons = [];
+
 
     if (
         access.isOwner ||
@@ -958,13 +1009,9 @@ async function sendAdminMenu(
             "courses"
         )
     ) {
-        keyboard.push([
-            {
-                text: "📚 Курсы",
-                callback_data: "admin_courses"
-            }
-        ]);
+        buttons.push("📚 Курсы");
     }
+
 
     if (
         access.isOwner ||
@@ -974,13 +1021,9 @@ async function sendAdminMenu(
             "students"
         )
     ) {
-        keyboard.push([
-            {
-                text: "👥 Ученики",
-                callback_data: "admin_students"
-            }
-        ]);
+        buttons.push("👥 Ученики");
     }
+
 
     if (
         access.isOwner ||
@@ -990,13 +1033,9 @@ async function sendAdminMenu(
             "groups"
         )
     ) {
-        keyboard.push([
-            {
-                text: "👨‍👩‍👧‍👦 Группы",
-                callback_data: "admin_groups"
-            }
-        ]);
+        buttons.push("👨‍👩‍👧‍👦 Группы");
     }
+
 
     if (
         access.isOwner ||
@@ -1006,13 +1045,9 @@ async function sendAdminMenu(
             "exams"
         )
     ) {
-        keyboard.push([
-            {
-                text: "📝 Экзамены",
-                callback_data: "admin_exams"
-            }
-        ]);
+        buttons.push("📝 Экзамены");
     }
+
 
     if (
         access.isOwner ||
@@ -1022,13 +1057,9 @@ async function sendAdminMenu(
             "payments"
         )
     ) {
-        keyboard.push([
-            {
-                text: "💳 Оплата",
-                callback_data: "admin_payments"
-            }
-        ]);
+        buttons.push("💳 Оплата");
     }
+
 
     if (
         access.isOwner ||
@@ -1038,14 +1069,9 @@ async function sendAdminMenu(
             "certificates"
         )
     ) {
-        keyboard.push([
-            {
-                text: "📜 Сертификаты",
-                callback_data:
-                    "admin_certificates"
-            }
-        ]);
+        buttons.push("📜 Сертификаты");
     }
+
 
     if (
         access.isOwner ||
@@ -1055,26 +1081,20 @@ async function sendAdminMenu(
             "stats"
         )
     ) {
-        keyboard.push([
-            {
-                text: "📊 Статистика",
-                callback_data: "admin_stats"
-            }
-        ]);
+        buttons.push("📊 Статистика");
     }
 
+
     if (access.isOwner) {
-        keyboard.push([
-            {
-                text: "👮 Администраторы",
-                callback_data: "admin_staff"
-            }
-        ]);
+        buttons.push(
+            "👮 Администраторы"
+        );
     }
+
 
     if (
         !access.isOwner &&
-        keyboard.length === 0
+        buttons.length === 0
     ) {
         return sendMessage(
             env,
@@ -1086,9 +1106,45 @@ async function sendAdminMenu(
                 "",
                 "🔒 Вам пока не назначены",
                 "права управления."
-            ].join("\n")
+            ].join("\n"),
+            {
+                keyboard: [
+                    [
+                        {
+                            text: "⬅️ Главное меню"
+                        }
+                    ]
+                ],
+                resize_keyboard: true,
+                is_persistent: true
+            }
         );
     }
+
+
+    const keyboard = [];
+
+    for (
+        let i = 0;
+        i < buttons.length;
+        i += 2
+    ) {
+        keyboard.push(
+            buttons
+                .slice(i, i + 2)
+                .map(text => ({
+                    text
+                }))
+        );
+    }
+
+
+    keyboard.push([
+        {
+            text: "⬅️ Главное меню"
+        }
+    ]);
+
 
     return sendMessage(
         env,
@@ -1100,16 +1156,17 @@ async function sendAdminMenu(
                 ? "👑 Роль: Владелец"
                 : "👮 Роль: Администратор",
             "",
-            access.isOwner
-                ? "У вас полный доступ."
-                : "Показаны только разрешённые разделы."
+            "Выберите раздел:"
         ].join("\n"),
         {
-            inline_keyboard: keyboard
+            keyboard,
+            resize_keyboard: true,
+            is_persistent: true,
+            input_field_placeholder:
+                "Выберите раздел..."
         }
     );
 }
-
 
 // =========================================================
 // МЕНЮ АДМИНИСТРАТОРОВ
