@@ -38,17 +38,34 @@ export async function handleTelegramWebhook(request, env) {
     const text = String(message.text || "").trim();
 
     if (
-        text === "/start" ||
-        text.startsWith("/start ")
-    ) {
-        await sendWelcome(env, message.chat.id);
-        return ok();
-    }
+    text === "/start" ||
+    text.startsWith("/start ")
+) {
+    await syncTelegramUser(
+        env,
+        message.from
+    );
 
-    await sendWelcome(env, message.chat.id);
+    await sendWelcome(
+        env,
+        message.chat.id
+    );
+
     return ok();
 }
 
+await syncTelegramUser(
+    env,
+    message.from
+);
+
+await sendWelcome(
+    env,
+    message.chat.id
+);
+
+return ok();
+}
 
 async function sendWelcome(env, chatId) {
     const isOwner =
