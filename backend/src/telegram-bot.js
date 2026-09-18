@@ -87,6 +87,50 @@ async function handleMessage(env, message) {
         message.text || ""
     ).trim();
 
+    if (text === "➕ Создать курс") {
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "➕ <b>Создание курса</b>",
+            "",
+            "Сейчас настроим создание нового курса."
+        ].join("\n")
+    );
+}
+
+if (text === "📚 Список курсов") {
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "📚 <b>Список курсов</b>",
+            "",
+            "Сейчас подключим сюда курсы из базы."
+        ].join("\n")
+    );
+}
+
+if (text === "⬅️ Админ-панель") {
+    const access = await getBotAccess(
+        env,
+        chatId
+    );
+
+    if (!access.isAdmin) {
+        return accessDenied(
+            env,
+            chatId
+        );
+    }
+
+    return sendAdminMenu(
+        env,
+        chatId,
+        access
+    );
+}
+    
     if (text.startsWith("/admin_add ")) {
         return addAdministrator(
             env,
@@ -236,38 +280,33 @@ async function handleCallback(env, callback) {
     }
 
     return sendMessage(
-        env,
-        chatId,
-        [
-            "📚 <b>Управление курсами</b>",
-            "",
-            "Здесь можно создавать и настраивать",
-            "учебные курсы RAUDA ILM."
-        ].join("\n"),
-        {
-            inline_keyboard: [
-                [
-                    {
-                        text: "➕ Создать курс",
-                        callback_data: "admin_course_create"
-                    }
-                ],
-                [
-                    {
-                        text: "📚 Список курсов",
-                        callback_data: "admin_course_list"
-                    }
-                ],
-                [
-                    {
-                        text: "⬅️ Админ-панель",
-                        callback_data: "admin"
-                    }
-                ]
+    env,
+    chatId,
+    [
+        "📚 <b>Управление курсами</b>",
+        "",
+        "Выберите действие:"
+    ].join("\n"),
+    {
+        keyboard: [
+            [
+                {
+                    text: "➕ Создать курс"
+                },
+                {
+                    text: "📚 Список курсов"
+                }
+            ],
+            [
+                {
+                    text: "⬅️ Админ-панель"
+                }
             ]
-        }
-    );
-}
+        ],
+        resize_keyboard: true,
+        is_persistent: true
+    }
+);
 
 
     // -----------------------------------------------------
