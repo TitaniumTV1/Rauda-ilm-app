@@ -88,7 +88,135 @@ async function handleMessage(env, message) {
         message.text || ""
     ).trim();
 
+await env.DB
+    .prepare(`
+        CREATE TABLE IF NOT EXISTS bot_states (
+            chat_id INTEGER PRIMARY KEY,
+            state TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+                DEFAULT CURRENT_TIMESTAMP
+        )
+    `)
+    .run();
 
+const botState = await env.DB
+    .prepare(`
+        SELECT state
+        FROM bot_states
+        WHERE chat_id = ?
+        LIMIT 1
+    `)
+    .bind(chatId)
+    .first();
+
+
+if (botState?.state === "create_course_name") {
+
+    if (text === "❌ Отмена") {
+        await env.DB
+            .prepare(`
+                DELETE FROM bot_states
+                WHERE chat_id = ?
+            `)
+            .bind(chatId)
+            .run();
+
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Создание курса отменено.",
+            {
+                keyboard: [
+                    [
+                        {
+                            text: "➕ Создать курс"
+                        },
+                        {
+                            text: "📚 Список курсов"
+                        }
+                    ],
+                    [
+                        {
+                            text: "⬅️ Админ-панель"
+                        }
+                    ]
+                ],
+                resize_keyboard: true,
+                is_persistent: true
+            }
+        );
+    }
+
+
+    if (text.length < 2) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Название курса слишком короткое.\n\nВведите другое название:"
+        );
+    }
+
+
+    if (text.length > 100) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Название курса слишком длинное.\n\nВведите название короче:"
+        );
+    }
+
+
+    await env.DB
+        .prepare(`
+            INSERT INTO courses (
+                name,
+                is_active
+            )
+            VALUES (?, 1)
+        `)
+        .bind(text)
+        .run();
+
+
+    await env.DB
+        .prepare(`
+            DELETE FROM bot_states
+            WHERE chat_id = ?
+        `)
+        .bind(chatId)
+        .run();
+
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "✅ <b>Курс создан</b>",
+            "",
+            `📚 ${escapeHtml(text)}`
+        ].join("\n"),
+        {
+            keyboard: [
+                [
+                    {
+                        text: "➕ Создать курс"
+                    },
+                    {
+                        text: "📚 Список курсов"
+                    }
+                ],
+                [
+                    {
+                        text: "⬅️ Админ-панель"
+                    }
+                ]
+            ],
+            resize_keyboard: true,
+            is_persistent: true
+        }
+    );
+}
+    
     // -----------------------------------------------------
     // НИЖНЯЯ НАВИГАЦИЯ
     // -----------------------------------------------------
