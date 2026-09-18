@@ -237,10 +237,77 @@ export async function setUserRole(
         )
         .run();
 
+    /*
+     * Если права администратора сняты,
+     * удаляем его старые разрешения.
+     */
+    if (role === "student") {
+        const user = await getTelegramUser(
+            env,
+            telegramId
+        );
+
+        if (user?.id) {
+            await env.DB
+                .prepare(`
+                    DELETE FROM admin_permissions
+                    WHERE admin_id = ?
+                `)
+                .bind(user.id)
+                .run();
+        }
+    }
+
     return result;
 }
 
 
+/*
+ * Список разрешений администратора.
+ *
+ * Владелец не зависит от этой таблицы:
+ * OWNER_TELEGRAM_ID всегда имеет полный доступ.
+ */
+export async function getAdminPermissions(
+    env,
+    telegramId
+) {
+    const access = await getBotAccess(
+        env,
+        telegramId
+    );
+
+    if (access.isOwner) {
+        return ["*"];
+    }
+
+    if (!access.isAdmin || !access.user?.id) {
+        return [];
+    }
+
+    const result = await env.DB
+        .prepare(`
+            SELECT permission
+            FROM admin_permissions
+            WHERE admin_id = ?
+            ORDER BY permission ASC
+        `)
+        .bind(access.user.id)
+        .all();
+
+    return (result.results || []).map(
+        row => row.permission
+    );
+}
+
+
+/*
+ * Проверка конкретного разрешения.
+ *
+ * ВАЖНО:
+ * если у администратора нет записей в
+ * admin_permissions, доступа у него НЕТ.
+ */
 export async function hasPermission(
     env,
     telegramId,
@@ -259,25 +326,207 @@ export async function hasPermission(
         return false;
     }
 
-    // Если обычному администратору пока
-    // не назначены отдельные ограничения,
-    // считаем его полным администратором.
-    const permissions = await env.DB
+    const row = await env.DB
         .prepare(`
             SELECT permission
             FROM admin_permissions
             WHERE admin_id = ?
+              AND permission = ?
+            LIMIT 1
         `)
-        .bind(access.user.id)
-        .all();
+        .bind(
+            access.user.id,
+            permission
+        )
+        .first();
 
-    const rows = permissions.results || [];
+    return Boolean(row);
+}
 
-    if (rows.length === 0) {
+
+/*
+ * Включить / выключить одно разрешение.
+ *
+ * Возвращает true, если право после операции
+ * включено, и false, если выключено.
+ */
+export async function togglePermission(
+    env,
+    telegramId,
+    permission
+) {
+    if (!env.DB) {
+        throw new Error(
+            "База данных недоступна"
+        );
+    }
+
+    const access = await getBotAccess(
+        env,
+        telegramId
+    );
+
+    if (access.isOwner) {
+        throw new Error(
+            "Права владельца изменять нельзя"
+        );
+    }
+
+    if (!access.isAdmin || !access.user?.id) {
+        throw new Error(
+            "Администратор не найден"
+        );
+    }
+
+    const existing = await env.DB
+        .prepare(`
+            SELECT id
+            FROM admin_permissions
+            WHERE admin_id = ?
+              AND permission = ?
+            LIMIT 1
+        `)
+        .bind(
+            access.user.id,
+            permission
+        )
+        .first();
+
+    if (existing) {
+        await env.DB
+            .prepare(`
+                DELETE FROM admin_permissions
+                WHERE admin_id = ?
+                  AND permission = ?
+            `)
+            .bind(
+                access.user.id,
+                permission
+            )
+            .run();
+
+        return false;
+    }
+
+    await env.DB
+        .prepare(`
+            INSERT OR IGNORE INTO admin_permissions (
+                admin_id,
+                permission
+            )
+            VALUES (?, ?)
+        `)
+        .bind(
+            access.user.id,
+            permission
+        )
+        .run();
+
+    return true;
+}
+
+
+/*
+ * Выдать администратору все разрешения.
+ *
+ * Список разрешений берём здесь, чтобы
+ * функция не зависела от интерфейса бота.
+ */
+export async function grantAllPermissions(
+    env,
+    telegramId
+) {
+    if (!env.DB) {
+        throw new Error(
+            "База данных недоступна"
+        );
+    }
+
+    const access = await getBotAccess(
+        env,
+        telegramId
+    );
+
+    if (access.isOwner) {
         return true;
     }
 
-    return rows.some(
-        row => row.permission === permission
+    if (!access.isAdmin || !access.user?.id) {
+        throw new Error(
+            "Администратор не найден"
+        );
+    }
+
+    const permissions = [
+        "programs",
+        "courses",
+        "lessons",
+        "students",
+        "groups",
+        "exams",
+        "payments",
+        "certificates",
+        "competitions",
+        "schedule"
+    ];
+
+    for (const permission of permissions) {
+        await env.DB
+            .prepare(`
+                INSERT OR IGNORE INTO admin_permissions (
+                    admin_id,
+                    permission
+                )
+                VALUES (?, ?)
+            `)
+            .bind(
+                access.user.id,
+                permission
+            )
+            .run();
+    }
+
+    return true;
+}
+
+
+/*
+ * Удалить все разрешения администратора.
+ */
+export async function revokeAllPermissions(
+    env,
+    telegramId
+) {
+    if (!env.DB) {
+        throw new Error(
+            "База данных недоступна"
+        );
+    }
+
+    const access = await getBotAccess(
+        env,
+        telegramId
     );
+
+    if (access.isOwner) {
+        throw new Error(
+            "Права владельца изменять нельзя"
+        );
+    }
+
+    if (!access.user?.id) {
+        throw new Error(
+            "Администратор не найден"
+        );
+    }
+
+    await env.DB
+        .prepare(`
+            DELETE FROM admin_permissions
+            WHERE admin_id = ?
+        `)
+        .bind(access.user.id)
+        .run();
+
+    return true;
 }
