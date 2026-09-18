@@ -9,6 +9,7 @@ EMAIL_FROM = "team.rauda.ilm@gmail.com"
 TELEGRAM_BOT_USERNAME = "Rauda_ilmapp_bot"
 PUBLIC_APP_URL = "https://app.rauda-ilm.com"
 CHECKOUT_CLAIM_TTL_HOURS = "72"
+OWNER_TELEGRAM_ID = "7714575966"
 
 [secrets]
 required = [
