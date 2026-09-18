@@ -346,7 +346,61 @@ if (botState?.state === "create_course_name") {
     );
 }
 
+if (text === "📚 Список курсов") {
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "courses"
+        )
+    ) {
+        return;
+    }
 
+    const result = await env.DB
+        .prepare(`
+            SELECT
+                id,
+                name,
+                is_active
+            FROM courses
+            ORDER BY id DESC
+        `)
+        .all();
+
+    const courses =
+        result?.results || [];
+
+    if (!courses.length) {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "📚 <b>Список курсов</b>",
+                "",
+                "Курсов пока нет."
+            ].join("\n")
+        );
+    }
+
+    const lines = [
+        "📚 <b>Список курсов</b>",
+        ""
+    ];
+
+    for (const course of courses) {
+        lines.push(
+            `• ${escapeHtml(course.name)}`
+        );
+    }
+
+    return sendMessage(
+        env,
+        chatId,
+        lines.join("\n")
+    );
+}
+    
     // -----------------------------------------------------
     // КОМАНДЫ
     // -----------------------------------------------------
