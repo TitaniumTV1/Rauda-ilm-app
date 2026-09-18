@@ -161,6 +161,37 @@ async function handleMessage(env, message) {
     // -----------------------------------------------------
 
    if (text === "➕ Создать курс") {
+    await env.DB
+        .prepare(`
+            CREATE TABLE IF NOT EXISTS bot_states (
+                chat_id INTEGER PRIMARY KEY,
+                state TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+                    DEFAULT CURRENT_TIMESTAMP
+            )
+        `)
+        .run();
+
+    await env.DB
+        .prepare(`
+            INSERT INTO bot_states (
+                chat_id,
+                state,
+                updated_at
+            )
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+
+            ON CONFLICT(chat_id)
+            DO UPDATE SET
+                state = excluded.state,
+                updated_at = CURRENT_TIMESTAMP
+        `)
+        .bind(
+            chatId,
+            "create_course_name"
+        )
+        .run();
+
     return sendMessage(
         env,
         chatId,
@@ -185,19 +216,6 @@ async function handleMessage(env, message) {
         }
     );
 }
-
-
-    if (text === "📚 Список курсов") {
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "📚 <b>Список курсов</b>",
-                "",
-                "Сейчас подключим сюда курсы из базы."
-            ].join("\n")
-        );
-    }
 
 
     // -----------------------------------------------------
