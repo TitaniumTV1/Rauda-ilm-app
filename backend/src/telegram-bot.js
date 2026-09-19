@@ -96,6 +96,87 @@ async function handleMessage(env, message) {
 
     await ensureBotStates(env);
 
+    // Ответ администратора на сообщение поддержки
+if (message.reply_to_message?.message_id) {
+    const adminId = String(message.from.id);
+
+    const mapping = await env.DB.prepare(`
+        SELECT user_id
+        FROM support_messages
+        WHERE admin_id = ?
+          AND admin_message_id = ?
+        LIMIT 1
+    `)
+        .bind(
+            adminId,
+            message.reply_to_message.message_id
+        )
+        .first();
+
+    if (mapping?.user_id) {
+        // Проверяем, что отвечает владелец или действующий администратор
+        const isOwner =
+            String(adminId) ===
+            String(env.OWNER_TELEGRAM_ID);
+
+        let isAdmin = isOwner;
+
+        if (!isAdmin) {
+            const adminUser = await env.DB.prepare(`
+                SELECT role
+                FROM users
+                WHERE telegram_id = ?
+                LIMIT 1
+            `)
+                .bind(adminId)
+                .first();
+
+            isAdmin =
+                adminUser?.role === "admin";
+        }
+
+        if (!isAdmin) {
+            return sendMessage(
+                env,
+                chatId,
+                "❌ У вас больше нет прав для ответа от имени поддержки."
+            );
+        }
+
+        await sendMessage(
+            env,
+            mapping.user_id,
+            "💬 <b>Ответ поддержки RAUDA ILM</b>"
+        );
+
+        const copied = await copyMessage(
+            env,
+            mapping.user_id,
+            message.chat.id,
+            message.message_id
+        );
+
+        if (!copied?.ok) {
+            console.error(
+                "Support reply delivery failed:",
+                copied
+            );
+
+            return sendMessage(
+                env,
+                chatId,
+                "❌ Не удалось отправить ответ ученику."
+            );
+        }
+
+        return sendMessage(
+            env,
+            chatId,
+            "✅ Ответ отправлен ученику."
+        );
+    }
+}
+    
     const botState = await env.DB.prepare(`
         SELECT state FROM bot_states WHERE chat_id = ? LIMIT 1
     `).bind(chatId).first();
@@ -272,7 +353,7 @@ async function handleSupportMessage(env, message) {
         );
     }
 
-    const userName = supportUserName(
+    const userName = formatUserName(
         message.from
     );
 
@@ -358,23 +439,6 @@ async function handleSupportMessage(env, message) {
     );
 }
 
-function supportUserName(user) {
-    const fullName = [
-        user?.first_name,
-        user?.last_name
-    ]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-
-    if (user?.username) {
-        return fullName
-            ? `${fullName} (@${user.username})`
-            : `@${user.username}`;
-    }
-
-    return fullName || "Пользователь";
-}
 
 function isPrivateBotChat(chat, from) {
     return chat?.type === "private" && from?.id != null &&
@@ -1292,26 +1356,27 @@ async function handleCallback(env, callback, fromMessage = false) {
     }
 
 
-   if (data === "support") {
-  await env.DB.prepare(`
-    INSERT INTO support_state (user_id, waiting)
-    VALUES (?, 1)
-    ON CONFLICT(user_id)
-    DO UPDATE SET waiting = 1
-  `)
-    .bind(String(chatId))
-    .run();
+  if (data === "support") {
+    await env.DB.prepare(`
+        INSERT INTO support_state (user_id, waiting)
+        VALUES (?, 1)
+        ON CONFLICT(user_id)
+        DO UPDATE SET waiting = 1
+    `)
+        .bind(String(chatId))
+        .run();
 
-  await sendMessage(
-    chatId,
-    `💬 Поддержка RAUDA ILM
+    await sendMessage(
+        env,
+        chatId,
+        `💬 <b>Поддержка RAUDA ILM</b>
 
 Напишите ваше сообщение.
 
 Вы можете отправить текст, фотографию, видео, документ или голосовое сообщение.`
-  );
+    );
 
-  return;
+    return;
 }
 }
 
