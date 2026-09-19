@@ -86,152 +86,37 @@ export async function handleTelegramWebhook(request, env) {
 async function handleMessage(env, message) {
     const chatId = message.chat.id;
 
-    const text = String(
-        message.text || ""
-    ).trim();
-
-await env.DB
-    .prepare(`
-        CREATE TABLE IF NOT EXISTS bot_states (
-            chat_id INTEGER PRIMARY KEY,
-            state TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-                DEFAULT CURRENT_TIMESTAMP
-        )
-    `)
-    .run();
-
-const botState = await env.DB
-    .prepare(`
-        SELECT state
-        FROM bot_states
-        WHERE chat_id = ?
-        LIMIT 1
-    `)
-    .bind(chatId)
-    .first();
-
-
-if (botState?.state === "create_course_name") {
-
-    if (text === "❌ Отмена") {
-        await env.DB
-            .prepare(`
-                DELETE FROM bot_states
-                WHERE chat_id = ?
-            `)
-            .bind(chatId)
-            .run();
-
-        return sendMessage(
-            env,
-            chatId,
-            "❌ Создание курса отменено.",
-            {
-                keyboard: [
-                    [
-                        {
-                            text: "➕ Создать курс"
-                        },
-                        {
-                            text: "📚 Список курсов"
-                        }
-                    ],
-                    [
-                        {
-                            text: "⬅️ Админ-панель"
-                        }
-                    ]
-                ],
-                resize_keyboard: true,
-                is_persistent: true
-            }
-        );
+    // States and the existing permission helpers use the private Telegram ID.
+    if (!isPrivateBotChat(message.chat, message.from)) {
+        return;
     }
 
+    const text = String(message.text || "").trim();
+    const command = text.split(/\s+/)[0].split("@")[0];
 
-    if (text.length < 2) {
-        return sendMessage(
-            env,
-            chatId,
-            "❌ Название курса слишком короткое.\n\nВведите другое название:"
-        );
+    await ensureBotStates(env);
+
+    const botState = await env.DB.prepare(`
+        SELECT state FROM bot_states WHERE chat_id = ? LIMIT 1
+    `).bind(chatId).first();
+    const courseState = parseCourseState(botState?.state);
+    // Replayed navigation must not cancel a newer prompt either. Real inline
+    // callbacks are handled separately: their message ID belongs to the bot.
+    if (courseState && message.message_id <= courseState.afterMessageId) {
+        return;
     }
-
-
-    if (text.length > 100) {
-        return sendMessage(
-            env,
-            chatId,
-            "❌ Название курса слишком длинное.\n\nВведите название короче:"
-        );
-    }
-
-
-    await env.DB
-        .prepare(`
-            INSERT INTO courses (
-                name,
-                is_active
-            )
-            VALUES (?, 1)
-        `)
-        .bind(text)
-        .run();
-
-
-    await env.DB
-        .prepare(`
-            DELETE FROM bot_states
-            WHERE chat_id = ?
-        `)
-        .bind(chatId)
-        .run();
-
-
-    return sendMessage(
-        env,
-        chatId,
-        [
-            "✅ <b>Курс создан</b>",
-            "",
-            `📚 ${escapeHtml(text)}`
-        ].join("\n"),
-        {
-            keyboard: [
-                [
-                    {
-                        text: "➕ Создать курс"
-                    },
-                    {
-                        text: "📚 Список курсов"
-                    }
-                ],
-                [
-                    {
-                        text: "⬅️ Админ-панель"
-                    }
-                ]
-            ],
-            resize_keyboard: true,
-            is_persistent: true
-        }
-    );
-}
-    
-    // -----------------------------------------------------
-    // НИЖНЯЯ НАВИГАЦИЯ
-    // -----------------------------------------------------
 
     const menuCallbacks = {
         "📚 Программа курса": "program",
         "🛒 Оформить заказ": "order",
         "ℹ️ О школе": "about",
         "💬 Поддержка": "support",
-
         "⚙️ Управление": "admin",
-
+        "⬅️ Админ-панель": "admin",
         "📚 Курсы": "admin_courses",
+        "⬅️ К курсам": "admin_courses",
+        "➕ Создать курс": "admin_courses_create",
+        "📚 Список курсов": "admin_courses_list",
         "👥 Ученики": "admin_students",
         "👨‍👩‍👧‍👦 Группы": "admin_groups",
         "📝 Экзамены": "admin_exams",
@@ -241,194 +126,262 @@ if (botState?.state === "create_course_name") {
         "👮 Администраторы": "admin_staff"
     };
 
-
+    // Navigation must be handled before a message can become a course name.
     if (menuCallbacks[text]) {
-        return handleCallback(
-            env,
-            {
-                message: {
-                    chat: {
-                        id: chatId
-                    }
-                },
-                data: menuCallbacks[text]
-            }
-        );
+        return handleCallback(env, {
+            from: message.from,
+            message,
+            data: menuCallbacks[text]
+        }, true);
     }
 
-
-    if (text === "⬅️ Главное меню") {
-        return sendWelcome(
-            env,
-            chatId
-        );
+    if (text === "❌ Отмена" || command === "/cancel") {
+        await clearCourseDraft(env, chatId, message.message_id);
+        if (!await requirePermission(env, chatId, "courses")) {
+            return;
+        }
+        return sendCoursesMenu(env, chatId, "❌ Создание курса отменено.");
     }
 
+    if (text === "⬅️ Главное меню" || text.startsWith("/")) {
+        await clearCourseDraft(env, chatId, message.message_id);
 
-    if (text === "⬅️ Админ-панель") {
-        const access = await getBotAccess(
-            env,
-            chatId
-        );
+        if (command === "/admin_add") {
+            return addAdministrator(env, chatId, text);
+        }
+        if (command === "/admin_remove") {
+            return removeAdministrator(env, chatId, text);
+        }
+        return sendWelcome(env, chatId);
+    }
 
-        if (!access.isAdmin) {
-            return accessDenied(
+    const draft = parseCourseDraft(botState?.state);
+
+    if (draft) {
+        if (!await requirePermission(env, chatId, "courses")) {
+            await clearCourseDraft(env, chatId, message.message_id);
+            return;
+        }
+
+        const name = text.replace(/\s+/g, " ");
+        if (typeof message.text !== "string" || [...name].length < 2 || [...name].length > 100) {
+            return sendMessage(
                 env,
-                chatId
+                chatId,
+                "❌ Отправьте название текстом: от 2 до 100 символов.",
+                courseNameKeyboard()
             );
         }
 
-        return sendAdminMenu(
-            env,
-            chatId,
-            access
-        );
+        let saved;
+        try {
+            // D1 batch is atomic: only one delivery can consume this draft.
+            [saved] = await env.DB.batch([
+                env.DB.prepare(`
+                    INSERT INTO courses (name, is_active)
+                    SELECT ?, 1
+                    WHERE EXISTS (
+                        SELECT 1 FROM bot_states WHERE chat_id = ? AND state = ?
+                    )
+                `).bind(name, chatId, botState.state),
+                env.DB.prepare(`
+                    UPDATE bot_states SET state = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE chat_id = ? AND state = ?
+                `).bind(idleCourseState(message.message_id), chatId, botState.state)
+            ]);
+        } catch (error) {
+            console.error("Telegram course creation failed:", error);
+            return sendMessage(
+                env,
+                chatId,
+                "❌ Не удалось сохранить курс. Повторите название или нажмите «❌ Отмена».",
+                courseNameKeyboard()
+            );
+        }
+
+        if (!saved.meta?.changes) {
+            return;
+        }
+
+        return sendMessage(env, chatId, [
+            "✅ <b>Курс создан</b>",
+            "",
+            `📚 ${escapeHtml(name)}`
+        ].join("\n"), coursesKeyboard());
     }
 
-
-    // -----------------------------------------------------
-    // КУРСЫ
-    // -----------------------------------------------------
-
-   if (text === "➕ Создать курс") {
-    await env.DB
-        .prepare(`
-            CREATE TABLE IF NOT EXISTS bot_states (
-                chat_id INTEGER PRIMARY KEY,
-                state TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-                    DEFAULT CURRENT_TIMESTAMP
-            )
-        `)
-        .run();
-
-    await env.DB
-        .prepare(`
-            INSERT INTO bot_states (
-                chat_id,
-                state,
-                updated_at
-            )
-            VALUES (?, ?, CURRENT_TIMESTAMP)
-
-            ON CONFLICT(chat_id)
-            DO UPDATE SET
-                state = excluded.state,
-                updated_at = CURRENT_TIMESTAMP
-        `)
-        .bind(
-            chatId,
-            "create_course_name"
-        )
-        .run();
-
-    return sendMessage(
-        env,
-        chatId,
-        [
-            "➕ <b>Создание курса</b>",
-            "",
-            "Отправьте название курса.",
-            "",
-            "Например:",
-            "<i>Подготовительный курс</i>"
-        ].join("\n"),
-        {
-            keyboard: [
-                [
-                    {
-                        text: "❌ Отмена"
-                    }
-                ]
-            ],
-            resize_keyboard: true,
-            is_persistent: true
-        }
-    );
+    return sendWelcome(env, chatId);
 }
 
-if (text === "📚 Список курсов") {
-    if (
-        !await requirePermission(
-            env,
-            chatId,
-            "courses"
+function isPrivateBotChat(chat, from) {
+    return chat?.type === "private" && from?.id != null &&
+        String(chat.id) === String(from.id);
+}
+
+async function ensureBotStates(env) {
+    await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS bot_states (
+            chat_id INTEGER PRIMARY KEY,
+            state TEXT NOT NULL,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
-    ) {
+    `).run();
+}
+
+function parseCourseState(state) {
+    // Accept drafts started by the previously deployed version.
+    if (state === "create_course_name") {
+        return { action: state, afterMessageId: 0 };
+    }
+    try {
+        const parsed = JSON.parse(state);
+        return ["create_course_name", "courses_menu"].includes(parsed?.action) &&
+            Number.isSafeInteger(parsed.afterMessageId) ? parsed : null;
+    } catch {
+        return null;
+    }
+}
+
+function parseCourseDraft(state) {
+    const parsed = parseCourseState(state);
+    return parsed?.action === "create_course_name" ? parsed : null;
+}
+
+function idleCourseState(messageId) {
+    return JSON.stringify({ action: "courses_menu", afterMessageId: messageId });
+}
+
+async function clearCourseDraft(env, chatId, messageId = 0, fromInlineCallback = false) {
+    const row = await env.DB.prepare(`
+        SELECT state FROM bot_states WHERE chat_id = ? LIMIT 1
+    `).bind(chatId).first();
+
+    const state = parseCourseState(row?.state);
+    if (state) {
+        if (!fromInlineCallback && messageId <= state.afterMessageId) {
+            return;
+        }
+        // Retain the last handled message so old create/name pairs stay consumed.
+        const lastMessageId = Math.max(state.afterMessageId, messageId);
+        await env.DB.prepare(`
+            UPDATE bot_states SET state = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE chat_id = ? AND state = ?
+        `).bind(idleCourseState(lastMessageId), chatId, row.state).run();
+    }
+}
+
+function coursesKeyboard() {
+    return {
+        keyboard: [
+            [{ text: "➕ Создать курс" }, { text: "📚 Список курсов" }],
+            [{ text: "⬅️ Админ-панель" }]
+        ],
+        resize_keyboard: true,
+        is_persistent: true
+    };
+}
+
+function courseNameKeyboard() {
+    return {
+        keyboard: [
+            [{ text: "❌ Отмена" }],
+            [{ text: "⬅️ Админ-панель" }]
+        ],
+        resize_keyboard: true,
+        is_persistent: true,
+        input_field_placeholder: "Введите название курса..."
+    };
+}
+
+async function sendCoursesMenu(env, chatId, notice = "") {
+    return sendMessage(env, chatId, [
+        ...(notice ? [notice, ""] : []),
+        "📚 <b>Управление курсами</b>",
+        "",
+        "Выберите действие:"
+    ].join("\n"), coursesKeyboard());
+}
+
+async function startCourseCreation(env, chatId, messageId) {
+    const previous = await env.DB.prepare(`
+        SELECT state FROM bot_states WHERE chat_id = ? LIMIT 1
+    `).bind(chatId).first();
+    const previousState = parseCourseState(previous?.state);
+    if (!Number.isSafeInteger(messageId) ||
+        (previousState && messageId <= previousState.afterMessageId)) {
         return;
     }
 
-    const result = await env.DB
-        .prepare(`
-            SELECT
-                id,
-                name,
-                is_active
-            FROM courses
-            ORDER BY id DESC
-        `)
-        .all();
+    const state = JSON.stringify({
+        action: "create_course_name",
+        afterMessageId: messageId,
+        nonce: crypto.randomUUID()
+    });
 
-    const courses =
-        result?.results || [];
+    try {
+        const started = await env.DB.prepare(`
+            INSERT INTO bot_states (chat_id, state, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(chat_id) DO UPDATE SET
+                state = excluded.state,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE bot_states.state = ?
+        `).bind(chatId, state, previous?.state ?? null).run();
+        if (!started.meta?.changes) {
+            return;
+        }
+    } catch (error) {
+        console.error("Telegram course input failed:", error);
+        return sendMessage(env, chatId,
+            "❌ Не удалось начать создание курса. Попробуйте ещё раз.", coursesKeyboard());
+    }
+
+    return sendMessage(env, chatId, [
+        "➕ <b>Создание курса</b>",
+        "",
+        "Отправьте название курса (от 2 до 100 символов).",
+        "",
+        "Например:",
+        "<i>Подготовительный курс</i>"
+    ].join("\n"), courseNameKeyboard());
+}
+
+async function sendCoursesList(env, chatId, page = 0) {
+    const pageSize = 10;
+    const result = await env.DB.prepare(`
+        SELECT id, name, is_active FROM courses
+        ORDER BY id DESC LIMIT ? OFFSET ?
+    `).bind(pageSize + 1, page * pageSize).all();
+    const courses = result.results || [];
+    const lines = ["📚 <b>Список курсов</b>", ""];
 
     if (!courses.length) {
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "📚 <b>Список курсов</b>",
-                "",
-                "Курсов пока нет."
-            ].join("\n")
-        );
+        lines.push(page === 0 ? "Курсов пока нет." : "На этой странице курсов нет.");
+    } else {
+        for (const course of courses.slice(0, pageSize)) {
+            // Courses can also be created in the web admin with longer names.
+            const name = [...String(course.name).replace(/\s+/g, " ")];
+            const label = name.slice(0, 100).join("") + (name.length > 100 ? "…" : "");
+            lines.push(`• ${escapeHtml(label)}${course.is_active ? "" : " (неактивен)"}`);
+        }
     }
 
-    const lines = [
-        "📚 <b>Список курсов</b>",
-        ""
-    ];
+    await sendMessage(env, chatId, lines.join("\n"), coursesKeyboard());
 
-    for (const course of courses) {
-        lines.push(
-            `• ${escapeHtml(course.name)}`
-        );
+    const buttons = [];
+    if (page > 0) {
+        buttons.push({ text: "⬅️ Предыдущая", callback_data: `admin_courses_page_${page - 1}` });
     }
-
-    return sendMessage(
-        env,
-        chatId,
-        lines.join("\n")
-    );
+    if (courses.length > pageSize) {
+        buttons.push({ text: "Следующая ➡️", callback_data: `admin_courses_page_${page + 1}` });
+    }
+    if (buttons.length) {
+        return sendMessage(env, chatId, `Страница ${page + 1}`, {
+            inline_keyboard: [buttons]
+        });
+    }
 }
-    
-    // -----------------------------------------------------
-    // КОМАНДЫ
-    // -----------------------------------------------------
 
-    if (text.startsWith("/admin_add ")) {
-        return addAdministrator(
-            env,
-            chatId,
-            text
-        );
-    }
-
-
-    if (text.startsWith("/admin_remove ")) {
-        return removeAdministrator(
-            env,
-            chatId,
-            text
-        );
-    }
-
-
-    return sendWelcome(
-        env,
-        chatId
-    );
-}
 
 // =========================================================
 // ГЛАВНОЕ МЕНЮ
@@ -493,16 +446,21 @@ async function sendWelcome(env, chatId) {
 // CALLBACK
 // =========================================================
 
-async function handleCallback(env, callback) {
+async function handleCallback(env, callback, fromMessage = false) {
     const chatId =
         callback?.message?.chat?.id;
 
-    if (!chatId) {
+    if (!chatId || !isPrivateBotChat(callback.message.chat, callback.from)) {
         return;
     }
 
     const data =
         String(callback.data || "");
+
+    await ensureBotStates(env);
+    if (data !== "admin_courses_create") {
+        await clearCourseDraft(env, chatId, callback.message.message_id, !fromMessage);
+    }
 
     const access = await getBotAccess(
         env,
@@ -534,46 +492,31 @@ async function handleCallback(env, callback) {
     // КУРСЫ
     // -----------------------------------------------------
 
-    if (data === "admin_courses") {
-    if (
-        !await requirePermission(
-            env,
-            chatId,
-            "courses"
-        )
-    ) {
-        return;
-    }
+    if (data === "admin_courses" || data === "admin_courses_create" ||
+        data === "admin_courses_list" || data.startsWith("admin_courses_page_")) {
+        if (!await requirePermission(env, chatId, "courses")) {
+            return;
+        }
 
-    return sendMessage(
-    env,
-    chatId,
-    [
-        "📚 <b>Управление курсами</b>",
-        "",
-        "Выберите действие:"
-    ].join("\n"),
-    {
-        keyboard: [
-            [
-                {
-                    text: "➕ Создать курс"
-                },
-                {
-                    text: "📚 Список курсов"
-                }
-            ],
-            [
-                {
-                    text: "⬅️ Админ-панель"
-                }
-            ]
-        ],
-        resize_keyboard: true,
-        is_persistent: true
+        if (data === "admin_courses_create") {
+            return startCourseCreation(env, chatId, callback.message.message_id);
+        }
+        if (data === "admin_courses") {
+            return sendCoursesMenu(env, chatId);
+        }
+        const page = data === "admin_courses_list"
+            ? 0 : Number(data.slice("admin_courses_page_".length));
+        if (!Number.isSafeInteger(page) || page < 0 || page > 1000000) {
+            return sendCoursesMenu(env, chatId);
+        }
+        try {
+            return await sendCoursesList(env, chatId, page);
+        } catch (error) {
+            console.error("Telegram course list failed:", error);
+            return sendMessage(env, chatId,
+                "❌ Не удалось загрузить курсы. Попробуйте ещё раз.", coursesKeyboard());
+        }
     }
-);
-}
 
     // -----------------------------------------------------
     // УЧЕНИКИ
