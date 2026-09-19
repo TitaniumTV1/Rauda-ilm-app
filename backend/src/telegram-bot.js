@@ -135,6 +135,21 @@ async function handleMessage(env, message) {
         }, true);
     }
 
+    const supportState = await env.DB.prepare(`
+    SELECT waiting
+    FROM support_state
+    WHERE user_id = ?
+    LIMIT 1
+`).bind(String(message.from.id)).first();
+
+if (supportState?.waiting === 1) {
+    await handleSupportMessage(
+        env,
+        message
+    );
+    return;
+}
+    
     if (text === "❌ Отмена" || command === "/cancel") {
         await clearCourseDraft(env, chatId, message.message_id);
         if (!await requirePermission(env, chatId, "courses")) {
@@ -211,6 +226,154 @@ async function handleMessage(env, message) {
     }
 
     return sendWelcome(env, chatId);
+}
+
+async function handleSupportMessage(env, message) {
+    const userId = String(message.from.id);
+
+    const adminRows = await env.DB.prepare(`
+        SELECT telegram_id
+        FROM users
+        WHERE role = 'admin'
+          AND telegram_id IS NOT NULL
+    `).all();
+
+    const recipients = new Set();
+
+    // Добавляем владельца
+    if (env.OWNER_TELEGRAM_ID) {
+        recipients.add(
+            String(env.OWNER_TELEGRAM_ID)
+        );
+    }
+
+    // Добавляем всех администраторов
+    for (const admin of adminRows.results || []) {
+        if (admin.telegram_id) {
+            recipients.add(
+                String(admin.telegram_id)
+            );
+        }
+    }
+
+    if (recipients.size === 0) {
+        await env.DB.prepare(`
+            UPDATE support_state
+            SET waiting = 0
+            WHERE user_id = ?
+        `)
+            .bind(userId)
+            .run();
+
+        return sendMessage(
+            env,
+            userId,
+            "❌ Сейчас поддержка недоступна. Попробуйте позже."
+        );
+    }
+
+    const userName = supportUserName(
+        message.from
+    );
+
+    let delivered = 0;
+
+    for (const adminId of recipients) {
+        try {
+            await sendMessage(
+                env,
+                adminId,
+                [
+                    "📩 <b>Новое сообщение поддержки</b>",
+                    "",
+                    `👤 ${escapeHtml(userName)}`,
+                    `🆔 <code>${escapeHtml(userId)}</code>`,
+                    "",
+                    "Ответьте через Reply на сообщение ниже 👇"
+                ].join("\n")
+            );
+
+            const copied = await copyMessage(
+                env,
+                adminId,
+                message.chat.id,
+                message.message_id
+            );
+
+            if (
+                copied?.ok &&
+                copied?.result?.message_id
+            ) {
+                await env.DB.prepare(`
+                    INSERT INTO support_messages (
+                        admin_id,
+                        admin_message_id,
+                        user_id
+                    )
+                    VALUES (?, ?, ?)
+                `)
+                    .bind(
+                        adminId,
+                        copied.result.message_id,
+                        userId
+                    )
+                    .run();
+
+                delivered++;
+            }
+        } catch (error) {
+            console.error(
+                "Support delivery failed:",
+                adminId,
+                error
+            );
+        }
+    }
+
+    await env.DB.prepare(`
+        UPDATE support_state
+        SET waiting = 0
+        WHERE user_id = ?
+    `)
+        .bind(userId)
+        .run();
+
+    if (delivered === 0) {
+        return sendMessage(
+            env,
+            userId,
+            "❌ Не удалось отправить сообщение поддержке. Попробуйте позже."
+        );
+    }
+
+    return sendMessage(
+        env,
+        userId,
+        [
+            "✅ <b>Сообщение отправлено</b>",
+            "",
+            "Поддержка получила ваше сообщение.",
+            "Ответ придёт сюда в бот."
+        ].join("\n")
+    );
+}
+
+function supportUserName(user) {
+    const fullName = [
+        user?.first_name,
+        user?.last_name
+    ]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+    if (user?.username) {
+        return fullName
+            ? `${fullName} (@${user.username})`
+            : `@${user.username}`;
+    }
+
+    return fullName || "Пользователь";
 }
 
 function isPrivateBotChat(chat, from) {
@@ -1129,22 +1292,27 @@ async function handleCallback(env, callback, fromMessage = false) {
     }
 
 
-    if (data === "support") {
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "💬 <b>Поддержка RAUDA ILM</b>",
-                "",
-                "Обратную связь подключим",
-                "отдельным этапом.",
-                "",
-                "Она сможет поддерживать",
-                "текст, голосовые сообщения",
-                "и другие файлы."
-            ].join("\n")
-        );
-    }
+   if (data === "support") {
+  await env.DB.prepare(`
+    INSERT INTO support_state (user_id, waiting)
+    VALUES (?, 1)
+    ON CONFLICT(user_id)
+    DO UPDATE SET waiting = 1
+  `)
+    .bind(String(chatId))
+    .run();
+
+  await sendMessage(
+    chatId,
+    `💬 Поддержка RAUDA ILM
+
+Напишите ваше сообщение.
+
+Вы можете отправить текст, фотографию, видео, документ или голосовое сообщение.`
+  );
+
+  return;
+}
 }
 
 
@@ -2050,6 +2218,37 @@ async function sendMessage(
     return response;
 }
 
+async function copyMessage(env, chatId, fromChatId, messageId) {
+  const response = await fetch(
+    `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/copyMessage`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        from_chat_id: fromChatId,
+        message_id: messageId
+      })
+    }
+  );
+
+  return await response.json();
+}
+
+function formatUserName(user) {
+  const name = [
+    user.first_name,
+    user.last_name
+  ].filter(Boolean).join(" ");
+
+  if (user.username) {
+    return `${name || "Пользователь"} (@${user.username})`;
+  }
+
+  return name || "Пользователь";
+}
 
 async function answerCallback(
     env,
