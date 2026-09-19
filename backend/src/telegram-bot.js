@@ -11,6 +11,11 @@ import {
     grantAllPermissions,
     revokeAllPermissions
 } from "./bot-access.js";
+import { handleLearningCallback, handleLearningMessage, cancelLearningDraft } from "./telegram-learning.js";
+import { handleSupportCallback, handleSupportMessage, cancelSupportDraft } from "./telegram-support.js";
+import { handlePaymentCallback, handlePaymentMessage, cancelPaymentDraft } from "./telegram-payments.js";
+import { handleAdminOverview } from "./telegram-admin-overview.js";
+import { verifyTelegramWebhook } from "./telegram-webhook-security.js";
 
 const TELEGRAM_API = "https://api.telegram.org";
 
@@ -39,16 +44,26 @@ export async function handleTelegramWebhook(request, env) {
     }
 
     try {
+        if (!await verifyTelegramWebhook(request, env)) return new Response("Unauthorized", { status: 401 });
         if (update?.callback_query) {
             await answerCallback(
                 env,
                 update.callback_query.id
             );
 
-            await handleCallback(
-                env,
-                update.callback_query
-            );
+            const callback = update.callback_query;
+            if (!isPrivateBotChat(callback.message?.chat, callback.from)) return ok();
+            await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_callback_events (
+                id TEXT PRIMARY KEY, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)` ).run();
+            const accepted = await env.DB.prepare("INSERT OR IGNORE INTO telegram_callback_events(id) VALUES (?)")
+                .bind(String(callback.id)).run();
+            if (!accepted.meta?.changes) return ok();
+            try {
+                await handleCallback(env, callback);
+            } catch (error) {
+                await env.DB.prepare("DELETE FROM telegram_callback_events WHERE id=?").bind(String(callback.id)).run();
+                throw error;
+            }
 
             return ok();
         }
@@ -111,6 +126,7 @@ async function handleMessage(env, message) {
         "🛒 Оформить заказ": "order",
         "ℹ️ О школе": "about",
         "💬 Поддержка": "support",
+        "📨 Обращения": "admin_support",
         "⚙️ Управление": "admin",
         "⬅️ Админ-панель": "admin",
         "📚 Курсы": "admin_courses",
@@ -136,7 +152,11 @@ async function handleMessage(env, message) {
     }
 
     if (text === "❌ Отмена" || command === "/cancel") {
+        await cancelSupportDraft(env, chatId);
+        await cancelLearningDraft(env, chatId, message.message_id);
+        await cancelPaymentDraft(env, chatId, message.message_id);
         await clearCourseDraft(env, chatId, message.message_id);
+        if (!parseCourseDraft(botState?.state)) return sendWelcome(env, chatId);
         if (!await requirePermission(env, chatId, "courses")) {
             return;
         }
@@ -144,7 +164,13 @@ async function handleMessage(env, message) {
     }
 
     if (text === "⬅️ Главное меню" || text.startsWith("/")) {
+        await cancelSupportDraft(env, chatId);
+        await cancelLearningDraft(env, chatId, message.message_id);
+        await cancelPaymentDraft(env, chatId, message.message_id);
         await clearCourseDraft(env, chatId, message.message_id);
+
+        const semesterStart = text.match(/^\/start(?:@\w+)?\s+semester_(\d+)$/);
+        if (semesterStart) return handleCallback(env, { from: message.from, message, data: `learn_semester_${semesterStart[1]}_0` }, true);
 
         if (command === "/admin_add") {
             return addAdministrator(env, chatId, text);
@@ -154,6 +180,14 @@ async function handleMessage(env, message) {
         }
         return sendWelcome(env, chatId);
     }
+
+    if (await handleSupportMessage(env, message, async () => {
+        await cancelLearningDraft(env, chatId, message.message_id);
+        await cancelPaymentDraft(env, chatId, message.message_id);
+        await clearCourseDraft(env, chatId, message.message_id);
+    })) return;
+    if (await handlePaymentMessage(env, message)) return;
+    if (await handleLearningMessage(env, message)) return;
 
     const draft = parseCourseDraft(botState?.state);
 
@@ -366,7 +400,7 @@ async function sendCoursesList(env, chatId, page = 0) {
         }
     }
 
-    await sendMessage(env, chatId, lines.join("\n"), coursesKeyboard());
+    if (!courses.length) return sendMessage(env, chatId, lines.join("\n"), coursesKeyboard());
 
     const buttons = [];
     if (page > 0) {
@@ -375,11 +409,14 @@ async function sendCoursesList(env, chatId, page = 0) {
     if (courses.length > pageSize) {
         buttons.push({ text: "Следующая ➡️", callback_data: `admin_courses_page_${page + 1}` });
     }
-    if (buttons.length) {
-        return sendMessage(env, chatId, `Страница ${page + 1}`, {
-            inline_keyboard: [buttons]
-        });
-    }
+    const rows = courses.slice(0, pageSize).map(course => [{
+        text: `📚 ${[...String(course.name)].slice(0, 65).join("")}`,
+        callback_data: `learn_ac_${course.id}`
+    }]);
+    if (buttons.length) rows.push(buttons);
+    rows.push([{ text: "⬅️ К курсам", callback_data: "admin_courses" }],
+        [{ text: "⬅️ Админ-панель", callback_data: "admin" }]);
+    return sendMessage(env, chatId, `${lines.join("\n")}\n\nВыберите курс · страница ${page + 1}`, { inline_keyboard: rows });
 }
 
 
@@ -457,6 +494,16 @@ async function handleCallback(env, callback, fromMessage = false) {
     const data =
         String(callback.data || "");
 
+    if (!data.startsWith("support_") && data !== "support" && data !== "admin_support") {
+        await cancelSupportDraft(env, chatId);
+    }
+    if (!data.startsWith("learn_")) {
+        await cancelLearningDraft(env, chatId, fromMessage ? callback.message.message_id : 0);
+    }
+    if (!data.startsWith("pay_")) {
+        await cancelPaymentDraft(env, chatId, fromMessage ? callback.message.message_id : 0);
+    }
+
     await ensureBotStates(env);
     if (data !== "admin_courses_create") {
         await clearCourseDraft(env, chatId, callback.message.message_id, !fromMessage);
@@ -466,6 +513,12 @@ async function handleCallback(env, callback, fromMessage = false) {
         env,
         chatId
     );
+
+    if (data === "main" || data === "home") return sendWelcome(env, chatId);
+    if (await handleSupportCallback(env, callback)) return;
+    if (await handlePaymentCallback(env, callback)) return;
+    if (await handleLearningCallback(env, callback)) return;
+    if (await handleAdminOverview(env, callback)) return;
 
 
     // -----------------------------------------------------
@@ -520,284 +573,6 @@ async function handleCallback(env, callback, fromMessage = false) {
 
     // -----------------------------------------------------
     // УЧЕНИКИ
-    // -----------------------------------------------------
-
-    if (data === "admin_students") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "students"
-            )
-        ) {
-            return;
-        }
-
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "👥 <b>Ученики</b>",
-                "",
-                "Здесь будет:",
-                "",
-                "• список учеников",
-                "• поиск",
-                "• профиль",
-                "• доступ",
-                "• прогресс",
-                "• группы"
-            ].join("\n"),
-            backToAdminKeyboard()
-        );
-    }
-
-
-    // -----------------------------------------------------
-    // ГРУППЫ
-    // -----------------------------------------------------
-
-    if (data === "admin_groups") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "groups"
-            )
-        ) {
-            return;
-        }
-
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "👨‍👩‍👧‍👦 <b>Группы</b>",
-                "",
-                "Здесь будет:",
-                "",
-                "• создание групп",
-                "• список групп",
-                "• участники",
-                "• добавление учеников",
-                "• удаление учеников"
-            ].join("\n"),
-            backToAdminKeyboard()
-        );
-    }
-
-
-    // -----------------------------------------------------
-    // ЭКЗАМЕНЫ
-    // -----------------------------------------------------
-
-    if (data === "admin_exams") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "exams"
-            )
-        ) {
-            return;
-        }
-
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "📝 <b>Экзамены</b>",
-                "",
-                "Здесь будет:",
-                "",
-                "• экзамены",
-                "• вопросы",
-                "• результаты",
-                "• попытки",
-                "• пересдачи"
-            ].join("\n"),
-            backToAdminKeyboard()
-        );
-    }
-
-
-    // -----------------------------------------------------
-    // ОПЛАТА
-    // -----------------------------------------------------
-
-    if (data === "admin_payments") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "payments"
-            )
-        ) {
-            return;
-        }
-
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "💳 <b>Оплата и тарифы</b>",
-                "",
-                "📚 Подготовительный курс",
-                "",
-                "💰 Текущая цена: <b>1 500 ₽</b>",
-                "",
-                "Цена пока временно указана",
-                "непосредственно в боте."
-            ].join("\n"),
-            {
-                inline_keyboard: [
-                    [
-                        {
-                            text: "💰 Изменить цену",
-                            callback_data: "admin_price"
-                        }
-                    ],
-                    [
-                        {
-                            text: "📋 История платежей",
-                            callback_data:
-                                "admin_payment_history"
-                        }
-                    ],
-                    [
-                        {
-                            text: "⬅️ Назад",
-                            callback_data: "admin"
-                        }
-                    ]
-                ]
-            }
-        );
-    }
-
-
-    if (data === "admin_price") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "payments"
-            )
-        ) {
-            return;
-        }
-
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "💰 <b>Изменение цены</b>",
-                "",
-                "Сейчас установлено:",
-                "<b>1 500 ₽</b>",
-                "",
-                "Редактирование цены через D1",
-                "подключим следующим этапом."
-            ].join("\n"),
-            backToAdminKeyboard()
-        );
-    }
-
-
-    if (data === "admin_payment_history") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "payments"
-            )
-        ) {
-            return;
-        }
-
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "📋 <b>История платежей</b>",
-                "",
-                "Здесь будут отображаться",
-                "платежи YooKassa и Tribute."
-            ].join("\n"),
-            backToAdminKeyboard()
-        );
-    }
-
-
-    // -----------------------------------------------------
-    // СЕРТИФИКАТЫ
-    // -----------------------------------------------------
-
-    if (data === "admin_certificates") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "certificates"
-            )
-        ) {
-            return;
-        }
-
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "📜 <b>Сертификаты</b>",
-                "",
-                "Здесь будет:",
-                "",
-                "• шаблоны",
-                "• условия выдачи",
-                "• выданные сертификаты",
-                "• отправка ученикам"
-            ].join("\n"),
-            backToAdminKeyboard()
-        );
-    }
-
-
-    // -----------------------------------------------------
-    // СТАТИСТИКА
-    // -----------------------------------------------------
-
-    if (data === "admin_stats") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "stats"
-            )
-        ) {
-            return;
-        }
-
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "📊 <b>Статистика</b>",
-                "",
-                "Здесь будет статистика:",
-                "",
-                "• ученики",
-                "• курсы",
-                "• группы",
-                "• оплаты",
-                "• результаты"
-            ].join("\n"),
-            backToAdminKeyboard()
-        );
-    }
-
-
-    // -----------------------------------------------------
-    // АДМИНИСТРАТОРЫ
     // -----------------------------------------------------
 
     if (data === "admin_staff") {
@@ -1081,37 +856,6 @@ async function handleCallback(env, callback, fromMessage = false) {
     // ПУБЛИЧНЫЕ РАЗДЕЛЫ
     // -----------------------------------------------------
 
-    if (data === "program") {
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "📚 <b>Подготовительный курс RAUDA ILM</b>",
-                "",
-                "Программа состоит из",
-                "последовательных учебных",
-                "материалов и уроков."
-            ].join("\n")
-        );
-    }
-
-
-    if (data === "order") {
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "🛒 <b>Подготовительный курс</b>",
-                "",
-                "💳 Стоимость: <b>1 500 ₽</b>",
-                "",
-                "Оплата через ЮKassa",
-                "находится на этапе подключения."
-            ].join("\n")
-        );
-    }
-
-
     if (data === "about") {
         return sendMessage(
             env,
@@ -1129,24 +873,8 @@ async function handleCallback(env, callback, fromMessage = false) {
     }
 
 
-    if (data === "support") {
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "💬 <b>Поддержка RAUDA ILM</b>",
-                "",
-                "Обратную связь подключим",
-                "отдельным этапом.",
-                "",
-                "Она сможет поддерживать",
-                "текст, голосовые сообщения",
-                "и другие файлы."
-            ].join("\n")
-        );
-    }
+    return sendMessage(env, chatId, "Кнопка устарела. Откройте раздел заново.", { inline_keyboard: [[{ text: "🏠 Главное меню", callback_data: "main" }]] });
 }
-
 
 // =========================================================
 // АДМИН-МЕНЮ
@@ -1158,6 +886,8 @@ async function sendAdminMenu(
     access
 ) {
     const buttons = [];
+
+    if (access.isOwner || await hasPermission(env, chatId, "support")) buttons.push("📨 Обращения");
 
 
     if (
@@ -1541,6 +1271,7 @@ async function sendPermissionEditor(
                         "Ученики"
                     )
                 ],
+                [button("support", "Поддержка")],
                 [
                     button(
                         "groups",

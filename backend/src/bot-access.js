@@ -465,6 +465,7 @@ export async function grantAllPermissions(
         "groups",
         "exams",
         "payments",
+        "support",
         "certificates",
         "competitions",
         "schedule"

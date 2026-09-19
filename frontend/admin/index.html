@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>RAUDA ILM — Админ-панель</title>
+  <link rel="stylesheet" href="/payments.css">
   <style>
     :root {
       --bg: #101211;
@@ -3099,6 +3100,17 @@ function switchAdminTab(tabName) {
                 Администраторы
             </button>
 
+            <button
+                id="ownerPaymentsTab"
+                type="button"
+                class="rauda-admin-tab"
+                data-admin-tab="payments"
+                onclick="switchAdminTab('payments')"
+                hidden
+            >
+                Оплата
+            </button>
+
           <button
     type="button"
     class="rauda-admin-tab"
@@ -3114,6 +3126,17 @@ function switchAdminTab(tabName) {
         <!-- =========================
              КОНТЕНТ
              ========================= -->
+
+        <section class="rauda-admin-tab-panel rauda-payments" data-admin-panel="payments">
+            <div class="rauda-admin-page-head">
+                <div>
+                    <div class="rauda-admin-kicker">Настройки владельца</div>
+                    <h2>Оплата обучения</h2>
+                    <p>Способы оплаты, стоимость семестров и подтверждение платежей.</p>
+                </div>
+            </div>
+            <div id="ownerPaymentSettings" aria-live="polite"></div>
+        </section>
 
         <section
             class="rauda-admin-tab-panel active"
@@ -3171,41 +3194,6 @@ function switchAdminTab(tabName) {
                             Программы загружаются...
                         </div>
                     </div>
-
-                 <div
-    id="semesterPaymentsOwnerBlock"
-    style="
-        display:none;
-        margin-top:32px;
-        padding-top:24px;
-        border-top:1px solid var(--rauda-border);
-    "
->
-    <div style="margin-bottom:18px;">
-        <h3 style="margin:0;">
-            Оплата семестров
-        </h3>
-
-        <p
-            style="
-                margin:6px 0 0;
-                color:var(--rauda-muted);
-            "
-        >
-            Здесь можно менять цену и срок доступа
-            без изменения кода.
-        </p>
-    </div>
-
-    <div
-        id="adminSemestersList"
-        class="rauda-admin-list"
-    >
-        <div class="rauda-admin-empty">
-            Семестры загружаются...
-        </div>
-    </div>
-</div>
                 </section>
 
 
@@ -3933,8 +3921,9 @@ function switchAdminTab(tabName) {
       element.className = "status" + (message ? " visible" : "") + (type ? " " + type : "");
     }
 
-    function showLogin(message = "") {
+function showLogin(message = "") {
     state.user = null;
+    window.RaudaPayments?.initAdmin(null, api);
 
     loginView?.classList.remove("hidden");
     workspace?.classList.add("hidden");
@@ -3958,21 +3947,7 @@ function switchAdminTab(tabName) {
 function showWorkspace(user) {
     state.user = user || null;
   
-const semesterPaymentsOwnerBlock =
-    document.getElementById(
-        "semesterPaymentsOwnerBlock"
-    );
-
-if (semesterPaymentsOwnerBlock) {
-    semesterPaymentsOwnerBlock.style.display =
-        state.user?.role === "owner"
-            ? ""
-            : "none";
-}
-
-if (state.user?.role === "owner") {
-    loadAdminSemestersManager();
-}
+window.RaudaPayments?.initAdmin(state.user, api);
     loginView?.classList.add("hidden");
     workspace?.classList.remove("hidden");
     document
@@ -6987,6 +6962,9 @@ function switchAdminTab(tabName) {
   if (tabName === "settings") {
     loadAdminSettings();
 }
+  if (tabName === "payments") {
+    window.RaudaPayments?.loadAdmin();
+}
 }
 
 </script>
@@ -7223,377 +7201,6 @@ function raudaAdminEscape(value) {
         .replaceAll("'", "&#039;");
 }
 
-    function renderAdminSemesters() {
-
-    const container =
-        document.getElementById(
-            "adminSemestersList"
-        );
-
-    if (!container) {
-        return;
-    }
-
-    if (!state.semesters.length) {
-
-        container.innerHTML = `
-            <div class="rauda-admin-empty">
-                Семестров пока нет
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML =
-        state.semesters
-            .map((semester) => {
-
-                const id =
-                    Number(semester.id);
-
-                const number =
-                    Number(semester.number);
-
-                const price =
-                    Number(
-                        semester.price_rub ??
-                        3000
-                    );
-
-                const months =
-                    Number(
-                        semester.access_months ??
-                        3
-                    );
-
-                const paymentEnabled =
-                    Number(
-                        semester.payment_enabled
-                    ) !== 0;
-
-                return `
-                    <div
-                        class="card"
-                        style="
-                            padding:18px;
-                            margin-bottom:12px;
-                        "
-                    >
-
-                        <div
-                            style="
-                                display:flex;
-                                justify-content:space-between;
-                                gap:16px;
-                                margin-bottom:16px;
-                            "
-                        >
-
-                            <div>
-                                <strong>
-                                    ${raudaAdminEscape(
-                                        semester.name ||
-                                        (
-                                            number +
-                                            " семестр"
-                                        )
-                                    )}
-                                </strong>
-
-                                <div
-                                    style="
-                                        margin-top:4px;
-                                        color:var(--rauda-muted);
-                                        font-size:13px;
-                                    "
-                                >
-                                    ${raudaAdminEscape(
-                                        semester.program_name ||
-                                        ""
-                                    )}
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div
-                            class="form-grid"
-                        >
-
-                            <div class="field">
-                                <label>
-                                    Цена, ₽
-                                </label>
-
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    id="semesterPrice-${id}"
-                                    value="${price}"
-                                >
-                            </div>
-
-                            <div class="field">
-                                <label>
-                                    Срок доступа, месяцев
-                                </label>
-
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="36"
-                                    step="1"
-                                    id="semesterMonths-${id}"
-                                    value="${months}"
-                                >
-                            </div>
-
-                            <div
-                                class="field full"
-                            >
-                                <label
-                                    class="switch-row"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        id="semesterPayment-${id}"
-                                        ${
-                                            paymentEnabled
-                                                ? "checked"
-                                                : ""
-                                        }
-                                    >
-
-                                    Принимать оплату
-                                </label>
-                            </div>
-
-                        </div>
-
-                        <div class="buttons">
-
-                            <button
-                                type="button"
-                                class="button primary"
-                                onclick="saveAdminSemester(${id})"
-                            >
-                                Сохранить
-                            </button>
-
-                        </div>
-
-                        <div
-                            id="semesterStatus-${id}"
-                            class="status"
-                        ></div>
-
-                    </div>
-                `;
-            })
-            .join("");
-}
-
-    async function saveAdminSemester(id) {
-
-    const priceInput =
-        document.getElementById(
-            "semesterPrice-" + id
-        );
-
-    const monthsInput =
-        document.getElementById(
-            "semesterMonths-" + id
-        );
-
-    const paymentInput =
-        document.getElementById(
-            "semesterPayment-" + id
-        );
-
-    const status =
-        document.getElementById(
-            "semesterStatus-" + id
-        );
-
-    if (
-        !priceInput ||
-        !monthsInput ||
-        !paymentInput
-    ) {
-        return;
-    }
-
-    const price =
-        Number(priceInput.value);
-
-    const months =
-        Number(monthsInput.value);
-
-    if (
-        !Number.isInteger(price) ||
-        price < 0
-    ) {
-        alert(
-            "Укажите правильную цену"
-        );
-
-        return;
-    }
-
-    if (
-        !Number.isInteger(months) ||
-        months < 1
-    ) {
-        alert(
-            "Укажите срок доступа"
-        );
-
-        return;
-    }
-
-    if (status) {
-        status.className =
-            "status visible loading";
-
-        status.textContent =
-            "Сохраняем...";
-    }
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/admin/semesters/" +
-                encodeURIComponent(id),
-                {
-                    method: "PATCH",
-
-                    credentials:
-                        "same-origin",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-                            price_rub: price,
-                            access_months: months,
-                            payment_enabled:
-                                paymentInput.checked
-                        })
-                }
-            );
-
-        const data =
-            await response
-                .json()
-                .catch(() => ({}));
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-            throw new Error(
-                data.error ||
-                "Не удалось сохранить"
-            );
-        }
-
-        if (status) {
-
-            status.className =
-                "status visible success";
-
-            status.textContent =
-                "Сохранено";
-        }
-
-        await loadAdminSemestersManager();
-
-    } catch (error) {
-
-        if (status) {
-
-            status.className =
-                "status visible error";
-
-            status.textContent =
-                error.message ||
-                "Не удалось сохранить";
-        }
-    }
-}
-
-/* =========================================
-   LOAD PROGRAMS
-   ========================================= */
-async function loadAdminSemestersManager() {
-
-    const container =
-        document.getElementById(
-            "adminSemestersList"
-        );
-
-    if (!container) {
-        return;
-    }
-
-    container.innerHTML = `
-        <div class="rauda-admin-empty">
-            Семестры загружаются...
-        </div>
-    `;
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/admin/semesters",
-                {
-                    credentials:
-                        "same-origin"
-                }
-            );
-
-        const data =
-            await response
-                .json()
-                .catch(() => ({}));
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-            throw new Error(
-                data.error ||
-                "Не удалось загрузить семестры"
-            );
-        }
-
-        state.semesters =
-            Array.isArray(data.semesters)
-                ? data.semesters
-                : [];
-
-        renderAdminSemesters();
-
-    } catch (error) {
-
-        container.innerHTML = `
-            <div class="rauda-admin-empty">
-                ${raudaAdminEscape(
-                    error.message ||
-                    "Не удалось загрузить семестры"
-                )}
-            </div>
-        `;
-    }
-}
-    
 async function loadAdminProgramsManager() {
 
     const container =
@@ -9205,6 +8812,7 @@ document
     );
 
 </script>
+<script src="/payments.js"></script>
 </body>
 </html>
 

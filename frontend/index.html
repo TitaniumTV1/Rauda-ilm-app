@@ -1,5 +1,6 @@
 <!DOCTYPE html><html lang="ru">
 <head>
+    <link rel="stylesheet" href="/payments.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>RAUDA ILM</title>
 
@@ -7705,6 +7706,10 @@ a,
 
         </div>
 
+        <div class="rauda-payments rauda-payment-mini">
+            <button type="button" class="rauda-payment-button" onclick="RaudaPayments.openPayments()">Оплатить семестр</button>
+        </div>
+
      <div
     id="coursesContainer"
     class="rauda-courses-container"
@@ -7716,6 +7721,17 @@ a,
         
     </section>
 
+
+<section id="paymentsScreen" class="screen rauda-payments">
+    <button type="button" class="back-button" onclick="showScreen('homeScreen')">← Назад</button>
+    <div class="card rauda-payment-card">
+        <h2>Оплата обучения</h2>
+        <p>Выберите курс, семестр и удобный способ оплаты: Tribute или ЮMoney.</p>
+        <p class="rauda-payment-note">Ссылка на оплату и подтверждение приходят в Telegram. Доступ открывается для оплаченного семестра.</p>
+        <a id="studentOwnerPaymentsLink" class="rauda-payment-button secondary" href="/admin/#payments" hidden>Настроить оплату школы</a>
+    </div>
+    <div id="studentPaymentCatalog" aria-live="polite"></div>
+</section>
 
 <!-- PROFILE -->
 
@@ -8152,6 +8168,11 @@ a,
     </div>
 
 
+    <section class="rauda-payments" aria-label="Семестры и оплата">
+        <h2>Семестры и оплата</h2>
+        <div id="coursePaymentCatalog" aria-live="polite"></div>
+    </section>
+
     <!-- ПРОГРЕСС -->
 
     <div
@@ -8525,6 +8546,10 @@ a,
     onclick="openSchedule()"
 >
     📅 Расписание
+</button>
+
+<button class="menu-item" type="button" onclick="RaudaPayments.openPayments()">
+    💳 Оплата обучения
 </button>
 
 <button
@@ -8953,6 +8978,7 @@ if (loginHint) {
      */
 
     function openApp() {
+        window.RaudaPayments?.initStudent(currentUser);
 
         document
             .getElementById(
@@ -9998,6 +10024,7 @@ function openCourse(courseId) {
         "lessonsScreen"
     );
 
+    window.RaudaPayments?.loadCatalogue("coursePaymentCatalog", id);
 
     loadLessons(
         id
@@ -12226,6 +12253,10 @@ function setRegisterMethod(method) {
                 openSchedule();
             }
 
+            else if (section === "payments") {
+                window.RaudaPayments?.openPayments();
+            }
+
             else if (
                 section === "exams" &&
                 typeof openExams === "function"
@@ -12382,6 +12413,10 @@ function setRegisterMethod(method) {
                         TXT.schedule +
                     '</span>' +
 
+                '</button>' +
+
+                '<button type="button" class="rauda-menu-item" onclick="raudaMenuGo(this, \'payments\')">' +
+                    '<span aria-hidden="true">💳</span><span>Оплата обучения</span>' +
                 '</button>' +
 
 
@@ -17386,6 +17421,7 @@ back.style.setProperty(
     });
 </script>
     
+<script src="/payments.js"></script>
 </body>
 </html>
 

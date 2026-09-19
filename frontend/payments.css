@@ -1,0 +1,41 @@
+.rauda-payments { color: #1d2b23; color-scheme: light; }
+.rauda-admin-tab-panel.rauda-payments { padding: 20px; border-radius: 18px; background: #f6f1e6; }
+#ownerPaymentsTab[hidden] { display: none !important; }
+.rauda-payments [hidden] { display: none !important; }
+.rauda-payments h2, .rauda-payments h3, .rauda-payments h4, .rauda-payments label { color: #173d2c !important; }
+.rauda-payments h2, .rauda-payments h3, .rauda-payments h4 { margin: 0 0 10px; }
+.rauda-payments p { margin: 8px 0 16px; line-height: 1.6; }
+.rauda-payment-card { padding: 22px; margin: 14px 0; border: 1px solid #e5dbc4; border-radius: 18px; background: #fffdf6; }
+.rauda-payment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 18px; }
+.rauda-payment-grid > * { min-width: 0; }
+.rauda-payment-field { display: flex; flex-direction: column; gap: 7px; margin: 14px 0; font-weight: 650; }
+.rauda-payment-field input, .rauda-payment-field select { width: 100%; min-height: 44px; box-sizing: border-box; padding: 10px 12px; background: #fff; border: 1px solid #c9cabc; border-radius: 10px; color: #173d2c; font: inherit; }
+.rauda-payments .rauda-payment-field input, .rauda-payments .rauda-payment-field select { color: #173d2c !important; background: #fff !important; border-color: #c9cabc !important; }
+.rauda-payment-field input[readonly] { font-size: 13px; background: #f0f2e9; }
+.rauda-payment-check { display: flex; align-items: center; gap: 10px; margin: 14px 0; font-weight: 650; }
+.rauda-payments .rauda-payment-check input { width: 19px !important; height: 19px !important; min-height: 19px !important; margin: 0; padding: 0; accent-color: #24543d; flex: 0 0 19px; appearance: auto !important; -webkit-appearance: auto !important; }
+.rauda-payment-check span { min-width: 0; }
+.rauda-payment-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.rauda-payment-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 11px 18px; border: 1px solid #24543d; border-radius: 11px; background: #24543d; color: #fff !important; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.rauda-payment-button.secondary { color: #173d2c !important; background: #e9f0eb; }
+.rauda-payment-button:disabled { cursor: default; opacity: .55; }
+.rauda-payment-button:focus-visible, .rauda-payments input:focus-visible, .rauda-payments select:focus-visible { outline: 3px solid #ae853b; outline-offset: 3px; }
+.rauda-payment-note { color: #60695c; font-size: 14px; overflow-wrap: anywhere; }
+.rauda-payment-status { margin-top: 14px; white-space: pre-line; overflow-wrap: anywhere; }
+.rauda-payment-status.error { color: #a12720; }
+.rauda-payment-status.success { color: #1e6938; }
+.rauda-payment-readiness { display: inline-block; border-radius: 8px; padding: 6px 10px; background: #f2e8cf; font-size: 13px; }
+.rauda-payment-readiness.ready { background: #e1eedb; color: #24543d; }
+.rauda-payment-price { font-size: 22px; font-weight: 750; color: #173d2c; margin: 8px 0; }
+.rauda-payment-details { margin-top: 16px; }
+.rauda-payment-details summary { cursor: pointer; font-weight: 700; color: #24543d; }
+.rauda-payment-details ol { padding-left: 22px; line-height: 1.6; }
+.rauda-payment-details li { margin: 8px 0; }
+.rauda-payment-details a { color: #24543d; }
+.rauda-payment-order { padding-top: 16px; margin-top: 16px; border-top: 1px solid #e5dbc4; }
+.rauda-payment-order[hidden] { display: none !important; }
+.rauda-payment-mini { margin-bottom: 20px; }
+@media (max-width: 520px) {
+  .rauda-payment-card { padding: 16px; }
+  .rauda-payment-actions > * { flex: 1 1 130px; }
+}

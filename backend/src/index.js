@@ -2,6 +2,8 @@ import { verifyTelegramInitData } from "./telegram.js";
 import { handleAssessmentRequest } from "./assessment.js";
 
 import { handleTelegramWebhook } from "./telegram-bot.js";
+import { handlePaymentRequest, verifyTributeSignature, processSemesterTributeEvent } from "./payments.js";
+import { handleTelegramWebhookSetup } from "./telegram-webhook-security.js";
 
 const SESSION_DAYS = 30;
 const SESSION_COOKIE_NAME =
@@ -26,7 +28,8 @@ export default {
                     headers: corsHeaders(env)
                 });
             }
-            
+            if (url.pathname === "/api/ops/telegram-webhook") return handleTelegramWebhookSetup(request, env);
+
 if (
     url.pathname === "/api/webhooks/telegram" &&
     request.method === "POST"
@@ -39,6 +42,8 @@ if (
 if (env.DB) {
     await ensureAccountIdSchema(env.DB);
 }
+            const paymentResponse = await handlePaymentRequest(request, env, { requireUser, requireAdmin, authError, json });
+            if (paymentResponse) return paymentResponse;
             if (url.pathname === "/api/health" && request.method === "GET") {
                 
                 return json({
@@ -9310,10 +9315,14 @@ async function handleTributeWebhook(request, env) {
 
     try {
         const raw = await request.text();
-        if (!isValidTributeWebhook(request, raw, env)) {
+        if (!await verifyTributeSignature(request, raw, env)) {
             return json({ ok: false, error: "Webhook signature is invalid" }, 401, env);
         }
         const payload = raw ? JSON.parse(raw) : {};
+        const semesterResult = await processSemesterTributeEvent(env, payload);
+        if (semesterResult.handled) {
+            return json({ ok: true, ...semesterResult }, semesterResult.paid && !semesterResult.notified ? 503 : 200, env);
+        }
         await ensureTributeTables(env.DB);
 
         const data = payload.data || payload.payload || payload;
@@ -10245,13 +10254,6 @@ async function tributeUserId(db, metadata, data, payload) {
     if (!telegramId) return null;
     const user = await first(db, "SELECT id FROM users WHERE telegram_id = ? LIMIT 1", [telegramId]);
     return user ? Number(user.id) : null;
-}
-
-function isValidTributeWebhook(request, rawBody, env) {
-    const secret = env.TRIBUTE_WEBHOOK_SECRET || env.TRIBUTE_WEBHOOK_TOKEN;
-    if (!secret) return true;
-    const supplied = request.headers.get("X-Tribute-Webhook-Secret") || request.headers.get("X-Webhook-Secret") || bearerFromHeader(request.headers.get("Authorization"));
-    return Boolean(supplied) && constantTimeEqual(String(supplied), String(secret));
 }
 
 function isSuccessfulTributeEvent(type, status) {
