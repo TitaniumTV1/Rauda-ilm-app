@@ -230,6 +230,117 @@ if (supportState?.waiting === 1) {
     );
     return;
 }
+     // -----------------------------------------------------
+    // ИЗМЕНЕНИЕ ЦЕНЫ ЧЕРЕЗ АДМИНКУ
+    // -----------------------------------------------------
+
+    const priceEditWaiting =
+        await isPriceEditWaiting(
+            env,
+            chatId
+        );
+
+    if (priceEditWaiting) {
+        // Если пользователь решил выйти
+        if (
+            text === "⬅️ Главное меню" ||
+            text.startsWith("/")
+        ) {
+            await setPriceEditWaiting(
+                env,
+                chatId,
+                false
+            );
+
+            if (command === "/cancel") {
+                return sendAdminPayments(
+                    env,
+                    chatId
+                );
+            }
+        } else {
+            if (
+                !await requirePermission(
+                    env,
+                    chatId,
+                    "payments"
+                )
+            ) {
+                await setPriceEditWaiting(
+                    env,
+                    chatId,
+                    false
+                );
+
+                return;
+            }
+
+            const cleanPrice =
+                text.replace(/\s+/g, "");
+
+            if (!/^\d+$/.test(cleanPrice)) {
+                return sendMessage(
+                    env,
+                    chatId,
+                    [
+                        "❌ <b>Неверная цена</b>",
+                        "",
+                        "Отправьте только число.",
+                        "",
+                        "Например:",
+                        "<code>1500</code>"
+                    ].join("\n")
+                );
+            }
+
+            const newPrice =
+                Number(cleanPrice);
+
+            if (
+                !Number.isSafeInteger(newPrice) ||
+                newPrice < 1 ||
+                newPrice > 1000000
+            ) {
+                return sendMessage(
+                    env,
+                    chatId,
+                    [
+                        "❌ Цена должна быть",
+                        "от 1 до 1 000 000 ₽."
+                    ].join("\n")
+                );
+            }
+
+            await setCoursePrice(
+                env,
+                newPrice
+            );
+
+            await setPriceEditWaiting(
+                env,
+                chatId,
+                false
+            );
+
+            await sendMessage(
+                env,
+                chatId,
+                [
+                    "✅ <b>Цена изменена</b>",
+                    "",
+                    `💰 Новая цена: <b>${formatPrice(newPrice)} ₽</b>`,
+                    "",
+                    "Новая цена уже отображается",
+                    "ученикам при оформлении заказа."
+                ].join("\n")
+            );
+
+            return sendAdminPayments(
+                env,
+                chatId
+            );
+        }
+    }
     
     if (text === "❌ Отмена" || command === "/cancel") {
         await clearCourseDraft(env, chatId, message.message_id);
@@ -609,6 +720,182 @@ async function sendCoursesList(env, chatId, page = 0) {
     }
 }
 
+// =========================================================
+// НАСТРОЙКИ ОПЛАТЫ И ЦЕНЫ
+// =========================================================
+
+async function ensurePaymentSettings(env) {
+    await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS bot_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    `).run();
+
+    await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS price_edit_state (
+            chat_id INTEGER PRIMARY KEY,
+            waiting INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    `).run();
+
+    await env.DB.prepare(`
+        INSERT OR IGNORE INTO bot_settings (key, value)
+        VALUES ('prep_course_price', '1500')
+    `).run();
+}
+
+
+async function getCoursePrice(env) {
+    await ensurePaymentSettings(env);
+
+    const row = await env.DB.prepare(`
+        SELECT value
+        FROM bot_settings
+        WHERE key = 'prep_course_price'
+        LIMIT 1
+    `).first();
+
+    const price = Number(row?.value);
+
+    if (
+        !Number.isSafeInteger(price) ||
+        price <= 0
+    ) {
+        return 1500;
+    }
+
+    return price;
+}
+
+
+async function setCoursePrice(env, price) {
+    await ensurePaymentSettings(env);
+
+    await env.DB.prepare(`
+        INSERT INTO bot_settings (
+            key,
+            value,
+            updated_at
+        )
+        VALUES (
+            'prep_course_price',
+            ?,
+            CURRENT_TIMESTAMP
+        )
+        ON CONFLICT(key)
+        DO UPDATE SET
+            value = excluded.value,
+            updated_at = CURRENT_TIMESTAMP
+    `)
+        .bind(String(price))
+        .run();
+}
+
+
+async function setPriceEditWaiting(
+    env,
+    chatId,
+    waiting
+) {
+    await ensurePaymentSettings(env);
+
+    await env.DB.prepare(`
+        INSERT INTO price_edit_state (
+            chat_id,
+            waiting,
+            updated_at
+        )
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+
+        ON CONFLICT(chat_id)
+        DO UPDATE SET
+            waiting = excluded.waiting,
+            updated_at = CURRENT_TIMESTAMP
+    `)
+        .bind(
+            chatId,
+            waiting ? 1 : 0
+        )
+        .run();
+}
+
+
+async function isPriceEditWaiting(
+    env,
+    chatId
+) {
+    await ensurePaymentSettings(env);
+
+    const row = await env.DB.prepare(`
+        SELECT waiting
+        FROM price_edit_state
+        WHERE chat_id = ?
+        LIMIT 1
+    `)
+        .bind(chatId)
+        .first();
+
+    return row?.waiting === 1;
+}
+
+
+function formatPrice(price) {
+    return String(price)
+        .replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            " "
+        );
+}
+
+
+async function sendAdminPayments(
+    env,
+    chatId
+) {
+    const price = await getCoursePrice(env);
+    const formattedPrice = formatPrice(price);
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "💳 <b>Оплата и тарифы</b>",
+            "",
+            "📚 Подготовительный курс",
+            "",
+            `💰 Текущая цена: <b>${formattedPrice} ₽</b>`,
+            "",
+            "Цена используется автоматически",
+            "при оформлении заказа учеником."
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "💰 Изменить цену",
+                        callback_data: "admin_price"
+                    }
+                ],
+                [
+                    {
+                        text: "📋 История платежей",
+                        callback_data:
+                            "admin_payment_history"
+                    }
+                ],
+                [
+                    {
+                        text: "⬅️ Назад",
+                        callback_data: "admin"
+                    }
+                ]
+            ]
+        }
+    );
+}
 
 // =========================================================
 // ГЛАВНОЕ МЕНЮ
@@ -862,7 +1149,10 @@ async function handleCallback(env, callback, fromMessage = false) {
         ) {
             return;
         }
-
+        
+    const price = await getCoursePrice(env);
+    const formattedPrice = formatPrice(price);
+        
         return sendMessage(
             env,
             chatId,
@@ -871,10 +1161,10 @@ async function handleCallback(env, callback, fromMessage = false) {
                 "",
                 "📚 Подготовительный курс",
                 "",
-                "💰 Текущая цена: <b>1 500 ₽</b>",
+                "💰 Текущая цена: <b>${formattedPrice} ₽</b>",
                 "",
-                "Цена пока временно указана",
-                "непосредственно в боте."
+                "Цена хранится в базе данных",
+"и используется для оформления заказа."
             ].join("\n"),
             {
                 inline_keyboard: [
