@@ -1395,7 +1395,7 @@ async function handleCallback(env, callback, fromMessage = false) {
                 "",
                 "📚 Подготовительный курс",
                 "",
-                "💰 Текущая цена: <b>${formattedPrice} ₽</b>",
+                `💰 Текущая цена: <b>${formattedPrice} ₽</b>`,
                 "",
                 "Цена хранится в базе данных",
 "и используется для оформления заказа."
