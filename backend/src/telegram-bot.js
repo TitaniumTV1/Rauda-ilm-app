@@ -360,7 +360,7 @@ if (supportState?.waiting === 1) {
 }
 
 if (priceEditWaiting) {
-    if (text "❌ Отмена" || command === "/cancel") {
+    if (text === "❌ Отмена" || command === "/cancel") {
         await setPriceEditWaiting(
             env,
             chatId,
