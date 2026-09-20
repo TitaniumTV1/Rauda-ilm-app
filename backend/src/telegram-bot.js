@@ -1,5 +1,6 @@
 // deploy trigger
 // trigger deploy
+// deploy trigger 2
 import {
     syncTelegramUser,
     getBotAccess,
