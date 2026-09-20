@@ -230,6 +230,231 @@ if (supportState?.waiting === 1) {
     );
     return;
 }
+    const priceEditWaiting =
+    await isPriceEditWaiting(
+        env,
+        chatId
+    );
+    if (priceEditWaiting) {
+    // Отмена изменения цены
+    if (command === "/cancel") {
+        await setPriceEditWaiting(
+            env,
+            chatId,
+            false
+        );
+
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "❌ <b>Изменение цены отменено</b>",
+                "",
+                "Цена осталась прежней."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "💳 Вернуться к оплате",
+                            callback_data: "admin_payments"
+                        }
+                    ]
+                ]
+            }
+        );
+    }
+
+    // Проверяем право на управление оплатой
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "payments"
+        )
+    ) {
+        await setPriceEditWaiting(
+            env,
+            chatId,
+            false
+        );
+
+        return;
+    }
+
+    // Разрешаем ввод вида:
+    // 1500
+    // 1 500
+    const cleanPrice =
+        text.replace(/\s+/g, "");
+
+    if (!/^\d+$/.test(cleanPrice)) {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "❌ <b>Неверная цена</b>",
+                "",
+                "Отправьте только число.",
+                "",
+                "Например:",
+                "<code>1500</code>"
+            ].join("\n")
+        );
+    }
+
+    const newPrice =
+        Number(cleanPrice);
+
+    if (
+        !Number.isSafeInteger(newPrice) ||
+        newPrice < 1 ||
+        newPrice > 1000000
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "❌ <b>Недопустимая цена</b>",
+                "",
+                "Укажите сумму от",
+                "1 до 1 000 000 ₽."
+            ].join("\n")
+        );
+    }
+
+    // Сохраняем новую цену в D1
+    await setCoursePrice(
+        env,
+        newPrice
+    );
+
+    // Выключаем режим редактирования
+    await setPriceEditWaiting(
+        env,
+        chatId,
+        false
+    );
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "✅ <b>Цена изменена</b>",
+            "",
+            `💰 Новая цена: <b>${formatPrice(newPrice)} ₽</b>`,
+            "",
+            "Изменение сохранено в D1."
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "💳 Вернуться к оплате",
+                        callback_data: "admin_payments"
+                    }
+                ]
+            ]
+        }
+    );
+}
+
+if (priceEditWaiting) {
+    if (text "❌ Отмена" || command === "/cancel") {
+        await setPriceEditWaiting(
+            env,
+            chatId,
+            false
+        );
+
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Изменение цены отменено."
+        );
+    }
+
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "payments"
+        )
+    ) {
+        await setPriceEditWaiting(
+            env,
+            chatId,
+            false
+        );
+
+        return;
+    }
+
+    const cleanPrice =
+        text.replace(/\s+/g, "");
+
+    if (!/^\d+$/.test(cleanPrice)) {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "❌ <b>Неверная цена</b>",
+                "",
+                "Введите только число.",
+                "",
+                "Например:",
+                "<code>1500</code>"
+            ].join("\n")
+        );
+    }
+
+    const newPrice = Number(cleanPrice);
+
+    if (
+        !Number.isSafeInteger(newPrice) ||
+        newPrice < 1 ||
+        newPrice > 1000000
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Цена должна быть от 1 до 1 000 000 ₽."
+        );
+    }
+
+    await setCoursePrice(
+        env,
+        newPrice
+    );
+
+    await setPriceEditWaiting(
+        env,
+        chatId,
+        false
+    );
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "✅ <b>Цена изменена</b>",
+            "",
+            `💰 Новая цена: <b>${formatPrice(newPrice)} ₽</b>`,
+            "",
+            "Цена сохранена в D1."
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "💳 Вернуться к оплате",
+                        callback_data: "admin_payments"
+                    }
+                ]
+            ]
+        }
+    );
+}
      // -----------------------------------------------------
     // ИЗМЕНЕНИЕ ЦЕНЫ ЧЕРЕЗ АДМИНКУ
     // -----------------------------------------------------
@@ -850,6 +1075,50 @@ function formatPrice(price) {
         );
 }
 
+async function ensurePriceEditState(env) {
+    await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS price_edit_state (
+            chat_id INTEGER PRIMARY KEY,
+            waiting INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    `).run();
+}
+
+async function setPriceEditWaiting(env, chatId, waiting) {
+    await ensurePriceEditState(env);
+
+    await env.DB.prepare(`
+        INSERT INTO price_edit_state (
+            chat_id,
+            waiting,
+            updated_at
+        )
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+
+        ON CONFLICT(chat_id)
+        DO UPDATE SET
+            waiting = excluded.waiting,
+            updated_at = CURRENT_TIMESTAMP
+    `)
+        .bind(chatId, waiting ? 1 : 0)
+        .run();
+}
+
+async function isPriceEditWaiting(env, chatId) {
+    await ensurePriceEditState(env);
+
+    const row = await env.DB.prepare(`
+        SELECT waiting
+        FROM price_edit_state
+        WHERE chat_id = ?
+        LIMIT 1
+    `)
+        .bind(chatId)
+        .first();
+
+    return row?.waiting === 1;
+}
 
 async function sendAdminPayments(
     env,
@@ -1149,6 +1418,11 @@ async function handleCallback(env, callback, fromMessage = false) {
         ) {
             return;
         }
+        await setPriceEditWaiting(
+    env,
+    chatId,
+    false
+);
         
     const price = await getCoursePrice(env);
     const formattedPrice = formatPrice(price);
@@ -1204,22 +1478,43 @@ async function handleCallback(env, callback, fromMessage = false) {
             return;
         }
 
-        return sendMessage(
-            env,
-            chatId,
-            [
-                "💰 <b>Изменение цены</b>",
-                "",
-                "Сейчас установлено:",
-                "<b>1 500 ₽</b>",
-                "",
-                "Редактирование цены через D1",
-                "подключим следующим этапом."
-            ].join("\n"),
-            backToAdminKeyboard()
-        );
-    }
+         const price = await getCoursePrice(env);
 
+    await setPriceEditWaiting(
+        env,
+        chatId,
+        true
+    );
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "💰 <b>Изменение цены</b>",
+            "",
+            "Сейчас установлено:",
+            `<b>${formatPrice(price)} ₽</b>`,
+            "",
+            "Отправьте новую цену одним сообщением.",
+            "",
+            "Например:",
+            "<code>2000</code>",
+            "",
+            "Для отмены:",
+            "<code>/cancel</code>"
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "⬅️ Отмена",
+                        callback_data: "admin_payments"
+                    }
+                ]
+            ]
+        }
+    );
+}
 
     if (data === "admin_payment_history") {
         if (
@@ -1614,21 +1909,72 @@ async function handleCallback(env, callback, fromMessage = false) {
 
 
     if (data === "order") {
+        const price = await getCoursePrice(env);
+    const formattedPrice = formatPrice(price);
         return sendMessage(
             env,
             chatId,
             [
-                "🛒 <b>Подготовительный курс</b>",
-                "",
-                "💳 Стоимость: <b>1 500 ₽</b>",
-                "",
-                "Оплата через ЮKassa",
-                "находится на этапе подключения."
-            ].join("\n")
-        );
-    }
+                "🛒 <b>Подготовительный курс RAUDA ILM</b>",
+            "",
+            "📚 Доступ к образовательной программе,",
+            "учебным материалам и урокам.",
+            "",
+            `💳 Стоимость: <b>${formattedPrice} ₽</b>`,
+            "",
+            "После успешной оплаты",
+            "открывается доступ к программе."
+            ].join("\n"),
+ {
+            inline_keyboard: [
+                [
+                    {
+                        text: `💳 Оплатить ${formattedPrice} ₽`,
+                        callback_data: "order_pay"
+                    }
+                ],
+                [
+                    {
+                        text: "📚 Подробнее о программе",
+                        callback_data: "program"
+                    }
+                ]
+            ]
+        }
+    );
+}
 
+    if (data === "order_pay") {
+    const price = await getCoursePrice(env);
 
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "💳 <b>Оплата курса</b>",
+            "",
+            "📚 Подготовительный курс RAUDA ILM",
+            `💰 Сумма: <b>${formatPrice(price)} ₽</b>`,
+            "",
+            "Оплата через ЮKassa",
+            "сейчас находится на этапе подключения.",
+            "",
+            "После подключения здесь откроется",
+            "страница безопасной оплаты."
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "⬅️ Вернуться к заказу",
+                        callback_data: "order"
+                    }
+                ]
+            ]
+        }
+    );
+}
+    
     if (data === "about") {
         return sendMessage(
             env,
