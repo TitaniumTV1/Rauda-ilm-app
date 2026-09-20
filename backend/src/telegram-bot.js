@@ -1086,41 +1086,6 @@ async function ensurePriceEditState(env) {
     `).run();
 }
 
-async function setPriceEditWaiting(env, chatId, waiting) {
-    await ensurePriceEditState(env);
-
-    await env.DB.prepare(`
-        INSERT INTO price_edit_state (
-            chat_id,
-            waiting,
-            updated_at
-        )
-        VALUES (?, ?, CURRENT_TIMESTAMP)
-
-        ON CONFLICT(chat_id)
-        DO UPDATE SET
-            waiting = excluded.waiting,
-            updated_at = CURRENT_TIMESTAMP
-    `)
-        .bind(chatId, waiting ? 1 : 0)
-        .run();
-}
-
-async function isPriceEditWaiting(env, chatId) {
-    await ensurePriceEditState(env);
-
-    const row = await env.DB.prepare(`
-        SELECT waiting
-        FROM price_edit_state
-        WHERE chat_id = ?
-        LIMIT 1
-    `)
-        .bind(chatId)
-        .first();
-
-    return row?.waiting === 1;
-}
-
 async function sendAdminPayments(
     env,
     chatId
