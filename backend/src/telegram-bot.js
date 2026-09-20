@@ -460,12 +460,6 @@ if (priceEditWaiting) {
     // ИЗМЕНЕНИЕ ЦЕНЫ ЧЕРЕЗ АДМИНКУ
     // -----------------------------------------------------
 
-    const priceEditWaiting =
-        await isPriceEditWaiting(
-            env,
-            chatId
-        );
-
     if (priceEditWaiting) {
         // Если пользователь решил выйти
         if (
