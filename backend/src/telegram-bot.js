@@ -338,7 +338,7 @@ if (tributeProductEditWaiting) {
             [
                 "❌ <b>Изменение товара Tribute отменено</b>",
                 "",
-                "ID товара остался прежним."
+                "Ссылка Tribute осталась прежней."
             ].join("\n"),
             {
                 inline_keyboard: [
@@ -371,7 +371,43 @@ if (tributeProductEditWaiting) {
 
     const productInput =
     String(text || "").trim();
+let tributeUrl;
 
+try {
+    tributeUrl =
+        new URL(productInput);
+} catch {
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "❌ <b>Неверная ссылка Tribute</b>",
+            "",
+            "Отправьте ссылку вида:",
+            "<code>https://web.tribute.tg/p/EUa</code>"
+        ].join("\n")
+    );
+}
+
+if (
+    tributeUrl.protocol !== "https:" ||
+    tributeUrl.hostname !== "web.tribute.tg"
+) {
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "❌ <b>Неверная ссылка Tribute</b>",
+            "",
+            "Нужна ссылка из раздела",
+            "«Инфопродукты и контент».",
+            "",
+            "Например:",
+            "<code>https://web.tribute.tg/p/EUa</code>"
+        ].join("\n")
+    );
+}
+    
 let tributeProduct;
 
 try {
@@ -389,18 +425,15 @@ try {
     return sendMessage(
         env,
         chatId,
-        [
-            "❌ <b>Не удалось определить товар Tribute</b>",
-            "",
-            "Отправьте:",
-            "",
-            "• числовой ID товара",
-            "или",
-            "• ссылку вида:",
-            "<code>https://web.tribute.tg/p/EUa</code>",
-            "",
-            "Товар должен быть цифровым."
-        ].join("\n")
+       [
+    "❌ <b>Инфопродукт Tribute не найден</b>",
+    "",
+    "Проверьте, что ссылка скопирована",
+    "из раздела «Инфопродукты и контент».",
+    "",
+    "Пример:",
+    "<code>https://web.tribute.tg/p/EUa</code>"
+].join("\n")
     );
 }
 
@@ -420,17 +453,16 @@ const productId =
         false
     );
 
-    return sendMessage(
-        env,
-        chatId,
-        [
-            "✅ <b>Товар Tribute изменён</b>",
-            "",
-            `💎 Новый ID товара: <code>${productId}</code>`,
-            "",
-            "Настройка сохранена в D1.",
-            "Изменять код и делать деплой для смены товара больше не потребуется."
-        ].join("\n"),
+    [
+    "✅ <b>Ссылка Tribute сохранена</b>",
+    "",
+    "Инфопродукт найден и подключён.",
+    "",
+    `🔗 <code>${escapeHtml(productInput)}</code>`,
+    "",
+    "Теперь эта ссылка будет использоваться",
+    "при оплате через Tribute."
+].join("\n"),
         {
             inline_keyboard: [
                 [
@@ -1598,8 +1630,29 @@ async function sendAdminPayments(
 ) {
     const price = await getCoursePrice(env);
     const formattedPrice = formatPrice(price);
-const tributeProductId =
-    await getTributeProductId(env);
+let tributeProductLink = "";
+
+try {
+    const configuredProductId =
+        await getTributeProductId(env);
+
+    if (configuredProductId) {
+        const product =
+            await getTributeProduct(env);
+
+        tributeProductLink =
+            String(
+                product?.webLink ||
+                product?.link ||
+                ""
+            ).trim();
+    }
+} catch (error) {
+    console.error(
+        "Tribute product link load failed:",
+        error
+    );
+}
     
     return sendMessage(
         env,
@@ -1610,7 +1663,7 @@ const tributeProductId =
             "📚 Подготовительный курс",
             "",
             `💰 Текущая цена: <b>${formattedPrice} ₽</b>`,
-            `💎 Tribute товар: <b>${tributeProductId || "не указан"}</b>`,
+            `🔗 Tribute: <code>${escapeHtml(tributeProductLink || "не указана")}</code>`,
             "",
             "Цена используется автоматически",
             "при оформлении заказа учеником."
@@ -1625,7 +1678,7 @@ const tributeProductId =
 ],
 [
     {
-        text: "💎 Изменить товар Tribute",
+        text: "🔗 Изменить ссылку Tribute",
         callback_data: "admin_tribute_product"
     }
 ],
@@ -1977,10 +2030,7 @@ async function handleCallback(env, callback, fromMessage = false) {
     ) {
         return;
     }
-
-    const currentProductId =
-        await getTributeProductId(env);
-
+        
     await setTributeProductEditWaiting(
         env,
         chatId,
@@ -1991,20 +2041,20 @@ async function handleCallback(env, callback, fromMessage = false) {
         env,
         chatId,
         [
-            "💎 <b>Товар Tribute</b>",
-            "",
-            "Текущий ID товара:",
-            `<code>${currentProductId || "не указан"}</code>`,
-            "",
-            "Отправьте ID или ссылку товара Tribute",
-"одним сообщением.",
-"",
-"Например:",
-"<code>https://web.tribute.tg/p/EUa</code>",
-            "",
-            "Для отмены:",
-            "<code>/cancel</code>"
-        ].join("\n"),
+    "🔗 <b>Ссылка Tribute</b>",
+    "",
+    "Отправьте ссылку на ваш инфопродукт",
+    "из раздела «Инфопродукты и контент».",
+    "",
+    "Например:",
+    "<code>https://web.tribute.tg/p/EUa</code>",
+    "",
+    "ID товара искать не нужно —",
+    "бот определит его автоматически.",
+    "",
+    "Для отмены:",
+    "<code>/cancel</code>"
+].join("\n"),
         {
             inline_keyboard: [
                 [
@@ -2776,7 +2826,7 @@ const tributePriceText =
                 "или произошла ошибка подключения.",
                 "",
                 "Администратор может изменить",
-                "ID товара в разделе оплаты."
+"ссылку Tribute в разделе оплаты."
             ].join("\n"),
             {
                 inline_keyboard: [
