@@ -3534,6 +3534,49 @@ async function sendMessage(
     return response;
 }
 
+async function sendProtectedMessage(
+    env,
+    chatId,
+    text,
+    replyMarkup = null
+) {
+    const payload = {
+        chat_id: chatId,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+        protect_content: true
+    };
+
+    if (replyMarkup) {
+        payload.reply_markup =
+            replyMarkup;
+    }
+
+    const response = await fetch(
+        `${TELEGRAM_API}/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+            body:
+                JSON.stringify(payload)
+        }
+    );
+
+    if (!response.ok) {
+        console.error(
+            "Telegram protected sendMessage failed:",
+            response.status,
+            await response.text()
+        );
+    }
+
+    return response;
+}
+
 async function copyMessage(env, chatId, fromChatId, messageId) {
   const response = await fetch(
     `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/copyMessage`,
@@ -3553,6 +3596,155 @@ async function copyMessage(env, chatId, fromChatId, messageId) {
   return await response.json();
 }
 
+async function copyProtectedMessage(
+    env,
+    chatId,
+    fromChatId,
+    messageId
+) {
+    const response = await fetch(
+        `${TELEGRAM_API}/bot${env.TELEGRAM_BOT_TOKEN}/copyMessage`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+            body: JSON.stringify({
+                chat_id: chatId,
+                from_chat_id: fromChatId,
+                message_id: messageId,
+                protect_content: true
+            })
+        }
+    );
+
+    const result =
+        await response.json();
+
+    if (!response.ok) {
+        console.error(
+            "Telegram protected copyMessage failed:",
+            response.status,
+            result
+        );
+    }
+
+    return result;
+}
+
+async function sendProtectedDocument(
+    env,
+    chatId,
+    document,
+    caption = ""
+) {
+    const payload = {
+        chat_id: chatId,
+        document,
+        protect_content: true
+    };
+
+    if (caption) {
+        payload.caption = caption;
+        payload.parse_mode = "HTML";
+    }
+
+    const response = await fetch(
+        `${TELEGRAM_API}/bot${env.TELEGRAM_BOT_TOKEN}/sendDocument`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+            body:
+                JSON.stringify(payload)
+        }
+    );
+
+    const result =
+        await response.json();
+
+    if (!response.ok) {
+        console.error(
+            "Telegram protected sendDocument failed:",
+            response.status,
+            result
+        );
+    }
+
+    return result;
+}
+
+async function sendProtectedMedia(
+    env,
+    chatId,
+    type,
+    media,
+    caption = ""
+) {
+    const methods = {
+        photo: {
+            method: "sendPhoto",
+            field: "photo"
+        },
+        video: {
+            method: "sendVideo",
+            field: "video"
+        },
+        audio: {
+            method: "sendAudio",
+            field: "audio"
+        }
+    };
+
+    const config = methods[type];
+
+    if (!config) {
+        throw new Error(
+            `Unsupported protected media type: ${type}`
+        );
+    }
+
+    const payload = {
+        chat_id: chatId,
+        [config.field]: media,
+        protect_content: true
+    };
+
+    if (caption) {
+        payload.caption = caption;
+        payload.parse_mode = "HTML";
+    }
+
+    const response = await fetch(
+        `${TELEGRAM_API}/bot${env.TELEGRAM_BOT_TOKEN}/${config.method}`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+            body:
+                JSON.stringify(payload)
+        }
+    );
+
+    const result =
+        await response.json();
+
+    if (!response.ok) {
+        console.error(
+            `Telegram protected ${config.method} failed:`,
+            response.status,
+            result
+        );
+    }
+
+    return result;
+}
+
 function formatUserName(user) {
   const name = [
     user.first_name,
@@ -3565,6 +3757,7 @@ function formatUserName(user) {
 
   return name || "Пользователь";
 }
+
 
 async function answerCallback(
     env,
