@@ -453,7 +453,9 @@ const productId =
         chatId,
         false
     );
-
+return sendMessage(
+    env,
+    chatId,
     [
     "✅ <b>Ссылка Tribute сохранена</b>",
     "",
