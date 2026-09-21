@@ -34,6 +34,20 @@ export async function handleTelegramWebhook(request, env) {
         );
     }
 
+    if (!String(env.TELEGRAM_WEBHOOK_SECRET || "").trim()) {
+        return new Response(
+            "Telegram webhook secret is not configured",
+            { status: 503 }
+        );
+    }
+
+    if (!isValidTelegramWebhookSecret(request, env)) {
+        return new Response(
+            "Unauthorized",
+            { status: 401 }
+        );
+    }
+
     let update;
 
     try {
@@ -3122,4 +3136,35 @@ function ok() {
         "OK",
         { status: 200 }
     );
+}
+
+function constantTimeEqual(first, second) {
+    const a = new TextEncoder().encode(String(first));
+    const b = new TextEncoder().encode(String(second));
+
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    let difference = 0;
+
+    for (let index = 0; index < a.length; index++) {
+        difference |= a[index] ^ b[index];
+    }
+
+    return difference === 0;
+}
+
+function isValidTelegramWebhookSecret(request, env) {
+    const expected = String(env.TELEGRAM_WEBHOOK_SECRET || "").trim();
+
+    if (!expected) {
+        return false;
+    }
+
+    const supplied = String(
+        request.headers.get("X-Telegram-Bot-Api-Secret-Token") || ""
+    );
+
+    return constantTimeEqual(supplied, expected);
 }

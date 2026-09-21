@@ -10261,7 +10261,7 @@ async function tributeUserId(db, metadata, data, payload) {
 
 function isValidTributeWebhook(request, rawBody, env) {
     const secret = env.TRIBUTE_WEBHOOK_SECRET || env.TRIBUTE_WEBHOOK_TOKEN;
-    if (!secret) return true;
+    if (!secret) return false;
     const supplied = request.headers.get("X-Tribute-Webhook-Secret") || request.headers.get("X-Webhook-Secret") || bearerFromHeader(request.headers.get("Authorization"));
     return Boolean(supplied) && constantTimeEqual(String(supplied), String(secret));
 }
@@ -11049,7 +11049,12 @@ async function recoveryUserData(
 function corsHeaders(env) {
     return {
         "Access-Control-Allow-Origin":
-            env.CORS_ORIGIN || "*",
+            env.CORS_ORIGIN ||
+            env.PUBLIC_APP_URL ||
+            "https://app.rauda-ilm.com",
+
+        "Access-Control-Allow-Credentials":
+            "true",
 
         "Access-Control-Allow-Methods":
     "GET, POST, PUT, PATCH, DELETE, OPTIONS",
