@@ -74,12 +74,65 @@ if (env.DB) {
                 }, 200, env);
             }
 
-            if (url.pathname === "/api/auth/register" && request.method === "POST") {
-                return handleRegister(request, env);
-            }
-            if (url.pathname === "/api/auth/login" && request.method === "POST") {
-                return handleLogin(request, env);
-            }
+if (url.pathname === "/api/auth/register" && request.method === "POST") {
+    if (env.AUTH_RATE_LIMITER) {
+        const ip =
+            request.headers.get("CF-Connecting-IP") ||
+            "unknown";
+
+        const probe = await request.clone()
+            .json()
+            .catch(() => ({}));
+
+        const login =
+            normalizeLogin(probe?.login) ||
+            "unknown";
+
+        const { success } =
+            await env.AUTH_RATE_LIMITER.limit({
+                key: `register:${ip}:${login}`
+            });
+
+        if (!success) {
+            return json({
+                ok: false,
+                error: "Слишком много попыток регистрации. Подождите минуту и попробуйте снова."
+            }, 429, env);
+        }
+    }
+
+    return handleRegister(request, env);
+}
+
+if (url.pathname === "/api/auth/login" && request.method === "POST") {
+    if (env.AUTH_RATE_LIMITER) {
+        const ip =
+            request.headers.get("CF-Connecting-IP") ||
+            "unknown";
+
+        const probe = await request.clone()
+            .json()
+            .catch(() => ({}));
+
+        const login =
+            normalizeLogin(probe?.login) ||
+            "unknown";
+
+        const { success } =
+            await env.AUTH_RATE_LIMITER.limit({
+                key: `login:${ip}:${login}`
+            });
+
+        if (!success) {
+            return json({
+                ok: false,
+                error: "Слишком много попыток входа. Подождите минуту и попробуйте снова."
+            }, 429, env);
+        }
+    }
+
+    return handleLogin(request, env);
+}
             if (
     url.pathname === "/api/auth/email/send-code" &&
     request.method === "POST"
