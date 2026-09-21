@@ -9397,15 +9397,42 @@ const purchaseId =
         payload.purchase_id
     );
 
-const eventId = purchaseId
-    ? `${eventType}:${purchaseId}`
-    : String(
-          payload.id ||
-          payload.event_id ||
-          data.event_id ||
-          data.id ||
-          crypto.randomUUID()
-      );
+const transactionId =
+    positiveIntegerOrNull(
+        data.transaction_id ||
+        payload.transaction_id
+    );
+
+const webhookCreatedAt =
+    String(
+        payload.created_at ||
+        data.purchase_created_at ||
+        data.created_at ||
+        ""
+    ).trim();
+
+const rawTelegramUserId =
+    positiveIntegerOrNull(
+        data.telegram_user_id ||
+        payload.telegram_user_id
+    );
+
+const eventId =
+    purchaseId
+        ? `${eventType}:${purchaseId}`
+        : transactionId
+            ? `${eventType}:tx:${transactionId}`
+            : String(
+                  payload.id ||
+                  payload.event_id ||
+                  data.event_id ||
+                  data.id ||
+                  [
+                      eventType,
+                      rawTelegramUserId || "unknown-user",
+                      webhookCreatedAt || "unknown-time"
+                  ].join(":")
+              );
         const status = String(data.status || payload.status || "unknown").toLowerCase();
         const tributeProductId =
     positiveIntegerOrNull(
@@ -9441,12 +9468,28 @@ const isConfiguredProduct =
     positiveIntegerOrNull(
         tributeTarget?.program_id
     );
-        await run(env.DB, `
-            INSERT OR IGNORE INTO tribute_events
-                (event_id, event_type, payment_status, user_id, effectiveProgramId, payload_json)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [eventId, eventType, status, userId, programId, rawJson]);
-
+       await run(
+    env.DB,
+    `
+    INSERT OR IGNORE INTO tribute_events (
+        event_id,
+        event_type,
+        payment_status,
+        user_id,
+        program_id,
+        payload_json
+    )
+    VALUES (?, ?, ?, ?, ?, ?)
+    `,
+    [
+        eventId,
+        eventType,
+        status,
+        userId,
+        effectiveProgramId,
+        rawJson
+    ]
+);
         if (
     String(eventType).toLowerCase() ===
     "digital_product_refunded"
