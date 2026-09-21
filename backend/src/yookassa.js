@@ -1,6 +1,83 @@
 const YOOKASSA_API =
     "https://api.yookassa.ru/v3";
 
+const YOOKASSA_IPV4_RANGES = [
+    ["185.71.76.0", "185.71.76.31"],
+    ["185.71.77.0", "185.71.77.31"],
+    ["77.75.153.0", "77.75.153.127"],
+    ["77.75.156.11", "77.75.156.11"],
+    ["77.75.156.35", "77.75.156.35"],
+    ["77.75.154.128", "77.75.154.255"]
+];
+
+function ipv4ToNumber(ip) {
+    const parts = String(ip)
+        .split(".")
+        .map(Number);
+
+    if (
+        parts.length !== 4 ||
+        parts.some(
+            part =>
+                !Number.isInteger(part) ||
+                part < 0 ||
+                part > 255
+        )
+    ) {
+        return null;
+    }
+
+    return (
+        ((parts[0] << 24) >>> 0) +
+        (parts[1] << 16) +
+        (parts[2] << 8) +
+        parts[3]
+    ) >>> 0;
+}
+
+function isYooKassaSourceIp(ip) {
+    const value = String(ip || "")
+        .trim()
+        .toLowerCase();
+
+    if (!value) {
+        return false;
+    }
+
+    // Официальная IPv6-сеть ЮKassa:
+    // 2a02:5180::/32
+    if (
+        value === "2a02:5180::" ||
+        value.startsWith("2a02:5180:")
+    ) {
+        return true;
+    }
+
+    const numericIp =
+        ipv4ToNumber(value);
+
+    if (numericIp === null) {
+        return false;
+    }
+
+    return YOOKASSA_IPV4_RANGES.some(
+        ([start, end]) => {
+            const startNumber =
+                ipv4ToNumber(start);
+
+            const endNumber =
+                ipv4ToNumber(end);
+
+            return (
+                startNumber !== null &&
+                endNumber !== null &&
+                numericIp >= startNumber &&
+                numericIp <= endNumber
+            );
+        }
+    );
+}
+
 export function isYooKassaConfigured(env) {
     return Boolean(
         env.YOOKASSA_SHOP_ID &&
@@ -636,6 +713,24 @@ export async function handleYooKassaWebhook(
     request,
     env
 ) {
+        const sourceIp =
+        request.headers.get("CF-Connecting-IP") ||
+        "";
+
+    if (!isYooKassaSourceIp(sourceIp)) {
+        console.warn(
+            "Rejected YooKassa webhook from IP:",
+            sourceIp || "unknown"
+        );
+
+        return new Response(
+            "Forbidden",
+            {
+                status: 403
+            }
+        );
+    }
+    
     if (!isYooKassaConfigured(env)) {
         return new Response(
             "YooKassa is not configured",
