@@ -42,6 +42,14 @@ namespace_id = "26092101"
 limit = 10
 period = 60
 
+[[ratelimits]]
+name = "TELEGRAM_RATE_LIMITER"
+namespace_id = "26092102"
+
+[ratelimits.simple]
+limit = 30
+period = 60
+
 [observability]
 enabled = true
 head_sampling_rate = 1
