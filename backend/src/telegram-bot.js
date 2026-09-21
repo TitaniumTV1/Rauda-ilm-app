@@ -2487,8 +2487,29 @@ if (data === "order_pay") {
             );
         }
 
-        const price =
-            await getCoursePrice(env);
+        const tributeAmount =
+    Number(product?.amount);
+
+const tributeCurrency =
+    String(
+        product?.currency || ""
+    ).toUpperCase();
+
+const tributePrice =
+    Number.isFinite(tributeAmount)
+        ? tributeAmount / 100
+        : null;
+
+const tributePriceText =
+    tributePrice !== null
+        ? `${tributePrice.toLocaleString(
+              "ru-RU",
+              {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 2
+              }
+          )} ${tributeCurrency}`
+        : "указана в Tribute";
 
         return sendMessage(
             env,
@@ -2498,7 +2519,7 @@ if (data === "order_pay") {
                 "",
                 "📚 Подготовительный курс RAUDA ILM",
                 "",
-                `💰 Стоимость курса: <b>${formatPrice(price)} ₽</b>`,
+                `💰 Стоимость в Tribute: <b>${tributePriceText}</b>`,
                 "",
                 "Нажмите кнопку ниже для оплаты.",
                 "",
