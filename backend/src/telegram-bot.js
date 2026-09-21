@@ -324,37 +324,45 @@ if (tributeProductEditWaiting) {
         return;
     }
 
-    const cleanProductId =
-        String(text || "").trim();
+    const productInput =
+    String(text || "").trim();
 
-    if (!/^\d+$/.test(cleanProductId)) {
-        return sendMessage(
+let tributeProduct;
+
+try {
+    tributeProduct =
+        await resolveTributeProduct(
             env,
-            chatId,
-            [
-                "❌ <b>Неверный ID товара</b>",
-                "",
-                "ID товара Tribute должен состоять только из цифр.",
-                "",
-                "Например:",
-                "<code>2548</code>"
-            ].join("\n")
+            productInput
         );
-    }
+} catch (error) {
+    console.error(
+        "Tribute product resolve failed:",
+        error
+    );
 
-    const productId =
-        Number(cleanProductId);
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "❌ <b>Не удалось определить товар Tribute</b>",
+            "",
+            "Отправьте:",
+            "",
+            "• числовой ID товара",
+            "или",
+            "• ссылку вида:",
+            "<code>https://web.tribute.tg/p/EUa</code>",
+            "",
+            "Товар должен быть цифровым."
+        ].join("\n")
+    );
+}
 
-    if (
-        !Number.isSafeInteger(productId) ||
-        productId <= 0
-    ) {
-        return sendMessage(
-            env,
-            chatId,
-            "❌ Укажите корректный ID товара Tribute."
-        );
-    }
+const productId =
+    Number(
+        tributeProduct.id
+    );
 
     await setTributeProductId(
         env,
@@ -1250,6 +1258,159 @@ async function getTributeProduct(env) {
     return product;
 }
 
+async function resolveTributeProduct(
+    env,
+    input
+) {
+    const value =
+        String(input || "").trim();
+
+    if (!env.TRIBUTE_API_KEY) {
+        throw new Error(
+            "TRIBUTE_API_KEY is not configured"
+        );
+    }
+
+    // Если администратор ввёл обычный числовой ID.
+    if (/^\d+$/.test(value)) {
+        const productId =
+            Number(value);
+
+        if (
+            !Number.isSafeInteger(productId) ||
+            productId <= 0
+        ) {
+            throw new Error(
+                "Некорректный ID товара Tribute"
+            );
+        }
+
+        const response = await fetch(
+            `https://tribute.tg/api/v1/products/${productId}`,
+            {
+                headers: {
+                    "Api-Key":
+                        env.TRIBUTE_API_KEY,
+                    "Accept":
+                        "application/json"
+                }
+            }
+        );
+
+        const product =
+            await response.json()
+                .catch(() => null);
+
+        if (
+            !response.ok ||
+            !product?.id
+        ) {
+            throw new Error(
+                "Товар Tribute не найден"
+            );
+        }
+
+        if (product.type !== "digital") {
+            throw new Error(
+                "Нужен цифровой товар Tribute"
+            );
+        }
+
+        return product;
+    }
+
+    // Если введена ссылка.
+    let requestedUrl;
+
+    try {
+        requestedUrl =
+            new URL(value);
+    } catch {
+        throw new Error(
+            "Укажите ID или ссылку Tribute"
+        );
+    }
+
+    if (
+        requestedUrl.protocol !== "https:" ||
+        requestedUrl.hostname !==
+            "web.tribute.tg"
+    ) {
+        throw new Error(
+            "Это не ссылка web.tribute.tg"
+        );
+    }
+
+    const target =
+        requestedUrl.href
+            .replace(/\/+$/, "");
+
+    let page = 1;
+
+    while (page <= 50) {
+        const response = await fetch(
+            `https://tribute.tg/api/v1/products?type=digital&page=${page}&size=100&desc=true`,
+            {
+                headers: {
+                    "Api-Key":
+                        env.TRIBUTE_API_KEY,
+                    "Accept":
+                        "application/json"
+                }
+            }
+        );
+
+        const result =
+            await response.json()
+                .catch(() => null);
+
+        if (
+            !response.ok ||
+            !Array.isArray(result?.rows)
+        ) {
+            throw new Error(
+                "Не удалось получить товары Tribute"
+            );
+        }
+
+        const product =
+            result.rows.find(
+                item => {
+                    const webLink =
+                        String(
+                            item?.webLink || ""
+                        )
+                            .replace(/\/+$/, "");
+
+                    return (
+                        item?.type === "digital" &&
+                        webLink === target
+                    );
+                }
+            );
+
+        if (product) {
+            return product;
+        }
+
+        const total =
+            Number(result?.meta?.total || 0);
+
+        if (
+            page * 100 >= total ||
+            result.rows.length === 0
+        ) {
+            break;
+        }
+
+        page++;
+    }
+
+    throw new Error(
+        "Цифровой товар по этой ссылке не найден"
+    );
+}
+
 async function setTributeProductId(
     env,
     productId
@@ -1790,8 +1951,11 @@ async function handleCallback(env, callback, fromMessage = false) {
             "Текущий ID товара:",
             `<code>${currentProductId || "не указан"}</code>`,
             "",
-            "Отправьте новый ID товара Tribute",
-            "одним сообщением.",
+            "Отправьте ID или ссылку товара Tribute",
+"одним сообщением.",
+"",
+"Например:",
+"<code>https://web.tribute.tg/p/EUa</code>",
             "",
             "Для отмены:",
             "<code>/cancel</code>"
