@@ -239,6 +239,63 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
 );
 
 -- =========================================================
+-- ЗАКАЗЫ YOOKASSA
+-- =========================================================
+
+CREATE TABLE IF NOT EXISTS yookassa_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    order_uid TEXT NOT NULL UNIQUE,
+
+    user_id INTEGER NOT NULL,
+    telegram_id TEXT NOT NULL,
+
+    course_id INTEGER NOT NULL,
+    program_id INTEGER,
+    semester_id INTEGER NOT NULL,
+
+    amount_rub INTEGER NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'RUB',
+
+    status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (
+            status IN (
+                'pending',
+                'paid',
+                'canceled',
+                'failed'
+            )
+        ),
+
+    idempotence_key TEXT NOT NULL UNIQUE,
+
+    yookassa_payment_id TEXT UNIQUE,
+    confirmation_url TEXT,
+
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    paid_at TEXT,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (course_id)
+        REFERENCES courses(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (semester_id)
+        REFERENCES semesters(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_yookassa_orders_user
+ON yookassa_orders(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_yookassa_orders_payment
+ON yookassa_orders(yookassa_payment_id);
+
+-- =========================================================
 -- ТЕСТЫ
 -- =========================================================
 
