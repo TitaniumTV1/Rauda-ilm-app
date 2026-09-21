@@ -34,6 +34,14 @@ binding = "ASSETS"
 binding = "FILES"
 bucket_name = "rauda-ilm-media"
 
+[[ratelimits]]
+name = "AUTH_RATE_LIMITER"
+namespace_id = "26092101"
+
+[ratelimits.simple]
+limit = 10
+period = 60
+
 [observability]
 enabled = true
 head_sampling_rate = 1
