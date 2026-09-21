@@ -9322,7 +9322,7 @@ async function handleTributeWebhook(request, env) {
 
     try {
         const raw = await request.text();
-        if (!isValidTributeWebhook(request, raw, env)) {
+        if (!(await isValidTributeWebhook(request, raw, env))) {
             return json({ ok: false, error: "Webhook signature is invalid" }, 401, env);
         }
         const payload = raw ? JSON.parse(raw) : {};
@@ -10259,11 +10259,47 @@ async function tributeUserId(db, metadata, data, payload) {
     return user ? Number(user.id) : null;
 }
 
-function isValidTributeWebhook(request, rawBody, env) {
-    const secret = env.TRIBUTE_WEBHOOK_SECRET || env.TRIBUTE_WEBHOOK_TOKEN;
-    if (!secret) return true;
-    const supplied = request.headers.get("X-Tribute-Webhook-Secret") || request.headers.get("X-Webhook-Secret") || bearerFromHeader(request.headers.get("Authorization"));
-    return Boolean(supplied) && constantTimeEqual(String(supplied), String(secret));
+async function isValidTributeWebhook(request, rawBody, env) {
+    const apiKey = String(env.TRIBUTE_API_KEY || "").trim();
+    if (!apiKey) return false;
+
+    const supplied = String(
+        request.headers.get("trbt-signature") || ""
+    ).trim();
+    if (!supplied) return false;
+
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(apiKey),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+    );
+    const digest = new Uint8Array(
+        await crypto.subtle.sign(
+            "HMAC",
+            key,
+            encoder.encode(String(rawBody || ""))
+        )
+    );
+
+    const expectedHex = Array.from(digest, byte =>
+        byte.toString(16).padStart(2, "0")
+    ).join("");
+
+    if (/^[0-9a-fA-F]{64}$/.test(supplied)) {
+        return constantTimeEqual(expectedHex, supplied.toLowerCase());
+    }
+
+    const expectedBase64 = bytesToBase64(digest);
+    const normalize = value =>
+        String(value)
+            .replace(/-/g, "+")
+            .replace(/_/g, "/")
+            .replace(/=+$/g, "");
+
+    return constantTimeEqual(normalize(expectedBase64), normalize(supplied));
 }
 
 function isSuccessfulTributeEvent(type, status) {
@@ -11049,13 +11085,18 @@ async function recoveryUserData(
 function corsHeaders(env) {
     return {
         "Access-Control-Allow-Origin":
-            env.CORS_ORIGIN || "*",
+            env.CORS_ORIGIN ||
+            env.PUBLIC_APP_URL ||
+            "https://app.rauda-ilm.com",
+
+        "Access-Control-Allow-Credentials":
+            "true",
 
         "Access-Control-Allow-Methods":
     "GET, POST, PUT, PATCH, DELETE, OPTIONS",
         
         "Access-Control-Allow-Headers":
-            "Authorization, Content-Type, Range, X-Session-Token, X-Tribute-Webhook-Secret, X-Webhook-Secret",
+            "Authorization, Content-Type, Range, X-Session-Token, trbt-signature",
 
         "Access-Control-Expose-Headers":
             "Accept-Ranges, Content-Length, Content-Range, Content-Disposition, ETag",

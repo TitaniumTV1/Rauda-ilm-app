@@ -69,6 +69,7 @@ function createFixture(t, { throughWorker = false, expectedErrors = 0 } = {}) {
 
     const env = {
         TELEGRAM_BOT_TOKEN: "test-token-no-network",
+        TELEGRAM_WEBHOOK_SECRET: "test-webhook-secret",
         OWNER_TELEGRAM_ID: String(OWNER),
         DB: {
             prepare(sql) {
@@ -108,7 +109,10 @@ function createFixture(t, { throughWorker = false, expectedErrors = 0 } = {}) {
     async function deliver(update) {
         const request = new Request("https://example.test/api/webhooks/telegram", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "X-Telegram-Bot-Api-Secret-Token": env.TELEGRAM_WEBHOOK_SECRET
+            },
             body: JSON.stringify(update)
         });
         const response = throughWorker
@@ -506,6 +510,18 @@ test("the production worker route dispatches course messages to the Telegram han
 test("webhook keeps its existing unconfigured and malformed request responses", async () => {
     const unconfigured = await handleTelegramWebhook(new Request("https://example.test", { method: "POST", body: "{}" }), {});
     assert.equal(unconfigured.status, 503);
-    const malformed = await handleTelegramWebhook(new Request("https://example.test", { method: "POST", body: "{" }), { TELEGRAM_BOT_TOKEN: "test" });
+    const missingSecret = await handleTelegramWebhook(new Request("https://example.test", { method: "POST", body: "{}" }), { TELEGRAM_BOT_TOKEN: "test" });
+    assert.equal(missingSecret.status, 503);
+    const unauthorized = await handleTelegramWebhook(new Request("https://example.test", {
+        method: "POST",
+        headers: { "X-Telegram-Bot-Api-Secret-Token": "wrong" },
+        body: "{}"
+    }), { TELEGRAM_BOT_TOKEN: "test", TELEGRAM_WEBHOOK_SECRET: "expected-secret" });
+    assert.equal(unauthorized.status, 401);
+    const malformed = await handleTelegramWebhook(new Request("https://example.test", {
+        method: "POST",
+        headers: { "X-Telegram-Bot-Api-Secret-Token": "expected-secret" },
+        body: "{"
+    }), { TELEGRAM_BOT_TOKEN: "test", TELEGRAM_WEBHOOK_SECRET: "expected-secret" });
     assert.equal(malformed.status, 400);
 });
