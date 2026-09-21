@@ -59,6 +59,28 @@ export async function handleTelegramWebhook(request, env) {
         );
     }
 
+    const telegramUserId =
+    update?.callback_query?.from?.id ||
+    update?.message?.from?.id ||
+    null;
+
+if (
+    telegramUserId &&
+    env.TELEGRAM_RATE_LIMITER
+) {
+    const { success } =
+        await env.TELEGRAM_RATE_LIMITER.limit({
+            key: `telegram-user:${telegramUserId}`
+        });
+
+    if (!success) {
+        return new Response(
+            "Too Many Requests",
+            { status: 429 }
+        );
+    }
+}
+    
     try {
         if (update?.callback_query) {
             await answerCallback(
