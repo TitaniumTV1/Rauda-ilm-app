@@ -139,6 +139,39 @@ async function handleMessage(env, message) {
 
     await ensureBotStates(env);
 
+    if (command === "/start") {
+    await setTributeProductEditWaiting(
+        env,
+        chatId,
+        false
+    );
+
+    await setPriceEditWaiting(
+        env,
+        chatId,
+        false
+    );
+
+    await env.DB.prepare(`
+        UPDATE support_state
+        SET waiting = 0
+        WHERE user_id = ?
+    `)
+        .bind(String(message.from.id))
+        .run();
+
+    await clearCourseDraft(
+        env,
+        chatId,
+        message.message_id
+    );
+
+    return sendWelcome(
+        env,
+        chatId
+    );
+}
+    
     // Ответ администратора на сообщение поддержки
 if (message.reply_to_message?.message_id) {
     const adminId = String(message.from.id);
