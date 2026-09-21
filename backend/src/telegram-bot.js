@@ -313,6 +313,18 @@ if (supportState?.waiting === 1) {
     );
 
 if (tributeProductEditWaiting) {
+    if (command === "/start") {
+    await setTributeProductEditWaiting(
+        env,
+        chatId,
+        false
+    );
+
+    return sendWelcome(
+        env,
+        chatId
+    );
+}
     if (command === "/cancel") {
         await setTributeProductEditWaiting(
             env,
