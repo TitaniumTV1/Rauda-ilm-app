@@ -2021,6 +2021,49 @@ if (data === "order_pay") {
     const price =
         await getCoursePrice(env);
 
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "💳 <b>Выберите способ оплаты</b>",
+            "",
+            "📚 Подготовительный курс RAUDA ILM",
+            `💰 Сумма: <b>${formatPrice(price)} ₽</b>`,
+            "",
+            "Выберите удобный способ оплаты:"
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "🇷🇺 ЮKassa",
+                        callback_data:
+                            "order_pay_yookassa"
+                    }
+                ],
+                [
+                    {
+                        text: "💎 Tribute",
+                        callback_data:
+                            "order_pay_tribute"
+                    }
+                ],
+                [
+                    {
+                        text: "⬅️ Вернуться к заказу",
+                        callback_data:
+                            "order"
+                    }
+                ]
+            ]
+        }
+    );
+}
+
+    if (data === "order_pay_yookassa") {
+    const price =
+        await getCoursePrice(env);
+
     if (
         !isYooKassaConfigured(env)
     ) {
@@ -2028,25 +2071,30 @@ if (data === "order_pay") {
             env,
             chatId,
             [
-                "💳 <b>Оплата курса</b>",
+                "🇷🇺 <b>ЮKassa</b>",
                 "",
                 "📚 Подготовительный курс RAUDA ILM",
                 `💰 Сумма: <b>${formatPrice(price)} ₽</b>`,
                 "",
-                "✅ Интеграция ЮKassa подготовлена.",
+                "ЮKassa пока не подключена.",
                 "",
-                "Приём платежей пока не включён.",
                 "После подключения магазина",
-                "здесь автоматически появится",
-                "страница безопасной оплаты."
+                "здесь появится кнопка безопасной оплаты."
             ].join("\n"),
             {
                 inline_keyboard: [
                     [
                         {
-                            text: "⬅️ Вернуться к заказу",
+                            text: "💎 Оплатить через Tribute",
                             callback_data:
-                                "order"
+                                "order_pay_tribute"
+                        }
+                    ],
+                    [
+                        {
+                            text: "⬅️ Назад к способам оплаты",
+                            callback_data:
+                                "order_pay"
                         }
                     ]
                 ]
@@ -2065,7 +2113,7 @@ if (data === "order_pay") {
             env,
             chatId,
             [
-                "💳 <b>Оплата курса</b>",
+                "🇷🇺 <b>Оплата через ЮKassa</b>",
                 "",
                 "📚 Подготовительный курс RAUDA ILM",
                 "",
@@ -2088,16 +2136,14 @@ if (data === "order_pay") {
                     ],
                     [
                         {
-                            text:
-                                "⬅️ Вернуться к заказу",
+                            text: "⬅️ Назад к способам оплаты",
                             callback_data:
-                                "order"
+                                "order_pay"
                         }
                     ]
                 ]
             }
         );
-
     } catch (error) {
         console.error(
             "YooKassa order error:",
@@ -2108,21 +2154,24 @@ if (data === "order_pay") {
             env,
             chatId,
             [
-                "❌ <b>Не удалось создать платёж</b>",
+                "❌ <b>Не удалось создать платёж через ЮKassa</b>",
                 "",
-                "Попробуйте ещё раз немного позже.",
-                "",
-                "Если ошибка повторится —",
-                "обратитесь в поддержку."
+                "Попробуйте ещё раз позже."
             ].join("\n"),
             {
                 inline_keyboard: [
                     [
                         {
-                            text:
-                                "⬅️ Вернуться к заказу",
+                            text: "💎 Попробовать Tribute",
                             callback_data:
-                                "order"
+                                "order_pay_tribute"
+                        }
+                    ],
+                    [
+                        {
+                            text: "⬅️ Назад",
+                            callback_data:
+                                "order_pay"
                         }
                     ]
                 ]
