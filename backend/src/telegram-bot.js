@@ -1412,17 +1412,17 @@ const tributeProductId =
         {
             inline_keyboard: [
                 [
-                    {
-                        text: "💰 Изменить цену",
-                        callback_data: "admin_price"
-                    }
-                    [
+    {
+        text: "💰 Изменить цену",
+        callback_data: "admin_price"
+    }
+],
+[
     {
         text: "💎 Изменить товар Tribute",
         callback_data: "admin_tribute_product"
     }
 ],
-                ],
                 [
                     {
                         text: "📋 История платежей",
@@ -1684,63 +1684,33 @@ async function handleCallback(env, callback, fromMessage = false) {
     // -----------------------------------------------------
 
     if (data === "admin_payments") {
-        if (
-            !await requirePermission(
-                env,
-                chatId,
-                "payments"
-            )
-        ) {
-            return;
-        }
-        await setPriceEditWaiting(
-    env,
-    chatId,
-    false
-);
-        
-    const price = await getCoursePrice(env);
-    const formattedPrice = formatPrice(price);
-        
-        return sendMessage(
+    if (
+        !await requirePermission(
             env,
             chatId,
-            [
-                "💳 <b>Оплата и тарифы</b>",
-                "",
-                "📚 Подготовительный курс",
-                "",
-                `💰 Текущая цена: <b>${formattedPrice} ₽</b>`,
-                "",
-                "Цена хранится в базе данных",
-"и используется для оформления заказа."
-            ].join("\n"),
-            {
-                inline_keyboard: [
-                    [
-                        {
-                            text: "💰 Изменить цену",
-                            callback_data: "admin_price"
-                        }
-                    ],
-                    [
-                        {
-                            text: "📋 История платежей",
-                            callback_data:
-                                "admin_payment_history"
-                        }
-                    ],
-                    [
-                        {
-                            text: "⬅️ Назад",
-                            callback_data: "admin"
-                        }
-                    ]
-                ]
-            }
-        );
+            "payments"
+        )
+    ) {
+        return;
     }
 
+    await setPriceEditWaiting(
+        env,
+        chatId,
+        false
+    );
+
+    await setTributeProductEditWaiting(
+        env,
+        chatId,
+        false
+    );
+
+    return sendAdminPayments(
+        env,
+        chatId
+    );
+}
 
     if (data === "admin_price") {
         if (
