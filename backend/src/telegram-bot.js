@@ -1151,40 +1151,659 @@ async function startCourseCreation(env, chatId, messageId) {
     ].join("\n"), courseNameKeyboard());
 }
 
-async function sendCoursesList(env, chatId, page = 0) {
+async function sendCoursesList(
+    env,
+    chatId,
+    page = 0
+) {
     const pageSize = 10;
+
     const result = await env.DB.prepare(`
-        SELECT id, name, is_active FROM courses
-        ORDER BY id DESC LIMIT ? OFFSET ?
-    `).bind(pageSize + 1, page * pageSize).all();
-    const courses = result.results || [];
-    const lines = ["📚 <b>Список курсов</b>", ""];
+        SELECT id, name, is_active
+        FROM courses
+        ORDER BY id DESC
+        LIMIT ? OFFSET ?
+    `)
+        .bind(
+            pageSize + 1,
+            page * pageSize
+        )
+        .all();
+
+    const allCourses =
+        result.results || [];
+
+    const courses =
+        allCourses.slice(
+            0,
+            pageSize
+        );
 
     if (!courses.length) {
-        lines.push(page === 0 ? "Курсов пока нет." : "На этой странице курсов нет.");
-    } else {
-        for (const course of courses.slice(0, pageSize)) {
-            // Courses can also be created in the web admin with longer names.
-            const name = [...String(course.name).replace(/\s+/g, " ")];
-            const label = name.slice(0, 100).join("") + (name.length > 100 ? "…" : "");
-            lines.push(`• ${escapeHtml(label)}${course.is_active ? "" : " (неактивен)"}`);
-        }
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "📚 <b>Курсы</b>",
+                "",
+                page === 0
+                    ? "Курсов пока нет."
+                    : "На этой странице курсов нет."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "⬅️ Назад",
+                            callback_data:
+                                "admin_courses"
+                        }
+                    ]
+                ]
+            }
+        );
     }
 
-    await sendMessage(env, chatId, lines.join("\n"), coursesKeyboard());
+    const keyboard = [];
 
-    const buttons = [];
+    for (const course of courses) {
+        const rawName =
+            String(
+                course.name || "Без названия"
+            )
+                .replace(/\s+/g, " ")
+                .trim();
+
+        const chars =
+            [...rawName];
+
+        const name =
+            chars
+                .slice(0, 45)
+                .join("") +
+            (
+                chars.length > 45
+                    ? "…"
+                    : ""
+            );
+
+        keyboard.push([
+            {
+                text:
+                    `${course.is_active ? "✅" : "⛔"} ${name}`,
+                callback_data:
+                    `admin_course_${course.id}`
+            }
+        ]);
+    }
+
+    const navigation = [];
+
     if (page > 0) {
-        buttons.push({ text: "⬅️ Предыдущая", callback_data: `admin_courses_page_${page - 1}` });
-    }
-    if (courses.length > pageSize) {
-        buttons.push({ text: "Следующая ➡️", callback_data: `admin_courses_page_${page + 1}` });
-    }
-    if (buttons.length) {
-        return sendMessage(env, chatId, `Страница ${page + 1}`, {
-            inline_keyboard: [buttons]
+        navigation.push({
+            text: "⬅️",
+            callback_data:
+                `admin_courses_page_${page - 1}`
         });
     }
+
+    if (allCourses.length > pageSize) {
+        navigation.push({
+            text: "➡️",
+            callback_data:
+                `admin_courses_page_${page + 1}`
+        });
+    }
+
+    if (navigation.length) {
+        keyboard.push(
+            navigation
+        );
+    }
+
+    keyboard.push([
+        {
+            text: "⬅️ К управлению курсами",
+            callback_data:
+                "admin_courses"
+        }
+    ]);
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "📚 <b>Курсы</b>",
+            "",
+            "Выберите курс:"
+        ].join("\n"),
+        {
+            inline_keyboard:
+                keyboard
+        }
+    );
+}
+async function sendCourseCard(
+    env,
+    chatId,
+    courseId
+) {
+    const course = await env.DB.prepare(`
+        SELECT
+            id,
+            name,
+            description,
+            purpose,
+            is_active
+        FROM courses
+        WHERE id = ?
+        LIMIT 1
+    `)
+        .bind(courseId)
+        .first();
+
+    if (!course) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Курс не найден.",
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "⬅️ К списку курсов",
+                            callback_data:
+                                "admin_courses_list"
+                        }
+                    ]
+                ]
+            }
+        );
+    }
+
+    const description =
+        String(
+            course.description || ""
+        ).trim();
+
+    const purpose =
+        String(
+            course.purpose || ""
+        ).trim();
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "📚 <b>Управление курсом</b>",
+            "",
+            `<b>${escapeHtml(course.name)}</b>`,
+            "",
+            `Статус: ${
+                course.is_active
+                    ? "✅ Активен"
+                    : "⛔ Неактивен"
+            }`,
+            "",
+            description
+                ? `📝 <b>Описание:</b>\n${escapeHtml(description)}`
+                : "📝 Описание не указано",
+            "",
+            purpose
+                ? `🎯 <b>Цель:</b>\n${escapeHtml(purpose)}`
+                : "🎯 Цель не указана"
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "📖 Семестры",
+                        callback_data:
+                            `admin_course_semesters_${course.id}`
+                    }
+                ],
+                [
+                    {
+                        text: "⬅️ К списку курсов",
+                        callback_data:
+                            "admin_courses_list"
+                    }
+                ]
+            ]
+        }
+    );
+}
+
+async function sendCourseSemesters(
+    env,
+    chatId,
+    courseId
+) {
+    const course = await env.DB.prepare(`
+        SELECT id, name
+        FROM courses
+        WHERE id = ?
+        LIMIT 1
+    `)
+        .bind(courseId)
+        .first();
+
+    if (!course) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Курс не найден."
+        );
+    }
+
+    const result = await env.DB.prepare(`
+        SELECT
+            id,
+            number,
+            name,
+            is_active
+        FROM semesters
+        WHERE course_id = ?
+        ORDER BY number ASC, id ASC
+    `)
+        .bind(courseId)
+        .all();
+
+    const semesters =
+        result.results || [];
+
+    if (!semesters.length) {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                `📚 <b>${escapeHtml(course.name)}</b>`,
+                "",
+                "📖 Семестров пока нет."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "⬅️ К курсу",
+                            callback_data:
+                                `admin_course_${courseId}`
+                        }
+                    ]
+                ]
+            }
+        );
+    }
+
+    const keyboard =
+        semesters.map(
+            semester => [
+                {
+                    text:
+                        `${semester.is_active ? "✅" : "⛔"} ${semester.number} семестр${semester.name ? ` — ${semester.name}` : ""}`,
+                    callback_data:
+                        `admin_semester_${semester.id}`
+                }
+            ]
+        );
+
+    keyboard.push([
+        {
+            text: "⬅️ К курсу",
+            callback_data:
+                `admin_course_${courseId}`
+        }
+    ]);
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            `📚 <b>${escapeHtml(course.name)}</b>`,
+            "",
+            "📖 Выберите семестр:"
+        ].join("\n"),
+        {
+            inline_keyboard:
+                keyboard
+        }
+    );
+}
+
+async function sendSemesterCard(
+    env,
+    chatId,
+    semesterId
+) {
+    const semester = await env.DB.prepare(`
+        SELECT
+            s.id,
+            s.course_id,
+            s.number,
+            s.name,
+            s.description,
+            s.price_rub,
+            s.access_months,
+            s.payment_enabled,
+            s.is_active,
+            c.name AS course_name
+        FROM semesters s
+        JOIN courses c
+            ON c.id = s.course_id
+        WHERE s.id = ?
+        LIMIT 1
+    `)
+        .bind(semesterId)
+        .first();
+
+    if (!semester) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Семестр не найден."
+        );
+    }
+
+    const semesterName =
+        semester.name
+            ? ` — ${escapeHtml(semester.name)}`
+            : "";
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            `📚 <b>${escapeHtml(semester.course_name)}</b>`,
+            "",
+            `📖 <b>${semester.number} семестр${semesterName}</b>`,
+            "",
+            `Статус: ${
+                semester.is_active
+                    ? "✅ Активен"
+                    : "⛔ Неактивен"
+            }`,
+            `💳 Оплата: ${
+                semester.payment_enabled
+                    ? "✅ Включена"
+                    : "❌ Отключена"
+            }`,
+            `💰 Цена: <b>${formatPrice(semester.price_rub)} ₽</b>`,
+            `🕒 Доступ: <b>${semester.access_months} мес.</b>`,
+            "",
+            semester.description
+                ? `📝 ${escapeHtml(semester.description)}`
+                : "📝 Описание не указано"
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "📚 Уроки",
+                        callback_data:
+                            `admin_semester_lessons_${semester.id}`
+                    }
+                ],
+                [
+                    {
+                        text: "⬅️ К семестрам",
+                        callback_data:
+                            `admin_course_semesters_${semester.course_id}`
+                    }
+                ]
+            ]
+        }
+    );
+}
+
+async function sendSemesterLessons(
+    env,
+    chatId,
+    semesterId
+) {
+    const semester = await env.DB.prepare(`
+        SELECT
+            s.id,
+            s.course_id,
+            s.number,
+            s.name,
+            c.name AS course_name
+        FROM semesters s
+        JOIN courses c
+            ON c.id = s.course_id
+        WHERE s.id = ?
+        LIMIT 1
+    `)
+        .bind(semesterId)
+        .first();
+
+    if (!semester) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Семестр не найден."
+        );
+    }
+
+    const result = await env.DB.prepare(`
+        SELECT
+            id,
+            title,
+            lesson_number,
+            is_visible
+        FROM lessons
+        WHERE semester_id = ?
+        ORDER BY
+            sort_order ASC,
+            lesson_number ASC,
+            id ASC
+    `)
+        .bind(semesterId)
+        .all();
+
+    const lessons =
+        result.results || [];
+
+    if (!lessons.length) {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                `📚 <b>${escapeHtml(semester.course_name)}</b>`,
+                "",
+                `📖 <b>${semester.number} семестр</b>`,
+                "",
+                "Уроков пока нет."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "⬅️ К семестру",
+                            callback_data:
+                                `admin_semester_${semesterId}`
+                        }
+                    ]
+                ]
+            }
+        );
+    }
+
+    const keyboard =
+        lessons.map(
+            lesson => {
+                const title =
+                    String(
+                        lesson.title ||
+                        "Без названия"
+                    )
+                        .replace(/\s+/g, " ")
+                        .trim();
+
+                const shortTitle =
+                    [...title]
+                        .slice(0, 45)
+                        .join("") +
+                    (
+                        [...title].length > 45
+                            ? "…"
+                            : ""
+                    );
+
+                const number =
+                    lesson.lesson_number
+                        ? `${lesson.lesson_number}. `
+                        : "";
+
+                return [
+                    {
+                        text:
+                            `${lesson.is_visible ? "✅" : "⛔"} ${number}${shortTitle}`,
+                        callback_data:
+                            `admin_lesson_${lesson.id}`
+                    }
+                ];
+            }
+        );
+
+    keyboard.push([
+        {
+            text: "⬅️ К семестру",
+            callback_data:
+                `admin_semester_${semesterId}`
+        }
+    ]);
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            `📚 <b>${escapeHtml(semester.course_name)}</b>`,
+            "",
+            `📖 <b>${semester.number} семестр</b>`,
+            "",
+            "Выберите урок:"
+        ].join("\n"),
+        {
+            inline_keyboard:
+                keyboard
+        }
+    );
+}
+
+async function sendLessonCard(
+    env,
+    chatId,
+    lessonId
+) {
+    const lesson = await env.DB.prepare(`
+        SELECT
+            l.id,
+            l.semester_id,
+            l.title,
+            l.description,
+            l.content,
+            l.lesson_number,
+            l.is_visible,
+            s.number AS semester_number,
+            c.name AS course_name
+        FROM lessons l
+        JOIN semesters s
+            ON s.id = l.semester_id
+        JOIN courses c
+            ON c.id = l.course_id
+        WHERE l.id = ?
+        LIMIT 1
+    `)
+        .bind(lessonId)
+        .first();
+
+    if (!lesson) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Урок не найден."
+        );
+    }
+
+    const files = await env.DB.prepare(`
+        SELECT COUNT(*) AS count
+        FROM lesson_files
+        WHERE lesson_id = ?
+    `)
+        .bind(lessonId)
+        .first();
+
+    const description =
+        String(
+            lesson.description || ""
+        ).trim();
+
+    const content =
+        String(
+            lesson.content || ""
+        ).trim();
+
+    const preview =
+        content
+            ? [...content]
+                .slice(0, 500)
+                .join("") +
+              (
+                  [...content].length > 500
+                      ? "…"
+                      : ""
+              )
+            : "";
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            `📚 <b>${escapeHtml(lesson.course_name)}</b>`,
+            "",
+            `📖 ${lesson.semester_number} семестр`,
+            "",
+            `🎓 <b>${
+                lesson.lesson_number
+                    ? `${lesson.lesson_number}. `
+                    : ""
+            }${escapeHtml(lesson.title)}</b>`,
+            "",
+            `Статус: ${
+                lesson.is_visible
+                    ? "✅ Видимый"
+                    : "⛔ Скрытый"
+            }`,
+            `📎 Материалов: <b>${Number(files?.count || 0)}</b>`,
+            "",
+            description
+                ? `📝 <b>Описание:</b>\n${escapeHtml(description)}`
+                : "📝 Описание не указано",
+            "",
+            preview
+                ? `📄 <b>Содержание:</b>\n${escapeHtml(preview)}`
+                : "📄 Содержание не добавлено"
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "📎 Материалы",
+                        callback_data:
+                            `admin_lesson_files_${lesson.id}`
+                    }
+                ],
+                [
+                    {
+                        text: "⬅️ К урокам",
+                        callback_data:
+                            `admin_semester_lessons_${lesson.semester_id}`
+                    }
+                ]
+            ]
+        }
+    );
+}
 }
 
 // =========================================================
@@ -1812,6 +2431,182 @@ async function handleCallback(env, callback, fromMessage = false) {
     // КУРСЫ
     // -----------------------------------------------------
 
+    if (data.startsWith("admin_course_")) {
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "courses"
+        )
+    ) {
+        return;
+    }
+
+    if (
+    data.startsWith(
+        "admin_course_semesters_"
+    )
+) {
+    const courseId =
+        Number(
+            data.slice(
+                "admin_course_semesters_".length
+            )
+        );
+
+    if (
+        !Number.isSafeInteger(courseId) ||
+        courseId <= 0
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Некорректный курс."
+        );
+    }
+
+    return sendCourseSemesters(
+        env,
+        chatId,
+        courseId
+    );
+}
+        
+    const courseId =
+        Number(
+            data.slice(
+                "admin_course_".length
+            )
+        );
+
+    if (
+        !Number.isSafeInteger(courseId) ||
+        courseId <= 0
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Некорректный курс."
+        );
+    }
+
+    return sendCourseCard(
+        env,
+        chatId,
+        courseId
+    );
+}
+   if (data.startsWith("admin_semester_")) {
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "courses"
+        )
+    ) {
+        return;
+    }
+
+    if (
+    data.startsWith(
+        "admin_semester_lessons_"
+    )
+) {
+    const semesterId =
+        Number(
+            data.slice(
+                "admin_semester_lessons_".length
+            )
+        );
+
+    if (
+        !Number.isSafeInteger(semesterId) ||
+        semesterId <= 0
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Некорректный семестр."
+        );
+    }
+
+    return sendSemesterLessons(
+        env,
+        chatId,
+        semesterId
+    );
+}
+
+    const semesterId =
+        Number(
+            data.slice(
+                "admin_semester_".length
+            )
+        );
+
+    if (
+        !Number.isSafeInteger(semesterId) ||
+        semesterId <= 0
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Некорректный семестр."
+        );
+    }
+
+    return sendSemesterCard(
+        env,
+        chatId,
+        semesterId
+    );
+}
+
+    if (data.startsWith("admin_lesson_")) {
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "courses"
+        )
+    ) {
+        return;
+    }
+
+    // Материалы урока подключим отдельно.
+    if (
+        data.startsWith(
+            "admin_lesson_files_"
+        )
+    ) {
+        return;
+    }
+
+    const lessonId =
+        Number(
+            data.slice(
+                "admin_lesson_".length
+            )
+        );
+
+    if (
+        !Number.isSafeInteger(lessonId) ||
+        lessonId <= 0
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Некорректный урок."
+        );
+    }
+
+    return sendLessonCard(
+        env,
+        chatId,
+        lessonId
+    );
+}
+    
     if (data === "admin_courses" || data === "admin_courses_create" ||
         data === "admin_courses_list" || data.startsWith("admin_courses_page_")) {
         if (!await requirePermission(env, chatId, "courses")) {
