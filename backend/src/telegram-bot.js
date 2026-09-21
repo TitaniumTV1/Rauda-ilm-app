@@ -3,6 +3,11 @@
 // deploy trigger 2
 // deploy trigger 3
 import {
+    createYooKassaPayment,
+    isYooKassaConfigured,
+    getYooKassaPaymentHistory
+} from "./yookassa.js";
+import {
     syncTelegramUser,
     getBotAccess,
     getAdmins,
@@ -1477,31 +1482,102 @@ async function handleCallback(env, callback, fromMessage = false) {
     );
 }
 
-    if (data === "admin_payment_history") {
-        if (
-            !await requirePermission(
+    if (
+    data ===
+    "admin_payment_history"
+) {
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "payments"
+        )
+    ) {
+        return;
+    }
+
+    try {
+        const payments =
+            await getYooKassaPaymentHistory(
+                env,
+                10
+            );
+
+        if (!payments.length) {
+            return sendMessage(
                 env,
                 chatId,
-                "payments"
-            )
+                [
+                    "📋 <b>История платежей</b>",
+                    "",
+                    "Платежей ЮKassa пока нет."
+                ].join("\n"),
+                backToAdminKeyboard()
+            );
+        }
+
+        const statusNames = {
+            pending:
+                "⏳ Ожидает оплаты",
+            paid:
+                "✅ Оплачен",
+            canceled:
+                "❌ Отменён",
+            failed:
+                "⚠️ Ошибка"
+        };
+
+        const lines = [
+            "📋 <b>История платежей</b>",
+            ""
+        ];
+
+        for (
+            const payment
+            of payments
         ) {
-            return;
+            const name =
+                [
+                    payment.first_name,
+                    payment.last_name
+                ]
+                    .filter(Boolean)
+                    .join(" ") ||
+                payment.username ||
+                payment.telegram_id;
+
+            lines.push(
+                `👤 ${escapeHtml(name)}`,
+                `💰 ${formatPrice(payment.amount_rub)} ₽`,
+                `📚 ${escapeHtml(payment.course_name || "Курс")}`,
+                `📖 Семестр: ${payment.semester_number || "—"}`,
+                `📌 ${statusNames[payment.status] || payment.status}`,
+                `🕒 ${escapeHtml(payment.created_at || "")}`,
+                ""
+            );
         }
 
         return sendMessage(
             env,
             chatId,
-            [
-                "📋 <b>История платежей</b>",
-                "",
-                "Здесь будут отображаться",
-                "платежи YooKassa и Tribute."
-            ].join("\n"),
+            lines.join("\n"),
+            backToAdminKeyboard()
+        );
+
+    } catch (error) {
+        console.error(
+            "Payment history error:",
+            error
+        );
+
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Не удалось загрузить историю платежей.",
             backToAdminKeyboard()
         );
     }
-
-
+}
     // -----------------------------------------------------
     // СЕРТИФИКАТЫ
     // -----------------------------------------------------
@@ -1905,35 +1981,118 @@ async function handleCallback(env, callback, fromMessage = false) {
     );
 }
 
-    if (data === "order_pay") {
-    const price = await getCoursePrice(env);
+if (data === "order_pay") {
+    const price =
+        await getCoursePrice(env);
 
-    return sendMessage(
-        env,
-        chatId,
-        [
-            "💳 <b>Оплата курса</b>",
-            "",
-            "📚 Подготовительный курс RAUDA ILM",
-            `💰 Сумма: <b>${formatPrice(price)} ₽</b>`,
-            "",
-            "Оплата через ЮKassa",
-            "сейчас находится на этапе подключения.",
-            "",
-            "После подключения здесь откроется",
-            "страница безопасной оплаты."
-        ].join("\n"),
-        {
-            inline_keyboard: [
-                [
-                    {
-                        text: "⬅️ Вернуться к заказу",
-                        callback_data: "order"
-                    }
+    if (
+        !isYooKassaConfigured(env)
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "💳 <b>Оплата курса</b>",
+                "",
+                "📚 Подготовительный курс RAUDA ILM",
+                `💰 Сумма: <b>${formatPrice(price)} ₽</b>`,
+                "",
+                "✅ Интеграция ЮKassa подготовлена.",
+                "",
+                "Приём платежей пока не включён.",
+                "После подключения магазина",
+                "здесь автоматически появится",
+                "страница безопасной оплаты."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "⬅️ Вернуться к заказу",
+                            callback_data:
+                                "order"
+                        }
+                    ]
                 ]
-            ]
-        }
-    );
+            }
+        );
+    }
+
+    try {
+        const payment =
+            await createYooKassaPayment(
+                env,
+                chatId
+            );
+
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "💳 <b>Оплата курса</b>",
+                "",
+                "📚 Подготовительный курс RAUDA ILM",
+                "",
+                `💰 Сумма: <b>${formatPrice(payment.amount)} ₽</b>`,
+                "",
+                "Нажмите кнопку ниже.",
+                "",
+                "После успешной оплаты",
+                "доступ будет выдан автоматически."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text:
+                                `💳 Оплатить ${formatPrice(payment.amount)} ₽`,
+                            url:
+                                payment.confirmationUrl
+                        }
+                    ],
+                    [
+                        {
+                            text:
+                                "⬅️ Вернуться к заказу",
+                            callback_data:
+                                "order"
+                        }
+                    ]
+                ]
+            }
+        );
+
+    } catch (error) {
+        console.error(
+            "YooKassa order error:",
+            error
+        );
+
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "❌ <b>Не удалось создать платёж</b>",
+                "",
+                "Попробуйте ещё раз немного позже.",
+                "",
+                "Если ошибка повторится —",
+                "обратитесь в поддержку."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text:
+                                "⬅️ Вернуться к заказу",
+                            callback_data:
+                                "order"
+                        }
+                    ]
+                ]
+            }
+        );
+    }
 }
     
     if (data === "about") {
