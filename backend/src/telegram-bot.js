@@ -273,6 +273,123 @@ if (supportState?.waiting === 1) {
     );
     return;
 }
+    const tributeProductEditWaiting =
+    await isTributeProductEditWaiting(
+        env,
+        chatId
+    );
+
+if (tributeProductEditWaiting) {
+    if (command === "/cancel") {
+        await setTributeProductEditWaiting(
+            env,
+            chatId,
+            false
+        );
+
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "❌ <b>Изменение товара Tribute отменено</b>",
+                "",
+                "ID товара остался прежним."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "💳 Вернуться к оплате",
+                            callback_data: "admin_payments"
+                        }
+                    ]
+                ]
+            }
+        );
+    }
+
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "payments"
+        )
+    ) {
+        await setTributeProductEditWaiting(
+            env,
+            chatId,
+            false
+        );
+
+        return;
+    }
+
+    const cleanProductId =
+        String(text || "").trim();
+
+    if (!/^\d+$/.test(cleanProductId)) {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "❌ <b>Неверный ID товара</b>",
+                "",
+                "ID товара Tribute должен состоять только из цифр.",
+                "",
+                "Например:",
+                "<code>2548</code>"
+            ].join("\n")
+        );
+    }
+
+    const productId =
+        Number(cleanProductId);
+
+    if (
+        !Number.isSafeInteger(productId) ||
+        productId <= 0
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Укажите корректный ID товара Tribute."
+        );
+    }
+
+    await setTributeProductId(
+        env,
+        productId
+    );
+
+    await setTributeProductEditWaiting(
+        env,
+        chatId,
+        false
+    );
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "✅ <b>Товар Tribute изменён</b>",
+            "",
+            `💎 Новый ID товара: <code>${productId}</code>`,
+            "",
+            "Настройка сохранена в D1.",
+            "Изменять код и делать деплой для смены товара больше не потребуется."
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "💳 Вернуться к оплате",
+                        callback_data: "admin_payments"
+                    }
+                ]
+            ]
+        }
+    );
+}
     const priceEditWaiting =
     await isPriceEditWaiting(
         env,
@@ -1004,6 +1121,19 @@ async function ensurePaymentSettings(env) {
     `).run();
 
     await env.DB.prepare(`
+    CREATE TABLE IF NOT EXISTS tribute_product_edit_state (
+        chat_id INTEGER PRIMARY KEY,
+        waiting INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+`).run();
+    
+    await env.DB.prepare(`
+    INSERT OR IGNORE INTO bot_settings (key, value)
+    VALUES ('tribute_product_id', '')
+`).run();
+    
+    await env.DB.prepare(`
         INSERT OR IGNORE INTO bot_settings (key, value)
         VALUES ('prep_course_price', '1500')
     `).run();
@@ -1056,6 +1186,95 @@ async function setCoursePrice(env, price) {
         .run();
 }
 
+async function getTributeProductId(env) {
+    await ensurePaymentSettings(env);
+
+    const row = await env.DB.prepare(`
+        SELECT value
+        FROM bot_settings
+        WHERE key = 'tribute_product_id'
+        LIMIT 1
+    `).first();
+
+    return String(row?.value || "").trim();
+}
+
+async function getTributeProduct(env) {
+    const productId =
+        await getTributeProductId(env);
+
+    if (!productId) {
+        throw new Error(
+            "Tribute product ID is not configured"
+        );
+    }
+
+    if (!env.TRIBUTE_API_KEY) {
+        throw new Error(
+            "TRIBUTE_API_KEY is not configured"
+        );
+    }
+
+    const response = await fetch(
+        `https://tribute.tg/api/v1/products/${encodeURIComponent(productId)}`,
+        {
+            method: "GET",
+            headers: {
+                "Api-Key":
+                    env.TRIBUTE_API_KEY,
+                "Accept":
+                    "application/json"
+            }
+        }
+    );
+
+    const product =
+        await response.json()
+            .catch(() => null);
+
+    if (
+        !response.ok ||
+        !product?.id
+    ) {
+        console.error(
+            "Tribute product fetch failed:",
+            response.status,
+            product
+        );
+
+        throw new Error(
+            "Не удалось получить товар Tribute"
+        );
+    }
+
+    return product;
+}
+
+async function setTributeProductId(
+    env,
+    productId
+) {
+    await ensurePaymentSettings(env);
+
+    await env.DB.prepare(`
+        INSERT INTO bot_settings (
+            key,
+            value,
+            updated_at
+        )
+        VALUES (
+            'tribute_product_id',
+            ?,
+            CURRENT_TIMESTAMP
+        )
+        ON CONFLICT(key)
+        DO UPDATE SET
+            value = excluded.value,
+            updated_at = CURRENT_TIMESTAMP
+    `)
+        .bind(String(productId).trim())
+        .run();
+}
 
 async function setPriceEditWaiting(
     env,
@@ -1103,6 +1322,51 @@ async function isPriceEditWaiting(
     return row?.waiting === 1;
 }
 
+async function setTributeProductEditWaiting(
+    env,
+    chatId,
+    waiting
+) {
+    await ensurePaymentSettings(env);
+
+    await env.DB.prepare(`
+        INSERT INTO tribute_product_edit_state (
+            chat_id,
+            waiting,
+            updated_at
+        )
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+
+        ON CONFLICT(chat_id)
+        DO UPDATE SET
+            waiting = excluded.waiting,
+            updated_at = CURRENT_TIMESTAMP
+    `)
+        .bind(
+            chatId,
+            waiting ? 1 : 0
+        )
+        .run();
+}
+
+
+async function isTributeProductEditWaiting(
+    env,
+    chatId
+) {
+    await ensurePaymentSettings(env);
+
+    const row = await env.DB.prepare(`
+        SELECT waiting
+        FROM tribute_product_edit_state
+        WHERE chat_id = ?
+        LIMIT 1
+    `)
+        .bind(chatId)
+        .first();
+
+    return row?.waiting === 1;
+}
 
 function formatPrice(price) {
     return String(price)
@@ -1128,7 +1392,9 @@ async function sendAdminPayments(
 ) {
     const price = await getCoursePrice(env);
     const formattedPrice = formatPrice(price);
-
+const tributeProductId =
+    await getTributeProductId(env);
+    
     return sendMessage(
         env,
         chatId,
@@ -1138,6 +1404,7 @@ async function sendAdminPayments(
             "📚 Подготовительный курс",
             "",
             `💰 Текущая цена: <b>${formattedPrice} ₽</b>`,
+            `💎 Tribute товар: <b>${tributeProductId || "не указан"}</b>`,
             "",
             "Цена используется автоматически",
             "при оформлении заказа учеником."
@@ -1149,6 +1416,12 @@ async function sendAdminPayments(
                         text: "💰 Изменить цену",
                         callback_data: "admin_price"
                     }
+                    [
+    {
+        text: "💎 Изменить товар Tribute",
+        callback_data: "admin_tribute_product"
+    }
+],
                 ],
                 [
                     {
@@ -1518,6 +1791,55 @@ async function handleCallback(env, callback, fromMessage = false) {
     );
 }
 
+    if (data === "admin_tribute_product") {
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "payments"
+        )
+    ) {
+        return;
+    }
+
+    const currentProductId =
+        await getTributeProductId(env);
+
+    await setTributeProductEditWaiting(
+        env,
+        chatId,
+        true
+    );
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            "💎 <b>Товар Tribute</b>",
+            "",
+            "Текущий ID товара:",
+            `<code>${currentProductId || "не указан"}</code>`,
+            "",
+            "Отправьте новый ID товара Tribute",
+            "одним сообщением.",
+            "",
+            "Для отмены:",
+            "<code>/cancel</code>"
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text: "⬅️ Отмена",
+                        callback_data:
+                            "admin_payments"
+                    }
+                ]
+            ]
+        }
+    );
+}
+    
     if (
     data ===
     "admin_payment_history"
@@ -2179,7 +2501,104 @@ if (data === "order_pay") {
         );
     }
 }
-    
+    if (data === "order_pay_tribute") {
+    try {
+        const product =
+            await getTributeProduct(env);
+
+        const paymentUrl =
+            product?.link ||
+            product?.webLink ||
+            "";
+
+        if (!paymentUrl) {
+            throw new Error(
+                "Tribute product link is missing"
+            );
+        }
+
+        const price =
+            await getCoursePrice(env);
+
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "💎 <b>Оплата через Tribute</b>",
+                "",
+                "📚 Подготовительный курс RAUDA ILM",
+                "",
+                `💰 Стоимость курса: <b>${formatPrice(price)} ₽</b>`,
+                "",
+                "Нажмите кнопку ниже для оплаты.",
+                "",
+                "После успешной оплаты",
+                "доступ будет выдан автоматически."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "💎 Перейти к оплате Tribute",
+                            url: paymentUrl
+                        }
+                    ],
+                    [
+                        {
+                            text: "🇷🇺 Оплатить через ЮKassa",
+                            callback_data:
+                                "order_pay_yookassa"
+                        }
+                    ],
+                    [
+                        {
+                            text: "⬅️ Назад к способам оплаты",
+                            callback_data:
+                                "order_pay"
+                        }
+                    ]
+                ]
+            }
+        );
+    } catch (error) {
+        console.error(
+            "Tribute product error:",
+            error
+        );
+
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "❌ <b>Tribute пока недоступен</b>",
+                "",
+                "Товар Tribute не настроен",
+                "или произошла ошибка подключения.",
+                "",
+                "Администратор может изменить",
+                "ID товара в разделе оплаты."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "🇷🇺 Попробовать ЮKassa",
+                            callback_data:
+                                "order_pay_yookassa"
+                        }
+                    ],
+                    [
+                        {
+                            text: "⬅️ Назад",
+                            callback_data:
+                                "order_pay"
+                        }
+                    ]
+                ]
+            }
+        );
+    }
+}
     if (data === "about") {
         return sendMessage(
             env,
