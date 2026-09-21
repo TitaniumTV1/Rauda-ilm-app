@@ -9383,29 +9383,153 @@ async function handleTributeWebhook(request, env) {
 
         const data = payload.data || payload.payload || payload;
         const metadata = { ...(payload.metadata || {}), ...(data.metadata || {}) };
-        const eventId = String(payload.id || payload.event_id || data.event_id || data.id || crypto.randomUUID());
-        const eventType = String(payload.type || payload.event || data.type || "unknown");
+       const eventType = String(
+    payload.name ||
+    payload.type ||
+    payload.event ||
+    data.type ||
+    "unknown"
+);
+
+const purchaseId =
+    positiveIntegerOrNull(
+        data.purchase_id ||
+        payload.purchase_id
+    );
+
+const eventId = purchaseId
+    ? `${eventType}:${purchaseId}`
+    : String(
+          payload.id ||
+          payload.event_id ||
+          data.event_id ||
+          data.id ||
+          crypto.randomUUID()
+      );
         const status = String(data.status || payload.status || "unknown").toLowerCase();
+        const tributeProductId =
+    positiveIntegerOrNull(
+        metadata.product_id ||
+        data.product_id ||
+        payload.product_id
+    );
+
+const configuredProductId =
+    await configuredTributeProductId(
+        env.DB
+    );
+
+const isConfiguredProduct =
+    Boolean(
+        tributeProductId &&
+        configuredProductId &&
+        tributeProductId ===
+            configuredProductId
+    );
         const programId = positiveIntegerOrNull(metadata.program_id || data.program_id || payload.program_id);
         const userId = await tributeUserId(env.DB, metadata, data, payload);
         const rawJson = JSON.stringify(payload);
 
+        const tributeTarget =
+    isConfiguredProduct
+        ? await getTributePaymentTarget(
+              env.DB
+          )
+        : null;
+        const effectiveProgramId =
+    programId ||
+    positiveIntegerOrNull(
+        tributeTarget?.program_id
+    );
         await run(env.DB, `
             INSERT OR IGNORE INTO tribute_events
-                (event_id, event_type, payment_status, user_id, program_id, payload_json)
+                (event_id, event_type, payment_status, user_id, effectiveProgramId, payload_json)
             VALUES (?, ?, ?, ?, ?, ?)
         `, [eventId, eventType, status, userId, programId, rawJson]);
 
-        let accessGranted = false;
-        if (userId && programId && isSuccessfulTributeEvent(eventType, status)) {
-            await run(env.DB, `
-                INSERT INTO user_program_access (user_id, program_id, status, source, granted_at)
-                VALUES (?, ?, 'active', 'tribute', CURRENT_TIMESTAMP)
-                ON CONFLICT(user_id, program_id) DO UPDATE SET
-                    status = 'active', source = 'tribute', granted_at = CURRENT_TIMESTAMP
-            `, [userId, programId]);
-            accessGranted = true;
-        }
+        if (
+    String(eventType).toLowerCase() ===
+    "digital_product_refunded"
+) {
+    const accessRevoked =
+        userId && purchaseId
+            ? await revokeTributeAccess(
+                  env.DB,
+                  userId,
+                  purchaseId
+              )
+            : false;
+
+    return json(
+        {
+            ok: true,
+            event_id: eventId,
+            access_granted: false,
+            access_revoked: accessRevoked
+        },
+        200,
+        env
+    );
+}
+       let accessGranted = false;
+
+if (
+    userId &&
+    isConfiguredProduct &&
+    tributeTarget &&
+    effectiveProgramId &&
+    isSuccessfulTributeEvent(
+        eventType,
+        status
+    )
+) {
+    const accessUntil =
+        await grantTributeSemesterAccess(
+            env.DB,
+            userId,
+            tributeTarget,
+            eventId
+        );
+
+    await run(
+        env.DB,
+        `
+        INSERT INTO user_program_access (
+            user_id,
+            program_id,
+            status,
+            source,
+            granted_at,
+            expires_at
+        )
+        VALUES (
+            ?,
+            ?,
+            'active',
+            'tribute',
+            CURRENT_TIMESTAMP,
+            ?
+        )
+
+        ON CONFLICT(
+            user_id,
+            program_id
+        )
+        DO UPDATE SET
+            status = 'active',
+            source = 'tribute',
+            granted_at = CURRENT_TIMESTAMP,
+            expires_at = excluded.expires_at
+        `,
+        [
+            userId,
+            effectiveProgramId,
+            accessUntil
+        ]
+    );
+
+    accessGranted = true;
+}
 
         return json({ ok: true, event_id: eventId, access_granted: accessGranted }, 200, env);
     } catch (error) {
@@ -10304,12 +10428,289 @@ async function accessByProgram(db, userId) {
 }
 
 async function tributeUserId(db, metadata, data, payload) {
-    const direct = positiveIntegerOrNull(metadata.user_id || data.user_id || payload.user_id);
-    if (direct) return direct;
-    const telegramId = positiveIntegerOrNull(metadata.telegram_id || data.telegram_id || payload.telegram_id || data.user?.telegram_id);
-    if (!telegramId) return null;
-    const user = await first(db, "SELECT id FROM users WHERE telegram_id = ? LIMIT 1", [telegramId]);
-    return user ? Number(user.id) : null;
+    const telegramId =
+        positiveIntegerOrNull(
+            data.telegram_user_id ||
+            payload.telegram_user_id ||
+            metadata.telegram_id ||
+            data.telegram_id ||
+            payload.telegram_id ||
+            data.user?.telegram_id
+        );
+
+    if (telegramId) {
+        const user = await first(
+            db,
+            `
+            SELECT id
+            FROM users
+            WHERE telegram_id = ?
+            LIMIT 1
+            `,
+            [String(telegramId)]
+        );
+
+        return user
+            ? Number(user.id)
+            : null;
+    }
+
+    return positiveIntegerOrNull(
+        metadata.user_id
+    );
+}
+
+async function configuredTributeProductId(db) {
+    try {
+        const row = await first(
+            db,
+            `
+            SELECT value
+            FROM bot_settings
+            WHERE key = 'tribute_product_id'
+            LIMIT 1
+            `
+        );
+
+        return positiveIntegerOrNull(
+            row?.value
+        );
+    } catch (error) {
+        console.error(
+            "Tribute product setting read failed:",
+            error
+        );
+
+        return null;
+    }
+}
+
+async function getTributePaymentTarget(db) {
+    return first(
+        db,
+        `
+        SELECT
+            s.id AS semester_id,
+            s.course_id,
+            s.program_id,
+            s.number AS semester_number,
+            s.access_months,
+            c.name AS course_name
+        FROM semesters s
+        JOIN courses c
+            ON c.id = s.course_id
+        WHERE s.is_active = 1
+          AND s.payment_enabled = 1
+          AND (
+                LOWER(c.name) LIKE '%подготов%'
+                OR LOWER(c.name) LIKE '%prep%'
+          )
+        ORDER BY
+            s.number ASC,
+            s.id ASC
+        LIMIT 1
+        `
+    );
+}
+
+function getTributeAccessUntil(months) {
+    const date = new Date();
+
+    const accessMonths =
+        Number.isSafeInteger(Number(months))
+            ? Number(months)
+            : 3;
+
+    date.setUTCMonth(
+        date.getUTCMonth() +
+        Math.max(1, accessMonths)
+    );
+
+    return date.toISOString();
+}
+
+
+async function grantTributeSemesterAccess(
+    db,
+    userId,
+    target,
+    eventId
+) {
+    const existingGrant =
+    await first(
+        db,
+        `
+        SELECT
+            access_until,
+            external_payment_id
+        FROM user_semesters
+        WHERE user_id = ?
+          AND semester_id = ?
+        LIMIT 1
+        `,
+        [
+            userId,
+            target.semester_id
+        ]
+    );
+
+if (
+    existingGrant &&
+    String(
+        existingGrant.external_payment_id || ""
+    ) === String(eventId) &&
+    existingGrant.access_until
+) {
+    return existingGrant.access_until;
+}
+    const accessUntil =
+        getTributeAccessUntil(
+            target.access_months
+        );
+
+    await run(
+        db,
+        `
+        INSERT INTO user_semesters (
+            user_id,
+            semester_id,
+            status,
+            access_until,
+            payment_source,
+            external_payment_id
+        )
+        VALUES (
+            ?,
+            ?,
+            'active',
+            ?,
+            'tribute',
+            ?
+        )
+
+        ON CONFLICT(
+    user_id,
+    semester_id
+)
+DO UPDATE SET
+    status = 'active',
+
+    access_until =
+        CASE
+            WHEN user_semesters.external_payment_id =
+                 excluded.external_payment_id
+            THEN user_semesters.access_until
+            ELSE excluded.access_until
+        END,
+
+    payment_source = 'tribute',
+
+    external_payment_id =
+        excluded.external_payment_id,
+
+    updated_at =
+        CURRENT_TIMESTAMP
+        `,
+        [
+            userId,
+            target.semester_id,
+            accessUntil,
+            eventId
+        ]
+    );
+    return accessUntil;
+}
+
+async function revokeTributeAccess(
+    db,
+    userId,
+    purchaseId
+) {
+    const purchaseEventId =
+        `new_digital_product:${purchaseId}`;
+
+    const existingGrant =
+        await first(
+            db,
+            `
+            SELECT
+                us.id,
+                us.semester_id,
+                s.program_id
+            FROM user_semesters us
+            JOIN semesters s
+                ON s.id = us.semester_id
+            WHERE us.user_id = ?
+              AND us.payment_source = 'tribute'
+              AND us.external_payment_id = ?
+            LIMIT 1
+            `,
+            [
+                userId,
+                purchaseEventId
+            ]
+        );
+
+    if (!existingGrant) {
+        return false;
+    }
+
+    await run(
+        db,
+        `
+        UPDATE user_semesters
+        SET
+            status = 'expired',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        `,
+        [existingGrant.id]
+    );
+
+    const remainingAccess =
+        await first(
+            db,
+            `
+            SELECT COUNT(*) AS count
+            FROM user_semesters us
+            JOIN semesters s
+                ON s.id = us.semester_id
+            WHERE us.user_id = ?
+              AND s.program_id = ?
+              AND us.status = 'active'
+              AND us.access_until >
+                  CURRENT_TIMESTAMP
+            `,
+            [
+                userId,
+                existingGrant.program_id
+            ]
+        );
+
+    if (
+        Number(
+            remainingAccess?.count || 0
+        ) === 0
+    ) {
+        await run(
+            db,
+            `
+            UPDATE user_program_access
+            SET
+                status = 'refunded',
+                expires_at = CURRENT_TIMESTAMP
+            WHERE user_id = ?
+              AND program_id = ?
+              AND source = 'tribute'
+            `,
+            [
+                userId,
+                existingGrant.program_id
+            ]
+        );
+    }
+
+    return true;
 }
 
 async function isValidTributeWebhook(request, rawBody, env) {
@@ -10356,11 +10757,30 @@ async function isValidTributeWebhook(request, rawBody, env) {
 }
 
 function isSuccessfulTributeEvent(type, status) {
-    const successStatuses = new Set(["paid", "succeeded", "success", "active", "completed", "complete"]);
-    if (successStatuses.has(status)) return true;
-    return /(payment|invoice|subscription).*(success|succeed|paid|complete|active)/i.test(type);
-}
+    if (
+        String(type).toLowerCase() ===
+        "new_digital_product"
+    ) {
+        return true;
+    }
 
+    const successStatuses = new Set([
+        "paid",
+        "succeeded",
+        "success",
+        "active",
+        "completed",
+        "complete"
+    ]);
+
+    if (successStatuses.has(status)) {
+        return true;
+    }
+
+    return /(payment|invoice|subscription).*(success|succeed|paid|complete|active)/i.test(
+        type
+    );
+}
 async function ensureAssessmentRetakePermissionsTable(
     db
 ) {
