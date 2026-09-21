@@ -18,7 +18,7 @@ required = [
   "TELEGRAM_WEBHOOK_SECRET",
   "BREVO_API_KEY",
   "EMAIL_AUTH_SECRET",
-  "TRIBUTE_WEBHOOK_SECRET"
+  "TRIBUTE_API_KEY"
 ]
 
 [[d1_databases]]
