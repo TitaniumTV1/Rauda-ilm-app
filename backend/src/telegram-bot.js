@@ -1746,8 +1746,8 @@ async function sendSemesterCard(
                 [
                     {
                         text: "📚 Предметы",
-                        callback_data:
-                            `admin_semester_lessons_${semester.id}`
+callback_data:
+    `admin_semester_subjects_${semester.id}`
                     }
                 ],
                 [
