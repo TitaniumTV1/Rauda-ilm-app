@@ -172,6 +172,7 @@ CREATE TABLE IF NOT EXISTS subjects (
     semester_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
+    telegram_chat_id TEXT,
     sort_order INTEGER NOT NULL DEFAULT 0,
     is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
