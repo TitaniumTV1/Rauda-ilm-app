@@ -97,6 +97,15 @@ if (
             return ok();
         }
 
+        if (update?.channel_post) {
+    await handleChannelPost(
+        env,
+        update.channel_post
+    );
+
+    return ok();
+}
+        
         const message = update?.message;
 
         if (!message?.chat?.id) {
@@ -122,6 +131,103 @@ if (
     return ok();
 }
 
+async function handleChannelPost(
+    env,
+    message
+) {
+    if (
+        message?.chat?.type !== "channel" ||
+        !message?.chat?.id
+    ) {
+        return;
+    }
+
+    const text =
+        String(message.text || "")
+            .trim()
+            .toUpperCase();
+
+    if (
+        !/^RAUDA-[A-Z0-9]{6}$/.test(text)
+    ) {
+        return;
+    }
+
+    await ensureSubjectTelegramChannelSchema(
+        env
+    );
+
+    const state =
+        await env.DB.prepare(`
+            SELECT
+                chat_id,
+                subject_id,
+                bind_code
+            FROM subject_channel_edit_state
+            WHERE bind_code = ?
+              AND waiting = 1
+            LIMIT 1
+        `)
+            .bind(text)
+            .first();
+
+    if (!state) {
+        return;
+    }
+
+    const subject =
+        await env.DB.prepare(`
+            SELECT
+                id,
+                name
+            FROM subjects
+            WHERE id = ?
+            LIMIT 1
+        `)
+            .bind(state.subject_id)
+            .first();
+
+    if (!subject) {
+        return;
+    }
+
+    await env.DB.batch([
+        env.DB.prepare(`
+            UPDATE subjects
+            SET telegram_chat_id = ?
+            WHERE id = ?
+        `)
+            .bind(
+                String(message.chat.id),
+                state.subject_id
+            ),
+
+        env.DB.prepare(`
+            UPDATE subject_channel_edit_state
+            SET
+                waiting = 0,
+                bind_code = NULL,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE chat_id = ?
+        `)
+            .bind(state.chat_id)
+    ]);
+
+    return sendMessage(
+        env,
+        state.chat_id,
+        [
+            "✅ <b>Telegram-канал привязан</b>",
+            "",
+            `🎓 Предмет: <b>${escapeHtml(subject.name)}</b>`,
+            "",
+            `📢 Канал: <b>${escapeHtml(message.chat.title || "Без названия")}</b>`,
+            "",
+            "Теперь этот канал связан",
+            "с выбранным предметом."
+        ].join("\n")
+    );
+}
 
 // =========================================================
 // СООБЩЕНИЯ
@@ -1056,6 +1162,107 @@ function idleCourseState(messageId) {
     return JSON.stringify({ action: "courses_menu", afterMessageId: messageId });
 }
 
+async function ensureSubjectTelegramChannelSchema(
+    env
+) {
+    const info =
+        await env.DB.prepare(`
+            PRAGMA table_info(subjects)
+        `).all();
+
+    const columns =
+        new Set(
+            (info.results || [])
+                .map(row => row.name)
+        );
+
+    if (
+        !columns.has(
+            "telegram_chat_id"
+        )
+    ) {
+        await env.DB.prepare(`
+            ALTER TABLE subjects
+            ADD COLUMN telegram_chat_id TEXT
+        `).run();
+    }
+    await env.DB.prepare(`
+    CREATE TABLE IF NOT EXISTS subject_channel_edit_state (
+        chat_id INTEGER PRIMARY KEY,
+        subject_id INTEGER NOT NULL,
+        bind_code TEXT,
+        waiting INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+`).run();
+}
+
+async function setSubjectChannelEditWaiting(
+    env,
+    chatId,
+    subjectId,
+    waiting
+) {
+    await ensureSubjectTelegramChannelSchema(
+        env
+    );
+
+    const bindCode =
+        waiting
+            ? `RAUDA-${crypto.randomUUID()
+                .replace(/-/g, "")
+                .slice(0, 6)
+                .toUpperCase()}`
+            : null;
+
+    await env.DB.prepare(`
+        INSERT INTO subject_channel_edit_state (
+            chat_id,
+            subject_id,
+            bind_code,
+            waiting,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+
+        ON CONFLICT(chat_id)
+        DO UPDATE SET
+            subject_id = excluded.subject_id,
+            bind_code = excluded.bind_code,
+            waiting = excluded.waiting,
+            updated_at = CURRENT_TIMESTAMP
+    `)
+        .bind(
+            chatId,
+            subjectId,
+            bindCode,
+            waiting ? 1 : 0
+        )
+        .run();
+
+    return bindCode;
+}
+
+async function getSubjectChannelEditState(
+    env,
+    chatId
+) {
+    await ensureSubjectTelegramChannelSchema(
+        env
+    );
+
+    return env.DB.prepare(`
+        SELECT
+            subject_id,
+            waiting
+        FROM subject_channel_edit_state
+        WHERE chat_id = ?
+        LIMIT 1
+    `)
+        .bind(chatId)
+        .first();
+}
+
 async function clearCourseDraft(env, chatId, messageId = 0, fromInlineCallback = false) {
     const row = await env.DB.prepare(`
         SELECT state FROM bot_states WHERE chat_id = ? LIMIT 1
@@ -1538,7 +1745,7 @@ async function sendSemesterCard(
             inline_keyboard: [
                 [
                     {
-                        text: "📚 Уроки",
+                        text: "📚 Предметы",
                         callback_data:
                             `admin_semester_lessons_${semester.id}`
                     }
@@ -1551,6 +1758,149 @@ async function sendSemesterCard(
                     }
                 ]
             ]
+        }
+    );
+}
+
+async function sendSemesterSubjects(
+    env,
+    chatId,
+    semesterId
+) {
+    await ensureSubjectTelegramChannelSchema(
+        env
+    );
+
+    const semester =
+        await env.DB.prepare(`
+            SELECT
+                s.id,
+                s.course_id,
+                s.number,
+                s.name,
+                c.name AS course_name
+            FROM semesters s
+            JOIN courses c
+                ON c.id = s.course_id
+            WHERE s.id = ?
+            LIMIT 1
+        `)
+            .bind(semesterId)
+            .first();
+
+    if (!semester) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Семестр не найден."
+        );
+    }
+
+    const result =
+        await env.DB.prepare(`
+            SELECT
+                id,
+                name,
+                is_active,
+                telegram_chat_id
+            FROM subjects
+            WHERE semester_id = ?
+            ORDER BY
+                sort_order ASC,
+                id ASC
+        `)
+            .bind(semesterId)
+            .all();
+
+    const subjects =
+        result.results || [];
+
+    if (!subjects.length) {
+        return sendMessage(
+            env,
+            chatId,
+            [
+                `📚 <b>${escapeHtml(semester.course_name)}</b>`,
+                "",
+                `📖 <b>${semester.number} семестр</b>`,
+                "",
+                "Предметов пока нет."
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "⬅️ К семестру",
+                            callback_data:
+                                `admin_semester_${semesterId}`
+                        }
+                    ]
+                ]
+            }
+        );
+    }
+
+    const keyboard =
+        subjects.map(
+            subject => {
+                const rawName =
+                    String(
+                        subject.name ||
+                        "Без названия"
+                    )
+                        .replace(/\s+/g, " ")
+                        .trim();
+
+                const name =
+                    [...rawName]
+                        .slice(0, 45)
+                        .join("") +
+                    (
+                        [...rawName].length > 45
+                            ? "…"
+                            : ""
+                    );
+
+                const channelStatus =
+                    subject.telegram_chat_id
+                        ? "📢"
+                        : "⚠️";
+
+                return [
+                    {
+                        text:
+                            `${channelStatus} ${name}`,
+                        callback_data:
+                            `admin_subject_${subject.id}`
+                    }
+                ];
+            }
+        );
+
+    keyboard.push([
+        {
+            text: "⬅️ К семестру",
+            callback_data:
+                `admin_semester_${semesterId}`
+        }
+    ]);
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            `📚 <b>${escapeHtml(semester.course_name)}</b>`,
+            "",
+            `📖 <b>${semester.number} семестр</b>`,
+            "",
+            "Выберите предмет:",
+            "",
+            "📢 — канал привязан",
+            "⚠️ — канал не привязан"
+        ].join("\n"),
+        {
+            inline_keyboard:
+                keyboard
         }
     );
 }
@@ -1686,6 +2036,100 @@ async function sendSemesterLessons(
         {
             inline_keyboard:
                 keyboard
+        }
+    );
+}
+
+async function sendSubjectCard(
+    env,
+    chatId,
+    subjectId
+) {
+    await ensureSubjectTelegramChannelSchema(
+        env
+    );
+
+    const subject =
+        await env.DB.prepare(`
+            SELECT
+                s.id,
+                s.name,
+                s.description,
+                s.semester_id,
+                s.telegram_chat_id,
+                s.is_active,
+                sem.number AS semester_number,
+                c.name AS course_name
+            FROM subjects s
+            JOIN semesters sem
+                ON sem.id = s.semester_id
+            JOIN courses c
+                ON c.id = s.course_id
+            WHERE s.id = ?
+            LIMIT 1
+        `)
+            .bind(subjectId)
+            .first();
+
+    if (!subject) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Предмет не найден."
+        );
+    }
+
+    const channelLinked =
+        Boolean(
+            String(
+                subject.telegram_chat_id || ""
+            ).trim()
+        );
+
+    return sendMessage(
+        env,
+        chatId,
+        [
+            `📚 <b>${escapeHtml(subject.course_name)}</b>`,
+            "",
+            `📖 ${subject.semester_number} семестр`,
+            "",
+            `🎓 <b>${escapeHtml(subject.name)}</b>`,
+            "",
+            `Статус: ${
+                subject.is_active
+                    ? "✅ Активен"
+                    : "⛔ Неактивен"
+            }`,
+            "",
+            channelLinked
+                ? "📢 Telegram-канал: ✅ привязан"
+                : "📢 Telegram-канал: ⚠️ не привязан",
+            "",
+            subject.description
+                ? `📝 ${escapeHtml(subject.description)}`
+                : "📝 Описание не указано"
+        ].join("\n"),
+        {
+            inline_keyboard: [
+                [
+                    {
+                        text:
+                            channelLinked
+                                ? "📢 Изменить канал"
+                                : "📢 Привязать канал",
+                        callback_data:
+                            `admin_subject_channel_${subject.id}`
+                    }
+                ],
+                [
+                    {
+                        text: "⬅️ К предметам",
+                        callback_data:
+                            `admin_semester_subjects_${subject.semester_id}`
+                    }
+                ]
+            ]
         }
     );
 }
@@ -2507,35 +2951,78 @@ async function handleCallback(env, callback, fromMessage = false) {
         return;
     }
 
-    if (
-    data.startsWith(
-        "admin_semester_lessons_"
-    )
-) {
-    const semesterId =
-        Number(
-            data.slice(
-                "admin_semester_lessons_".length
-            )
-        );
+    // ---------------------------------------------
+    // ПРЕДМЕТЫ СЕМЕСТРА
+    // ---------------------------------------------
 
     if (
-        !Number.isSafeInteger(semesterId) ||
-        semesterId <= 0
+        data.startsWith(
+            "admin_semester_subjects_"
+        )
     ) {
-        return sendMessage(
+        const semesterId =
+            Number(
+                data.slice(
+                    "admin_semester_subjects_".length
+                )
+            );
+
+        if (
+            !Number.isSafeInteger(semesterId) ||
+            semesterId <= 0
+        ) {
+            return sendMessage(
+                env,
+                chatId,
+                "❌ Некорректный семестр."
+            );
+        }
+
+        return sendSemesterSubjects(
             env,
             chatId,
-            "❌ Некорректный семестр."
+            semesterId
         );
     }
 
-    return sendSemesterLessons(
-        env,
-        chatId,
-        semesterId
-    );
-}
+    // ---------------------------------------------
+    // СТАРЫЙ СПИСОК УРОКОВ
+    // Пока оставляем для совместимости.
+    // ---------------------------------------------
+
+    if (
+        data.startsWith(
+            "admin_semester_lessons_"
+        )
+    ) {
+        const semesterId =
+            Number(
+                data.slice(
+                    "admin_semester_lessons_".length
+                )
+            );
+
+        if (
+            !Number.isSafeInteger(semesterId) ||
+            semesterId <= 0
+        ) {
+            return sendMessage(
+                env,
+                chatId,
+                "❌ Некорректный семестр."
+            );
+        }
+
+        return sendSemesterLessons(
+            env,
+            chatId,
+            semesterId
+        );
+    }
+
+    // ---------------------------------------------
+    // КАРТОЧКА СЕМЕСТРА
+    // ---------------------------------------------
 
     const semesterId =
         Number(
@@ -2561,7 +3048,97 @@ async function handleCallback(env, callback, fromMessage = false) {
         semesterId
     );
 }
+    if (data.startsWith("admin_subject_")) {
+    if (
+        !await requirePermission(
+            env,
+            chatId,
+            "courses"
+        )
+    ) {
+        return;
+    }
 
+    // Привязку Telegram-канала подключим следующим шагом.
+   if (
+    data.startsWith(
+        "admin_subject_channel_"
+    )
+) {
+    const subjectId =
+        Number(
+            data.slice(
+                "admin_subject_channel_".length
+            )
+        );
+
+    if (
+        !Number.isSafeInteger(subjectId) ||
+        subjectId <= 0
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Некорректный предмет."
+        );
+    }
+
+    const bindCode =
+    await setSubjectChannelEditWaiting(
+        env,
+        chatId,
+        subjectId,
+        true
+    );
+
+return sendMessage(
+        env,
+        chatId,
+        [
+    "📢 <b>Привязка Telegram-канала</b>",
+    "",
+    "1. Добавьте @Rauda_ilmapp_bot",
+    "администратором нужного закрытого канала.",
+    "",
+    "2. Отправьте в этот канал",
+    "следующий код отдельным сообщением:",
+    "",
+    `<code>${escapeHtml(bindCode)}</code>`,
+    "",
+    "После этого бот автоматически",
+    "определит канал и привяжет его",
+    "к выбранному предмету.",
+    "",
+    "Для отмены:",
+    "<code>/cancel</code>"
+].join("\n")
+    );
+}
+
+    const subjectId =
+        Number(
+            data.slice(
+                "admin_subject_".length
+            )
+        );
+
+    if (
+        !Number.isSafeInteger(subjectId) ||
+        subjectId <= 0
+    ) {
+        return sendMessage(
+            env,
+            chatId,
+            "❌ Некорректный предмет."
+        );
+    }
+
+    return sendSubjectCard(
+        env,
+        chatId,
+        subjectId
+    );
+}
     if (data.startsWith("admin_lesson_")) {
     if (
         !await requirePermission(
