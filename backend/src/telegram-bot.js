@@ -1,3 +1,7 @@
+import {ensureSchoolSchema} from './school-schema.js';
+import {handleAccountBot} from './account-connections.js';
+import {handleSchoolBot} from './telegram-school.js';
+import {HttpError} from './school-core.js';
 // deploy trigger
 // trigger deploy
 // deploy trigger 2
@@ -19,6 +23,7 @@ import {
     grantAllPermissions,
     revokeAllPermissions
 } from "./bot-access.js";
+import {getBotCourseScope, hasBotCourseAccess, canCreateBotCourse} from './bot-access.js';
 
 const TELEGRAM_API = "https://api.telegram.org";
 
@@ -83,54 +88,34 @@ if (
 }
     
     try {
-        if (update?.callback_query) {
-            await answerCallback(
-                env,
-                update.callback_query.id
-            );
-
-            await handleCallback(
-                env,
-                update.callback_query
-            );
-
+        await ensureSchoolSchema(env.DB);
+        if(update?.channel_post) {await handleChannelPost(env,update.channel_post);return ok();}
+        const from=update.callback_query?.from||update.message?.from;
+        const chat=update.callback_query?.message?.chat||update.message?.chat;
+        if(!isPrivateBotChat(chat,from)) return ok();
+        if(update.callback_query) await answerCallback(env,update.callback_query.id);
+        if(await handleAccountBot(env,update,sendMessage)) return ok();
+        const user=await syncTelegramUser(env,from);
+        if(!user||user.status!=='active') {await sendMessage(env,chat.id,'Доступ к аккаунту ограничен. Обратитесь в поддержку.');return ok();}
+        if(await handleSchoolBot(env,update,user,sendMessage)) {
+            await ensureBotStates(env);
+            await clearCourseDraft(env,chat.id,update.message?.message_id||update.callback_query?.message?.message_id||0,Boolean(update.callback_query));
             return ok();
         }
-
-        if (update?.channel_post) {
-    await handleChannelPost(
-        env,
-        update.channel_post
-    );
-
-    return ok();
-}
-        
-        const message = update?.message;
-
-        if (!message?.chat?.id) {
+        if(update.callback_query) await handleCallback(env,update.callback_query);
+        else await handleMessage(env,update.message);
+    } catch(error) {
+        if(error instanceof HttpError || Number.isInteger(error.status)&&error.status<500) {
+            const chatId=update.message?.chat?.id||update.callback_query?.message?.chat?.id;
+            if(chatId) await sendMessage(env,chatId,escapeHtml(error.message));
             return ok();
         }
-
-        await syncTelegramUser(
-            env,
-            message.from
-        );
-
-        await handleMessage(
-            env,
-            message
-        );
-    } catch (error) {
-        console.error(
-            "Telegram webhook error:",
-            error
-        );
+        console.error('Telegram webhook error:',error);
+        return new Response('Retry later',{status:500});
     }
 
     return ok();
 }
-
 async function handleChannelPost(
     env,
     message
@@ -166,12 +151,13 @@ async function handleChannelPost(
             FROM subject_channel_edit_state
             WHERE bind_code = ?
               AND waiting = 1
+              AND updated_at > datetime('now','-15 minutes')
             LIMIT 1
         `)
             .bind(text)
             .first();
 
-    if (!state) {
+    if (!state || !await hasPermission(env,state.chat_id,"courses")) {
         return;
     }
 
@@ -179,7 +165,8 @@ async function handleChannelPost(
         await env.DB.prepare(`
             SELECT
                 id,
-                name
+                name,
+                course_id
             FROM subjects
             WHERE id = ?
             LIMIT 1
@@ -187,7 +174,7 @@ async function handleChannelPost(
             .bind(state.subject_id)
             .first();
 
-    if (!subject) {
+    if (!subject || !await hasBotCourseAccess(env,state.chat_id,subject.course_id)) {
         return;
     }
 
@@ -399,6 +386,11 @@ if (message.reply_to_message?.message_id) {
         }, true);
     }
 
+    if(command==='/cancel'||command==='/start'||text==='❌ Отмена'||text==='⬅️ Главное меню') {
+        await ensureSubjectTelegramChannelSchema(env);
+        await env.DB.prepare("UPDATE subject_channel_edit_state SET waiting=0,bind_code=NULL,updated_at=CURRENT_TIMESTAMP WHERE chat_id=?").bind(chatId).run();
+        await env.DB.prepare('UPDATE support_state SET waiting=0 WHERE user_id=?').bind(String(chatId)).run();
+    }
     const supportState = await env.DB.prepare(`
     SELECT waiting
     FROM support_state
@@ -943,6 +935,11 @@ if (priceEditWaiting) {
             return;
         }
 
+        if (!await canCreateBotCourse(env, chatId)) {
+            await clearCourseDraft(env, chatId, message.message_id);
+            return sendMessage(env, chatId, '🔒 Нет доступа. Создавать новые курсы может администратор без ограничения отдельными курсами.');
+        }
+
         const name = text.replace(/\s+/g, " ");
         if (typeof message.text !== "string" || [...name].length < 2 || [...name].length > 100) {
             return sendMessage(
@@ -963,7 +960,13 @@ if (priceEditWaiting) {
                     WHERE EXISTS (
                         SELECT 1 FROM bot_states WHERE chat_id = ? AND state = ?
                     )
-                `).bind(name, chatId, botState.state),
+                    AND EXISTS (
+                        SELECT 1 FROM users u WHERE u.telegram_id = ? AND u.status = 'active'
+                        AND (u.role IN ('owner','superadmin') OR (u.role = 'admin'
+                            AND EXISTS(SELECT 1 FROM admin_permissions p WHERE p.admin_id=u.id AND p.permission IN ('courses','content'))
+                            AND NOT EXISTS(SELECT 1 FROM admin_courses ac WHERE ac.admin_id=u.id)))
+                    )
+                `).bind(name, chatId, botState.state, String(chatId)),
                 env.DB.prepare(`
                     UPDATE bot_states SET state = ?, updated_at = CURRENT_TIMESTAMP
                     WHERE chat_id = ? AND state = ?
@@ -1203,6 +1206,7 @@ async function setSubjectChannelEditWaiting(
     subjectId,
     waiting
 ) {
+    if (!await requireCourseEntityAccess(env,chatId,'subjects',subjectId)) return null;
     await ensureSubjectTelegramChannelSchema(
         env
     );
@@ -1315,6 +1319,9 @@ async function sendCoursesMenu(env, chatId, notice = "") {
 }
 
 async function startCourseCreation(env, chatId, messageId) {
+    if (!await canCreateBotCourse(env, chatId)) {
+        return sendMessage(env, chatId, '🔒 Нет доступа. Создавать новые курсы может администратор без ограничения отдельными курсами.');
+    }
     const previous = await env.DB.prepare(`
         SELECT state FROM bot_states WHERE chat_id = ? LIMIT 1
     `).bind(chatId).first();
@@ -1364,14 +1371,19 @@ async function sendCoursesList(
     page = 0
 ) {
     const pageSize = 10;
+    const scope = await getBotCourseScope(env, chatId);
+    if (!scope.allowed) return accessDenied(env, chatId);
+    const scopedWhere = scope.courseIds === null ? '' : `WHERE id IN (${scope.courseIds.map(() => '?').join(',')})`;
 
     const result = await env.DB.prepare(`
         SELECT id, name, is_active
         FROM courses
+        ${scopedWhere}
         ORDER BY id DESC
         LIMIT ? OFFSET ?
     `)
         .bind(
+            ...(scope.courseIds || []),
             pageSize + 1,
             page * pageSize
         )
@@ -1401,9 +1413,9 @@ async function sendCoursesList(
                 inline_keyboard: [
                     [
                         {
-                            text: "⬅️ Назад",
+                            text: "⬅️ Админ-панель",
                             callback_data:
-                                "admin_courses"
+                                "admin"
                         }
                     ]
                 ]
@@ -1470,9 +1482,9 @@ async function sendCoursesList(
 
     keyboard.push([
         {
-            text: "⬅️ К управлению курсами",
+            text: "⬅️ Админ-панель",
             callback_data:
-                "admin_courses"
+                "admin"
         }
     ]);
 
@@ -1481,6 +1493,9 @@ async function sendCoursesList(
         chatId,
         [
             "📚 <b>Курсы</b>",
+            "",
+            `Страница ${page+1}`,
+            ...courses.map(c=>`${c.is_active?"✅":"⛔"} ${escapeHtml(c.name)}`),
             "",
             "Выберите курс:"
         ].join("\n"),
@@ -1495,6 +1510,7 @@ async function sendCourseCard(
     chatId,
     courseId
 ) {
+    if (!await requireCourseEntityAccess(env,chatId,'courses',courseId)) return;
     const course = await env.DB.prepare(`
         SELECT
             id,
@@ -1586,6 +1602,7 @@ async function sendCourseSemesters(
     chatId,
     courseId
 ) {
+    if (!await requireCourseEntityAccess(env,chatId,'courses',courseId)) return;
     const course = await env.DB.prepare(`
         SELECT id, name
         FROM courses
@@ -1682,6 +1699,7 @@ async function sendSemesterCard(
     chatId,
     semesterId
 ) {
+    if (!await requireCourseEntityAccess(env,chatId,'semesters',semesterId)) return;
     const semester = await env.DB.prepare(`
         SELECT
             s.id,
@@ -1767,6 +1785,7 @@ async function sendSemesterSubjects(
     chatId,
     semesterId
 ) {
+    if (!await requireCourseEntityAccess(env,chatId,'semesters',semesterId)) return;
     await ensureSubjectTelegramChannelSchema(
         env
     );
@@ -1910,6 +1929,7 @@ async function sendSemesterLessons(
     chatId,
     semesterId
 ) {
+    if (!await requireCourseEntityAccess(env,chatId,'semesters',semesterId)) return;
     const semester = await env.DB.prepare(`
         SELECT
             s.id,
@@ -2045,6 +2065,7 @@ async function sendSubjectCard(
     chatId,
     subjectId
 ) {
+    if (!await requireCourseEntityAccess(env,chatId,'subjects',subjectId)) return;
     await ensureSubjectTelegramChannelSchema(
         env
     );
@@ -2139,6 +2160,7 @@ async function sendLessonCard(
     chatId,
     lessonId
 ) {
+    if (!await requireCourseEntityAccess(env,chatId,'lessons',lessonId)) return;
     const lesson = await env.DB.prepare(`
         SELECT
             l.id,
@@ -2776,6 +2798,7 @@ async function sendWelcome(env, chatId) {
     );
 
     const keyboard = [
+        [{text:"📖 Мои уроки"},{text:"🌐 Мой кабинет"}],
         [
             {
                 text: "📚 Программа курса"
@@ -3089,6 +3112,7 @@ async function handleCallback(env, callback, fromMessage = false) {
         subjectId,
         true
     );
+    if (!bindCode) return;
 
 return sendMessage(
         env,
@@ -3149,13 +3173,19 @@ return sendMessage(
         return;
     }
 
-    // Материалы урока подключим отдельно.
+    // The web editor uses the same secured lesson/file records as this card.
     if (
         data.startsWith(
             "admin_lesson_files_"
         )
     ) {
-        return;
+        const lessonId = Number(data.slice('admin_lesson_files_'.length));
+        if (!Number.isSafeInteger(lessonId) || lessonId <= 0) return sendMessage(env,chatId,'❌ Некорректный урок.');
+        if (!await requireCourseEntityAccess(env,chatId,'lessons',lessonId)) return;
+        let url;
+        try {url=new URL('/admin/',env.PUBLIC_APP_URL || env.CORS_ORIGIN);if(url.protocol!=='https:')throw new Error('Invalid URL');url.hash=`learning/lessons/${lessonId}`;}
+        catch {return sendMessage(env,chatId,'Адрес приложения ещё не настроен. Обратитесь к владельцу.');}
+        return sendMessage(env,chatId,'📎 Материалы урока доступны в защищённом редакторе приложения.',{inline_keyboard:[[{text:'Открыть материалы урока',url:url.href}],[{text:'⬅️ К уроку',callback_data:`admin_lesson_${lessonId}`}]]});
     }
 
     const lessonId =
@@ -4362,9 +4392,7 @@ async function sendAdminMenu(
 
 
     if (access.isOwner) {
-        buttons.push(
-            "👮 Администраторы"
-        );
+        buttons.push("👮 Администраторы", "⚙️ Настройки школы");
     }
 
 
@@ -5003,6 +5031,17 @@ async function sendAdministratorsList(
 // =========================================================
 // ПРОВЕРКА ПРАВ
 // =========================================================
+
+async function requireCourseEntityAccess(env,chatId,table,id) {
+    if (!['courses','semesters','subjects','lessons'].includes(table) || !Number.isSafeInteger(Number(id)) || Number(id)<=0) {
+        await sendMessage(env,chatId,'❌ Раздел не найден.');return false;
+    }
+    const row=await env.DB.prepare(`SELECT ${table==='courses'?'id AS course_id':'course_id'} FROM ${table} WHERE id=?`).bind(Number(id)).first();
+    if (!row || !await hasBotCourseAccess(env,chatId,row.course_id)) {
+        await sendMessage(env,chatId,'🔒 Нет доступа к этому учебному разделу.');return false;
+    }
+    return true;
+}
 
 async function requirePermission(
     env,
