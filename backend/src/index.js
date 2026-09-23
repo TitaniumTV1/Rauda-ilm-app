@@ -11815,3 +11815,4 @@ function constantTimeBytesEqual(a, b) {
 function constantTimeEqual(a, b) {
     return constantTimeBytesEqual(new TextEncoder().encode(a), new TextEncoder().encode(b));
 }
+
