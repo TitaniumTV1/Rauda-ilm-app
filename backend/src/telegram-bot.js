@@ -3244,35 +3244,228 @@ return sendMessage(
     // -----------------------------------------------------
 
     if (data === "admin_students") {
-        if (
-            !await requirePermission(
+        if (!await requirePermission(env, chatId, "students")) return;
+
+        return sendMessage(
+            env,
+            chatId,
+            "👥 <b>Ученики</b>\n\nВыберите действие:",
+            {
+                inline_keyboard: [
+                    [{ text: "📋 Список учеников", callback_data: "admin_students_list" }],
+                    [{ text: "⬅️ Назад", callback_data: "admin" }]
+                ]
+            }
+        );
+    }
+
+    if (data === "admin_students_list") {
+        if (!await requirePermission(env, chatId, "students")) return;
+
+        const result = await env.DB.prepare(`
+            SELECT id, first_name, last_name, username, status
+            FROM users
+            WHERE role = 'student'
+            ORDER BY id DESC
+            LIMIT 20
+        `).all();
+
+        const students = result.results || [];
+
+        if (!students.length) {
+            return sendMessage(
                 env,
                 chatId,
-                "students"
-            )
-        ) {
-            return;
+                "👥 <b>Ученики</b>\n\nУчеников пока нет.",
+                {
+                    inline_keyboard: [
+                        [{ text: "⬅️ Назад", callback_data: "admin_students" }]
+                    ]
+                }
+            );
         }
+
+        const keyboard = students.map(user => {
+            const name =
+                [user.first_name, user.last_name].filter(Boolean).join(" ") ||
+                (user.username ? `@${user.username}` : `ID ${user.id}`);
+
+            return [{
+                text: `${name}${user.status !== "active" ? " ⚠️" : ""}`,
+                callback_data: `admin_student:${user.id}`
+            }];
+        });
+
+        keyboard.push([
+            { text: "⬅️ Назад", callback_data: "admin_students" }
+        ]);
+
+        return sendMessage(
+            env,
+            chatId,
+            `👥 <b>Ученики</b>\n\nНайдено: ${students.length}`,
+            { inline_keyboard: keyboard }
+        );
+    }
+
+    if (data.startsWith("admin_student:")) {
+        if (!await requirePermission(env, chatId, "students")) return;
+
+        const userId = Number(data.split(":")[1]);
+
+        const student = await env.DB.prepare(`
+            SELECT id, telegram_id, username, first_name, last_name, status, created_at
+            FROM users
+            WHERE id = ? AND role = 'student'
+            LIMIT 1
+        `).bind(userId).first();
+
+        if (!student) {
+            return sendMessage(
+                env,
+                chatId,
+                "❌ Ученик не найден.",
+                {
+                    inline_keyboard: [
+                        [{ text: "⬅️ К ученикам", callback_data: "admin_students_list" }]
+                    ]
+                }
+            );
+        }
+
+        const name =
+            [student.first_name, student.last_name].filter(Boolean).join(" ") ||
+            "Без имени";
 
         return sendMessage(
             env,
             chatId,
             [
-                "👥 <b>Ученики</b>",
+                "👤 <b>Профиль ученика</b>",
                 "",
-                "Здесь будет:",
-                "",
-                "• список учеников",
-                "• поиск",
-                "• профиль",
-                "• доступ",
-                "• прогресс",
-                "• группы"
+                `Имя: ${escapeHtml(name)}`,
+                `ID: <code>${student.id}</code>`,
+                `Telegram ID: <code>${student.telegram_id || "—"}</code>`,
+                `Username: ${student.username ? "@" + escapeHtml(student.username) : "—"}`,
+                `Статус: ${escapeHtml(student.status || "—")}`,
+                `Регистрация: ${escapeHtml(student.created_at || "—")}`
             ].join("\n"),
-            backToAdminKeyboard()
+            {
+                inline_keyboard: [
+                    [{ text: "🔐 Доступ", callback_data: `admin_student_access:${userId}` }],
+                    [{ text: "📈 Прогресс", callback_data: `admin_student_progress:${userId}` }],
+                    [{ text: "👨‍👩‍👧‍👦 Группы", callback_data: `admin_student_groups:${userId}` }],
+                    [{ text: "⬅️ К списку", callback_data: "admin_students_list" }]
+                ]
+            }
         );
     }
 
+    if (data.startsWith("admin_student_access:")) {
+        if (!await requirePermission(env, chatId, "students")) return;
+
+        const userId = Number(data.split(":")[1]);
+
+        const result = await env.DB.prepare(`
+            SELECT c.name, uc.status, uc.access_until
+            FROM user_courses uc
+            JOIN courses c ON c.id = uc.course_id
+            WHERE uc.user_id = ?
+            ORDER BY uc.id DESC
+        `).bind(userId).all();
+
+        const rows = result.results || [];
+        const lines = ["🔐 <b>Доступ ученика</b>", ""];
+
+        if (!rows.length) {
+            lines.push("Нет назначенных курсов.");
+        } else {
+            for (const row of rows) {
+                lines.push(`• ${escapeHtml(row.name)} — ${escapeHtml(row.status)}${row.access_until ? ` до ${escapeHtml(row.access_until)}` : ""}`);
+            }
+        }
+
+        return sendMessage(env, chatId, lines.join("\n"), {
+            inline_keyboard: [
+                [{ text: "⬅️ В профиль", callback_data: `admin_student:${userId}` }]
+            ]
+        });
+    }
+
+    if (data.startsWith("admin_student_progress:")) {
+        if (!await requirePermission(env, chatId, "students")) return;
+
+        const userId = Number(data.split(":")[1]);
+
+        const result = await env.DB.prepare(`
+            SELECT
+                c.id,
+                c.name,
+                COUNT(l.id) AS total_lessons,
+                SUM(CASE WHEN lp.completed = 1 THEN 1 ELSE 0 END) AS completed_lessons
+            FROM user_courses uc
+            JOIN courses c ON c.id = uc.course_id
+            LEFT JOIN lessons l ON l.course_id = c.id
+            LEFT JOIN lesson_progress lp
+                ON lp.lesson_id = l.id
+                AND lp.user_id = ?
+            WHERE uc.user_id = ?
+            GROUP BY c.id, c.name
+            ORDER BY c.id
+        `).bind(userId, userId).all();
+
+        const rows = result.results || [];
+        const lines = ["📈 <b>Прогресс ученика</b>", ""];
+
+        if (!rows.length) {
+            lines.push("Нет данных о прогрессе.");
+        } else {
+            for (const row of rows) {
+                const total = Number(row.total_lessons || 0);
+                const done = Number(row.completed_lessons || 0);
+                const percent = total ? Math.round(done * 100 / total) : 0;
+
+                lines.push(`• ${escapeHtml(row.name)}: ${done}/${total} (${percent}%)`);
+            }
+        }
+
+        return sendMessage(env, chatId, lines.join("\n"), {
+            inline_keyboard: [
+                [{ text: "⬅️ В профиль", callback_data: `admin_student:${userId}` }]
+            ]
+        });
+    }
+
+    if (data.startsWith("admin_student_groups:")) {
+        if (!await requirePermission(env, chatId, "students")) return;
+
+        const userId = Number(data.split(":")[1]);
+
+        const result = await env.DB.prepare(`
+            SELECT g.id, g.name
+            FROM user_groups ug
+            JOIN groups g ON g.id = ug.group_id
+            WHERE ug.user_id = ?
+            ORDER BY g.name
+        `).bind(userId).all();
+
+        const groups = result.results || [];
+        const lines = ["👨‍👩‍👧‍👦 <b>Группы ученика</b>", ""];
+
+        if (!groups.length) {
+            lines.push("Ученик пока не состоит в группе.");
+        } else {
+            for (const group of groups) {
+                lines.push(`• ${escapeHtml(group.name)}`);
+            }
+        }
+
+        return sendMessage(env, chatId, lines.join("\n"), {
+            inline_keyboard: [
+                [{ text: "⬅️ В профиль", callback_data: `admin_student:${userId}` }]
+            ]
+        });
+    }
 
     // -----------------------------------------------------
     // ГРУППЫ

@@ -8,18 +8,32 @@ const textMap={'👥 Ученики':'admin_students','👨‍👩‍👧‍👦
 export async function handleSchoolBot(env,update,user,send) {
     const chatId=user.telegram_id;
     const text=String(update.message?.text||'').trim();
-    const data=String(update.callback_query?.data||textMap[text]||'');
+    const data=String(update.callback_query?.data||'');
     if(text==='/learn'||text==='📖 Мои уроки'||text==='📚 Программа курса'||data==='program') {
         return handleLearningBot(env,{...update,message:{...update.message,chat:{id:chatId,type:'private'},from:{id:chatId},text:'/learn'}},user,send);
     }
     if(await handleLearningBot(env,update,user,send)) return true;
+    if(text==='⚙️ Настройки школы') {
+        const s=await getSchoolSettings(env.DB);
+        await send(env,chatId,[
+            '<b>⚙️ Настройки школы</b>',
+            '',
+            `Название: ${escape(s.school_name||'RAUDA ILM')}`,
+            `Регистрация: ${s.registration_enabled?'включена':'выключена'}`,
+            `Оплата: ${s.payments_enabled?'включена':'выключена'}`,
+            `ЮKassa: ${s.yookassa_enabled?'включена':'выключена'}`,
+            `Tribute: ${s.tribute_enabled?'включен':'выключен'}`
+        ].join('\n'),{inline_keyboard:[[{text:'⬅️ Назад в управление',callback_data:'admin'}]]});
+        return true;
+    }
+    if(data==='admin'||data.startsWith('admin_')) return false;
     if(text==='/terms'||text==='/paysupport'||text==='/support') {
         const s=await getSchoolSettings(env.DB); const url=text==='/terms'?s.terms_url:s.support_url;
         await send(env,chatId,url?escape(url):'Обратитесь в раздел «Поддержка» главного меню.');return true;
     }
     if(text==='🌐 Мой кабинет') {
         const s=await getSchoolSettings(env.DB);
-        await send(env,chatId,'Уроки и прогресс в вашем кабинете. Для общего аккаунта выберите вход через Telegram или привяжите Telegram в профиле сайта.',{inline_keyboard:[[{text:'Открыть кабинет',url:s.public_app_url||env.PUBLIC_APP_URL}]]});return true;
+        await send(env,chatId,'Уроки и прогресс в вашем кабинете. Для общего аккаунта выберите вход через Telegram или привяжите Telegram в профиле сайта.',{inline_keyboard:[[{text:'Открыть кабинет',url:'https://rauda-ilm-app.team-rauda-ilm.workers.dev/'}]]});return true;
     }
     const buy=data.match(/^school:buy:([a-f0-9-]{36})$/);
     if(buy) {
