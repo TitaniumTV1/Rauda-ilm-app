@@ -25,10 +25,12 @@ required = [
 binding = "DB"
 database_name = "rauda-ilm-db"
 database_id = "11acb8cd-6a32-4daa-8d58-dc031853084c"
+migrations_dir = "database/migrations"
 
 [assets]
 directory = "./frontend"
 binding = "ASSETS"
+run_worker_first = ["/api/*"]
 
 [[r2_buckets]]
 binding = "FILES"
@@ -58,3 +60,4 @@ head_sampling_rate = 1
 enabled = true
 head_sampling_rate = 1
 invocation_logs = true
+
