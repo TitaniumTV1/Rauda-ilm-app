@@ -1,5 +1,7 @@
 import { verifyTelegramInitData } from "./telegram.js";
 import { handleAssessmentRequest } from "./assessment.js";
+import * as school from './school-core.js';
+import { guardSchoolRequest, handleSchoolRequest } from './school-router.js';
 
 import { handleTelegramWebhook } from "./telegram-bot.js";
 import {
@@ -10,7 +12,7 @@ const SESSION_COOKIE_NAME =
     "__Host-rauda_session";
 const PASSWORD_ITERATIONS = 100000;
 
-let accountIdSchemaPromise = null;
+const accountIdSchemas = new WeakMap();
 const VERIFICATION_CODE_TTL_MINUTES = 5;
 const VERIFICATION_RESEND_SECONDS = 60;
 const VERIFICATION_MAX_ATTEMPTS = 5;
@@ -28,6 +30,10 @@ export default {
                     headers: corsHeaders(env)
                 });
             }
+            const schoolContext = { requireUser, requireAdminPermission, json, authError, verifyPassword, verifyEmailCode, generateTechnicalTelegramId };
+            await guardSchoolRequest(request, env, schoolContext);
+            const schoolResponse = await handleSchoolRequest(request, env, schoolContext);
+            if (schoolResponse) return schoolResponse;
             
 if (
     url.pathname === "/api/webhooks/telegram" &&
@@ -180,12 +186,13 @@ const purpose =
     [
         "register",
         "login",
-        "link"
+        "link",
+        "unlink"
     ].includes(requestedPurpose)
         ? requestedPurpose
         : "login";
 
-if (purpose === "link") {
+if (purpose === "link" || purpose === "unlink") {
 
     const auth =
         await requireUser(
@@ -198,6 +205,9 @@ if (purpose === "link") {
             auth,
             env
         );
+    }
+    if (purpose === 'unlink' && (auth.user.email?.toLowerCase() !== email || !auth.user.email_verified_at)) {
+        return json({ok:false,error:'Для отвязки используйте подтверждённую почту аккаунта'},403,env);
     }
 }
 
@@ -251,7 +261,7 @@ if (purpose === "link") {
             env.DB,
             `
             SELECT created_at
-            FROM email_auth_codes
+            FROM school_email_codes
             WHERE email = ?
               AND purpose = ?
             ORDER BY id DESC
@@ -291,7 +301,7 @@ if (purpose === "link") {
         await run(
             env.DB,
             `
-            INSERT INTO email_auth_codes (
+            INSERT INTO school_email_codes (
                 email,
                 code_hash,
                 purpose,
@@ -1160,7 +1170,7 @@ async function verifyEmailCode(
         db,
         `
         SELECT *
-        FROM email_auth_codes
+        FROM school_email_codes
         WHERE email = ?
           AND purpose = ?
           AND used_at IS NULL
@@ -1213,7 +1223,7 @@ async function verifyEmailCode(
         await run(
             db,
             `
-            UPDATE email_auth_codes
+            UPDATE school_email_codes
             SET attempts = attempts + 1
             WHERE id = ?
             `,
@@ -1231,7 +1241,7 @@ async function verifyEmailCode(
     await run(
         db,
         `
-        UPDATE email_auth_codes
+        UPDATE school_email_codes
         SET used_at = ?
         WHERE id = ?
         `,
@@ -1349,7 +1359,7 @@ async function ensureEmailAuthSchema(db) {
     await run(
         db,
         `
-        CREATE TABLE IF NOT EXISTS email_auth_codes (
+        CREATE TABLE IF NOT EXISTS school_email_codes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT NOT NULL,
             code_hash TEXT NOT NULL,
@@ -1366,8 +1376,8 @@ async function ensureEmailAuthSchema(db) {
         db,
         `
         CREATE INDEX IF NOT EXISTS
-        idx_email_auth_codes_email
-        ON email_auth_codes(email)
+        idx_school_email_codes_email
+        ON school_email_codes(email)
         `
     );
 
@@ -1717,6 +1727,7 @@ if (
                 return handleTributeWebhook(request, env);
             }
 
+            if (url.pathname.startsWith('/api/')) return json({ok:false,error:'Раздел API не найден'},404,env);
             if (env.ASSETS) {
                 const response = await env.ASSETS.fetch(request);
                 return withCors(response, env);
@@ -1727,6 +1738,8 @@ if (
                 headers: { "Content-Type": "text/plain; charset=utf-8" }
             });
         } catch (error) {
+            if (error instanceof school.HttpError) return json({ok:false,error:error.message},error.status,env);
+            if (error instanceof SyntaxError) return json({ok:false,error:'Некорректные данные запроса'},400,env);
             console.error("Unhandled worker error:", error);
             return json({ ok: false, error: "Внутренняя ошибка сервера" }, 500, env);
         }
@@ -1762,7 +1775,7 @@ async function handleRegister(request, env) {
             INSERT INTO users (
                 telegram_id, username, first_name, last_name, phone,
                 role, status, login, email, email_verified_at, password_hash
-            ) VALUES (?, NULL, ?, ?, ?, 'student', 'active', ?, ?)
+            ) VALUES (?, NULL, ?, ?, ?, 'student', 'active', ?, NULL, NULL, ?)
         `, [technicalTelegramId, firstName || null, lastName || null, phone || null, login, passwordHash]);
 
         const user = await getUserById(env.DB, Number(result.meta.last_row_id));
@@ -4072,11 +4085,10 @@ async function handlePrograms(request, env) {
 
     try {
         const rows = await listContentRows(env.DB, "programs", new URL(request.url).searchParams, auth.user);
-        const access = await accessByProgram(env.DB, auth.user.id);
-        const programs = rows.map((program) => ({
+        const programs = await Promise.all(rows.map(async (program) => ({
             ...program,
-            has_access: isAdmin(auth.user) || access.has(Number(program.id))
-        }));
+            has_access: await school.canReadScope(env.DB, auth.user, {course_id:program.course_id,program_id:program.id})
+        })));
         return json({ ok: true, programs }, 200, env);
     } catch (error) {
         console.error("Programs error:", error);
@@ -5019,6 +5031,7 @@ async function handleSingleLesson(request, env, lessonId) {
         const columns = await tableColumns(env.DB, "lessons");
         if (!columns.length) return json({ ok: false, error: "Таблица уроков не найдена" }, 500, env);
         const lesson = await first(env.DB, `SELECT * FROM lessons WHERE id = ? LIMIT 1`, [lessonId]);
+        await school.assertLessonAccess(env.DB, auth.user, lesson);
         if (!lesson || (!isAdmin(auth.user) && isHidden(lesson, columns))) {
             return json({ ok: false, error: "Урок не найден" }, 404, env);
         }
@@ -5027,6 +5040,7 @@ async function handleSingleLesson(request, env, lessonId) {
         const progress = await getLessonProgress(env.DB, auth.user.id, lessonId);
         return json({ ok: true, lesson: { ...lesson, files, progress } }, 200, env);
     } catch (error) {
+        if(error instanceof school.HttpError) return json({ok:false,error:error.message},error.status,env);
         console.error("Single lesson error:", error);
         return json({ ok: false, error: "Не удалось получить урок" }, 500, env);
     }
@@ -8185,6 +8199,9 @@ async function handleLessonFileGet(request, env, fileId) {
         const row = await getLessonFileRow(env.DB, fileId);
         if (!row) return json({ ok: false, error: "Файл не найден" }, 404, env);
 
+        const lesson = await first(env.DB,'SELECT * FROM lessons WHERE id=?',[row.lesson_id]);
+        await school.assertLessonAccess(env.DB,auth.user,lesson);
+
         const key = fileStorageKey(row);
         if (!key) return json({ ok: false, error: "В записи файла отсутствует ключ R2" }, 500, env);
         const head = await env.FILES.head(key);
@@ -8212,6 +8229,9 @@ async function handleLessonFileGet(request, env, fileId) {
         const headers = {
             ...corsHeaders(env),
             "Content-Type": contentType,
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Referrer-Policy": "same-origin",
             "Accept-Ranges": "bytes",
             "Content-Length": String(requestedRange ? requestedRange.length : head.size),
             "Content-Disposition": contentDisposition(contentType, name)
@@ -8222,6 +8242,7 @@ async function handleLessonFileGet(request, env, fileId) {
         }
         return new Response(object.body, { status: requestedRange ? 206 : 200, headers });
     } catch (error) {
+        if(error instanceof school.HttpError) return json({ok:false,error:error.message},error.status,env);
         console.error("Lesson file read error:", error);
         return json({ ok: false, error: "Не удалось открыть файл" }, 500, env);
     }
@@ -9591,7 +9612,7 @@ async function requireUser(request, env) {
     const row = await first(env.DB, `
         SELECT u.id, u.account_id, u.telegram_id, u.username, u.first_name, u.last_name, u.phone,
                u.role, u.status, u.blocked_reason, u.blocked_at, u.created_at,
-               u.updated_at, u.login, s.expires_at
+                u.updated_at, u.login, u.email, u.email_verified_at, u.avatar_key, u.avatar_source, s.expires_at
         FROM auth_sessions s JOIN users u ON u.id = s.user_id
         WHERE s.token = ? LIMIT 1
     `, [token]);
@@ -9623,6 +9644,7 @@ const ADMIN_PERMISSION_KEYS = new Set([
     "payments",
     "certificates",
     "settings"
+    ,...school.PERMISSIONS
 ]);
 
 const APP_SETTING_KEYS = Object.freeze([
@@ -9701,71 +9723,10 @@ function isSafeTelegramValue(value) {
     }
 }
 
-async function requireAdminPermission(
-    request,
-    env,
-    permission
-) {
-    const auth =
-        await requireAdmin(
-            request,
-            env
-        );
-
-    if (!auth.ok) {
-        return auth;
-    }
-
-    const role =
-        String(
-            auth.user?.role || ""
-        ).toLowerCase();
-
-    // Владелец и суперадмин имеют все права
-    if (
-        role === "owner" ||
-        role === "superadmin"
-    ) {
-        return auth;
-    }
-
-    if (
-        !ADMIN_PERMISSION_KEYS.has(
-            permission
-        )
-    ) {
-        return {
-            ok: false,
-            status: 403,
-            error: "Неизвестное разрешение"
-        };
-    }
-
-    const row =
-        await first(
-            env.DB,
-            `
-            SELECT id
-            FROM admin_permissions
-            WHERE admin_id = ?
-              AND permission = ?
-            LIMIT 1
-            `,
-            [
-                auth.user.id,
-                permission
-            ]
-        );
-
-    if (!row) {
-        return {
-            ok: false,
-            status: 403,
-            error:
-                "У администратора нет этого разрешения"
-        };
-    }
-
+async function requireAdminPermission(request, env, permission) {
+    const auth=await requireUser(request,env);
+    if(!auth.ok) return auth;
+    if(!await school.hasPermission(env.DB,auth.user,permission)) return {ok:false,status:403,error:'Нет разрешения на это действие'};
     return auth;
 }
 
@@ -9941,11 +9902,11 @@ async function ensureAccountIdSchema(db) {
         return;
     }
 
-    if (accountIdSchemaPromise) {
-        return accountIdSchemaPromise;
+    if (accountIdSchemas.has(db)) {
+        return accountIdSchemas.get(db);
     }
 
-    accountIdSchemaPromise =
+    const accountIdSchemaPromise =
         (async () => {
 
             const columns = await all(
@@ -10001,10 +9962,11 @@ async function ensureAccountIdSchema(db) {
             }
         })();
 
+    accountIdSchemas.set(db,accountIdSchemaPromise);
     try {
         await accountIdSchemaPromise;
     } catch (error) {
-        accountIdSchemaPromise = null;
+        accountIdSchemas.delete(db);
         throw error;
     }
 }
@@ -10037,8 +9999,8 @@ async function listContentRows(db, table, params, user) {
     if (!columns.length) throw new Error(`Table ${table} is missing`);
     const where = [];
     const values = [];
-    if (!isAdmin(user)) {
-        const visibleColumn = firstColumn(columns, ["is_visible", "visible", "is_published", "published"]);
+    if (!await school.hasPermission(db,user,'courses')) {
+        const visibleColumn = firstColumn(columns, ["is_visible", "visible", "is_published", "published", "is_active"]);
         if (visibleColumn) where.push(`${quoteIdentifier(visibleColumn)} = 1`);
     }
     for (const [param, choices] of Object.entries({
@@ -10056,7 +10018,16 @@ async function listContentRows(db, table, params, user) {
     }
     const order = contentOrder(columns);
     const sql = `SELECT * FROM ${quoteIdentifier(table)}${where.length ? ` WHERE ${where.join(" AND ")}` : ""}${order ? ` ORDER BY ${order}` : ""}`;
-    return all(db, sql, values);
+    const rows = await all(db, sql, values);
+    if(table==='lessons') {
+        const visible=[];
+        for(const row of rows) {
+            try { await school.assertLessonAccess(db,user,row); visible.push(row); }
+            catch(error) { if(!(error instanceof school.HttpError)) throw error; }
+        }
+        return visible;
+    }
+    return rows;
 }
 
 async function insertLesson(db, data) {
@@ -10890,7 +10861,6 @@ async function ensureAuthSessionsTable(db) {
 }
 
 async function tableColumns(db, table) {
-    if (tableColumnsCache.has(table)) return tableColumnsCache.get(table);
     const rows = await all(db, `PRAGMA table_info(${quoteIdentifier(table)})`);
     const columns = rows.map((row) => row.name);
     tableColumnsCache.set(table, columns);
@@ -10928,7 +10898,7 @@ function contentOrder(columns) {
 }
 
 function isHidden(row, columns) {
-    const column = firstColumn(columns, ["is_visible", "visible", "is_published", "published"]);
+    const column = firstColumn(columns, ["is_visible", "is_active", "visible", "is_published", "published"]);
     return column ? Number(row[column]) !== 1 : false;
 }
 
@@ -10940,9 +10910,8 @@ function quoteIdentifier(identifier) {
 function getBearerToken(request) {
     const headerToken = bearerFromHeader(request.headers.get("Authorization")) || request.headers.get("X-Session-Token");
     if (headerToken) return String(headerToken).trim();
-    // Query token is intentionally supported for the HTML video/audio Range requests,
-    // which cannot send an Authorization header. Prefer the header for normal API calls.
-    return new URL(request.url).searchParams.get("token") || null;
+    // Same-origin media uses the HttpOnly cookie. Never leak session tokens in URLs.
+    return null;
 }
 function generateVerificationCode() {
     const limit =
@@ -11641,6 +11610,8 @@ function json(
         "application/json; charset=utf-8"
     );
 
+    headers.set('Cache-Control','no-store');
+    headers.set('X-Content-Type-Options','nosniff');
     let responsePayload =
         payload;
 
@@ -11743,7 +11714,7 @@ function safeFileName(name) {
 }
 
 function contentDisposition(contentType, fileName) {
-    const disposition = /^(image\/|audio\/|video\/|application\/pdf$)/i.test(contentType) ? "inline" : "attachment";
+    const disposition = /^(image\/(png|jpe?g|webp|gif|avif)$|audio\/|video\/|application\/pdf$)/i.test(contentType) ? "inline" : "attachment";
     return `${disposition}; filename*=UTF-8''${encodeURIComponent(fileName)}`;
 }
 
@@ -11844,4 +11815,3 @@ function constantTimeBytesEqual(a, b) {
 function constantTimeEqual(a, b) {
     return constantTimeBytesEqual(new TextEncoder().encode(a), new TextEncoder().encode(b));
 }
-
