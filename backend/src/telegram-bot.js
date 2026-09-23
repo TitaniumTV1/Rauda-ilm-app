@@ -927,6 +927,123 @@ if (priceEditWaiting) {
         return sendWelcome(env, chatId);
     }
 
+    if (courseState?.action === "student_search") {
+        if (!await requirePermission(env, chatId, "students")) {
+            await clearCourseDraft(env, chatId, message.message_id);
+            return;
+        }
+
+        if (typeof message.text !== "string" || !text.trim()) {
+            return sendMessage(
+                env,
+                chatId,
+                "❌ Введите имя, username или ID текстом."
+            );
+        }
+
+        const rawQuery = text.trim();
+        const query = rawQuery.replace(/^@/, "").toLowerCase();
+
+        if (query.length > 100) {
+            return sendMessage(
+                env,
+                chatId,
+                "❌ Слишком длинный запрос. Введите до 100 символов."
+            );
+        }
+
+        const like = `%${query}%`;
+
+        const result = await env.DB.prepare(`
+            SELECT
+                id,
+                telegram_id,
+                username,
+                first_name,
+                last_name,
+                status
+            FROM users
+            WHERE role = 'student'
+              AND (
+                    CAST(id AS TEXT) = ?
+                 OR CAST(telegram_id AS TEXT) = ?
+                 OR LOWER(COALESCE(username, '')) LIKE ?
+                 OR LOWER(COALESCE(first_name, '')) LIKE ?
+                 OR LOWER(COALESCE(last_name, '')) LIKE ?
+                 OR LOWER(
+                        TRIM(
+                            COALESCE(first_name, '') || ' ' ||
+                            COALESCE(last_name, '')
+                        )
+                    ) LIKE ?
+              )
+            ORDER BY id DESC
+            LIMIT 20
+        `).bind(
+            query,
+            query,
+            like,
+            like,
+            like,
+            like
+        ).all();
+
+        await clearCourseDraft(
+            env,
+            chatId,
+            message.message_id
+        );
+
+        const students = result.results || [];
+
+        if (!students.length) {
+            return sendMessage(
+                env,
+                chatId,
+                `🔎 По запросу «${escapeHtml(rawQuery)}» ничего не найдено.`,
+                {
+                    inline_keyboard: [
+                        [{ text: "🔎 Новый поиск", callback_data: "admin_students_search" }],
+                        [{ text: "⬅️ К ученикам", callback_data: "admin_students" }]
+                    ]
+                }
+            );
+        }
+
+        const keyboard = students.map(user => {
+            const name =
+                [user.first_name, user.last_name]
+                    .filter(Boolean)
+                    .join(" ") ||
+                (user.username ? `@${user.username}` : `ID ${user.id}`);
+
+            return [{
+                text: `${name}${user.status !== "active" ? " ⚠️" : ""}`,
+                callback_data: `admin_student:${user.id}`
+            }];
+        });
+
+        keyboard.push([
+            { text: "🔎 Новый поиск", callback_data: "admin_students_search" }
+        ]);
+
+        keyboard.push([
+            { text: "⬅️ К ученикам", callback_data: "admin_students" }
+        ]);
+
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "🔎 <b>Результаты поиска</b>",
+                "",
+                `Запрос: ${escapeHtml(rawQuery)}`,
+                `Найдено: ${students.length}`
+            ].join("\n"),
+            { inline_keyboard: keyboard }
+        );
+    }
+
     const draft = parseCourseDraft(botState?.state);
 
     if (draft) {
@@ -1149,7 +1266,7 @@ function parseCourseState(state) {
     }
     try {
         const parsed = JSON.parse(state);
-        return ["create_course_name", "courses_menu"].includes(parsed?.action) &&
+        return ["create_course_name", "courses_menu", "student_search"].includes(parsed?.action) &&
             Number.isSafeInteger(parsed.afterMessageId) ? parsed : null;
     } catch {
         return null;
@@ -3253,7 +3370,44 @@ return sendMessage(
             {
                 inline_keyboard: [
                     [{ text: "📋 Список учеников", callback_data: "admin_students_list" }],
+                    [{ text: "🔎 Поиск ученика", callback_data: "admin_students_search" }],
                     [{ text: "⬅️ Назад", callback_data: "admin" }]
+                ]
+            }
+        );
+    }
+
+    if (data === "admin_students_search") {
+        if (!await requirePermission(env, chatId, "students")) return;
+
+        const state = JSON.stringify({
+            action: "student_search",
+            afterMessageId: callback.message.message_id
+        });
+
+        await env.DB.prepare(`
+            INSERT INTO bot_states (chat_id, state, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(chat_id) DO UPDATE SET
+                state = excluded.state,
+                updated_at = CURRENT_TIMESTAMP
+        `).bind(chatId, state).run();
+
+        return sendMessage(
+            env,
+            chatId,
+            [
+                "🔎 <b>Поиск ученика</b>",
+                "",
+                "Отправьте:",
+                "• имя или фамилию",
+                "• @username",
+                "• Telegram ID",
+                "• внутренний ID ученика"
+            ].join("\n"),
+            {
+                inline_keyboard: [
+                    [{ text: "⬅️ Назад", callback_data: "admin_students" }]
                 ]
             }
         );
