@@ -1,4 +1,5 @@
 import { verifyTelegramInitData } from "./telegram.js";
+import { verifyTelegramIdToken } from "./telegram-oidc.js";
 import { handleAssessmentRequest } from "./assessment.js";
 import * as school from './school-core.js';
 import { guardSchoolRequest, handleSchoolRequest } from './school-router.js';
@@ -1408,6 +1409,13 @@ async function ensureEmailAuthSchema(db) {
             ) {
                 return handleTelegramWidgetAuth(request, env);
             }
+
+            if (
+                url.pathname === "/api/auth/telegram-oidc" &&
+                request.method === "POST"
+            ) {
+                return handleTelegramOidcAuth(request, env);
+            }
             if (url.pathname === "/api/auth/me" && request.method === "GET") {
                 return handleMe(request, env);
             }
@@ -2036,6 +2044,243 @@ if (
                 error: "Telegram authentication failed"
             },
             500,
+            env
+        );
+    }
+}
+
+
+
+async function handleTelegramOidcAuth(request, env) {
+
+    if (!env.DB) {
+        return databaseMissing(env);
+    }
+
+    if (!env.TELEGRAM_CLIENT_ID) {
+        return json(
+            {
+                ok: false,
+                error:
+                    "Telegram Client ID не настроен"
+            },
+            500,
+            env
+        );
+    }
+
+    try {
+
+        await ensureAuthSessionsTable(
+            env.DB
+        );
+
+        const body =
+            await readJson(
+                request
+            );
+
+        const verification =
+            await verifyTelegramIdToken(
+                body?.id_token,
+                env.TELEGRAM_CLIENT_ID
+            );
+
+        const telegramUser =
+            verification.user;
+
+        const telegramId =
+            Number(
+                telegramUser.id
+            );
+
+        if (
+            !Number.isSafeInteger(
+                telegramId
+            ) ||
+            telegramId <= 0
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        "Некорректный Telegram ID"
+                },
+                401,
+                env
+            );
+        }
+
+
+        let user =
+            await first(
+                env.DB,
+                `
+                SELECT *
+                FROM users
+                WHERE telegram_id = ?
+                LIMIT 1
+                `,
+                [
+                    telegramId
+                ]
+            );
+
+
+        /*
+         * Первый вход через Telegram.
+         */
+        if (!user) {
+
+            const result =
+                await run(
+                    env.DB,
+                    `
+                    INSERT INTO users (
+                        telegram_id,
+                        username,
+                        first_name,
+                        last_name,
+                        role,
+                        status
+                    )
+                    VALUES (
+                        ?, ?, ?, ?,
+                        'student',
+                        'active'
+                    )
+                    `,
+                    [
+                        telegramId,
+                        telegramUser.username ||
+                            null,
+                        telegramUser.first_name ||
+                            null,
+                        telegramUser.last_name ||
+                            null
+                    ]
+                );
+
+
+            user =
+                await getUserById(
+                    env.DB,
+                    Number(
+                        result.meta.last_row_id
+                    )
+                );
+
+        } else {
+
+            /*
+             * Не перезаписываем вручную
+             * изменённые имя и фамилию.
+             * Обновляем только username.
+             */
+            await run(
+                env.DB,
+                `
+                UPDATE users
+                SET
+                    username =
+                        COALESCE(
+                            ?,
+                            username
+                        ),
+                    updated_at =
+                        CURRENT_TIMESTAMP
+                WHERE id = ?
+                `,
+                [
+                    telegramUser.username ||
+                        null,
+                    user.id
+                ]
+            );
+
+
+            user =
+                await getUserById(
+                    env.DB,
+                    user.id
+                );
+        }
+
+
+        if (
+            user.status !==
+            "active"
+        ) {
+            return json(
+                {
+                    ok: false,
+                    error:
+                        user.blocked_reason ||
+                        "Ваш аккаунт заблокирован"
+                },
+                403,
+                env
+            );
+        }
+
+
+        await syncTelegramAvatar(
+            env,
+            user.id,
+            telegramId,
+            telegramUser.photo_url ||
+                null
+        );
+
+
+        user =
+            await getUserById(
+                env.DB,
+                user.id
+            );
+
+
+        const session =
+            await createSession(
+                env.DB,
+                user.id
+            );
+
+
+        return json(
+            {
+                ok: true,
+
+                user:
+                    publicUser(
+                        user
+                    ),
+
+                token:
+                    session.token,
+
+                expires_at:
+                    session.expiresAt
+            },
+            200,
+            env
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Telegram OIDC auth error:",
+            error
+        );
+
+        return json(
+            {
+                ok: false,
+                error:
+                    "Не удалось выполнить вход через Telegram"
+            },
+            401,
             env
         );
     }

@@ -8046,6 +8046,70 @@ a,
             <span id="settingsTelegramId">—</span>
         </div>
 
+        <div
+            id="telegramLinkBlock"
+            style="
+                display:none;
+                margin-top:20px;
+                padding:16px;
+                border:1px solid #e2d7bf;
+                border-radius:12px;
+                background:#fffdf8;
+            "
+        >
+            <div
+                style="
+                    font-weight:750;
+                    color:#183d2c;
+                    margin-bottom:7px;
+                "
+            >
+                Telegram
+            </div>
+
+            <p
+                class="muted"
+                style="
+                    margin:0 0 14px;
+                    line-height:1.5;
+                "
+            >
+                Привяжите Telegram к этому аккаунту,
+                чтобы использовать один профиль,
+                прогресс и доступы на сайте и в Telegram.
+            </p>
+
+            <button
+                type="button"
+                class="primary-button"
+                onclick="linkTelegramAccount()"
+            >
+                Привязать Telegram
+            </button>
+
+            <div
+                id="telegramLinkStatus"
+                class="email-status"
+                style="margin-top:10px"
+            ></div>
+        </div>
+
+        <div
+            id="telegramLinkedBlock"
+            style="
+                display:none;
+                margin-top:20px;
+                padding:14px 16px;
+                border:1px solid #d8c69b;
+                border-radius:12px;
+                background:#f7f2e7;
+                color:#183d2c;
+                font-weight:700;
+            "
+        >
+            ✓ Telegram привязан
+        </div>
+
         <div class="profile-row">
             <span>Логин</span>
             <span id="settingsLogin">Не привязан</span>
@@ -9438,6 +9502,30 @@ function updateSettings() {
     const telegramAccount =
         Number.isSafeInteger(telegramId) &&
         telegramId > 0;
+
+    const telegramLinkBlock =
+        document.getElementById(
+            "telegramLinkBlock"
+        );
+
+    const telegramLinkedBlock =
+        document.getElementById(
+            "telegramLinkedBlock"
+        );
+
+    if (telegramLinkBlock) {
+        telegramLinkBlock.style.display =
+            telegramAccount
+                ? "none"
+                : "block";
+    }
+
+    if (telegramLinkedBlock) {
+        telegramLinkedBlock.style.display =
+            telegramAccount
+                ? "block"
+                : "none";
+    }
 
     if (linkBlock) {
         linkBlock.style.display =
@@ -17896,6 +17984,584 @@ back.style.setProperty(
     });
 </script>
     
+
+<script id="rauda-telegram-oidc-v1">
+(function () {
+
+    const TELEGRAM_CLIENT_ID = 8961703841;
+
+    let telegramOidcLoader = null;
+
+
+    function loadTelegramOidcLibrary() {
+
+        if (
+            window.Telegram &&
+            window.Telegram.Login &&
+            typeof window.Telegram.Login.auth === "function"
+        ) {
+            return Promise.resolve();
+        }
+
+
+        if (telegramOidcLoader) {
+            return telegramOidcLoader;
+        }
+
+
+        telegramOidcLoader =
+            new Promise(
+                function (resolve, reject) {
+
+                    const existing =
+                        document.querySelector(
+                            'script[src^="https://oauth.telegram.org/js/telegram-login.js"]'
+                        );
+
+
+                    const script =
+                        existing ||
+                        document.createElement(
+                            "script"
+                        );
+
+
+                    const finish =
+                        function () {
+
+                            if (
+                                window.Telegram &&
+                                window.Telegram.Login &&
+                                typeof window.Telegram.Login.auth ===
+                                    "function"
+                            ) {
+                                resolve();
+                            } else {
+                                reject(
+                                    new Error(
+                                        "Telegram Login не загрузился"
+                                    )
+                                );
+                            }
+                        };
+
+
+                    script.addEventListener(
+                        "load",
+                        finish,
+                        { once: true }
+                    );
+
+
+                    script.addEventListener(
+                        "error",
+                        function () {
+
+                            reject(
+                                new Error(
+                                    "Не удалось загрузить Telegram Login"
+                                )
+                            );
+                        },
+                        { once: true }
+                    );
+
+
+                    if (!existing) {
+
+                        script.async = true;
+
+                        script.src =
+                            "https://oauth.telegram.org/js/telegram-login.js?6";
+
+                        document.head.appendChild(
+                            script
+                        );
+                    }
+                }
+            );
+
+
+        return telegramOidcLoader;
+    }
+
+
+    async function telegramOidcLogin() {
+
+        hideError();
+
+
+        /*
+         * Внутри Telegram Mini App
+         * сохраняем существующий initData-вход.
+         */
+        const webApp =
+            window.Telegram &&
+            window.Telegram.WebApp
+                ? window.Telegram.WebApp
+                : null;
+
+
+        const initData =
+            webApp &&
+            typeof webApp.initData === "string"
+                ? webApp.initData.trim()
+                : "";
+
+
+        if (initData) {
+
+            try {
+
+                const result =
+                    await api(
+                        "/auth/telegram",
+                        {
+                            method: "POST",
+
+                            body:
+                                JSON.stringify({
+                                    initData
+                                })
+                        }
+                    );
+
+
+                if (
+                    !result.data ||
+                    !result.data.ok
+                ) {
+                    showError(
+                        result.data?.error ||
+                        "Не удалось войти через Telegram"
+                    );
+
+                    return;
+                }
+
+
+                currentUser =
+                    result.data.user;
+
+
+                openApp();
+
+                return;
+
+            } catch (error) {
+
+                console.error(
+                    "Telegram Mini App login:",
+                    error
+                );
+
+                showError(
+                    "Не удалось войти через Telegram"
+                );
+
+                return;
+            }
+        }
+
+
+        /*
+         * Обычный браузер:
+         * новый Telegram Login.
+         */
+        try {
+
+            await loadTelegramOidcLibrary();
+
+
+            window.Telegram.Login.auth(
+                {
+                    client_id:
+                        TELEGRAM_CLIENT_ID,
+
+                    scope: [
+                        "profile"
+                    ],
+
+                    lang:
+                        "ru"
+                },
+
+                async function (data) {
+
+                    if (data?.error) {
+
+                        showError(
+                            data.error
+                        );
+
+                        return;
+                    }
+
+
+                    if (!data?.id_token) {
+
+                        showError(
+                            "Telegram не вернул данные авторизации"
+                        );
+
+                        return;
+                    }
+
+
+                    try {
+
+                        const result =
+                            await api(
+                                "/auth/telegram-oidc",
+                                {
+                                    method:
+                                        "POST",
+
+                                    body:
+                                        JSON.stringify({
+                                            id_token:
+                                                data.id_token
+                                        })
+                                }
+                            );
+
+
+                        if (
+                            !result.data ||
+                            !result.data.ok
+                        ) {
+
+                            showError(
+                                result.data?.error ||
+                                "Не удалось войти через Telegram"
+                            );
+
+                            return;
+                        }
+
+
+                        currentUser =
+                            result.data.user;
+
+
+                        openApp();
+
+                    } catch (error) {
+
+                        console.error(
+                            "Telegram OIDC login:",
+                            error
+                        );
+
+
+                        showError(
+                            "Нет соединения с сервером"
+                        );
+                    }
+                }
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Telegram Login load:",
+                error
+            );
+
+
+            showError(
+                "Не удалось открыть Telegram Login"
+            );
+        }
+    }
+
+
+    /*
+     * Переключаем существующую кнопку
+     * «Войти через Telegram»
+     * на новый механизм.
+     */
+    window.telegramLogin =
+        telegramOidcLogin;
+
+})();
+</script>
+
+
+<script id="rauda-telegram-account-link-v1">
+(function () {
+
+    const TELEGRAM_CLIENT_ID =
+        8961703841;
+
+
+    function setTelegramLinkStatus(
+        message,
+        error
+    ) {
+        const element =
+            document.getElementById(
+                "telegramLinkStatus"
+            );
+
+        if (!element) {
+            return;
+        }
+
+        element.textContent =
+            message || "";
+
+        element.style.color =
+            error
+                ? "#992f2f"
+                : "#715d34";
+    }
+
+
+    function loadTelegramLoginLibrary() {
+
+        if (
+            window.Telegram &&
+            window.Telegram.Login &&
+            typeof window.Telegram.Login.auth ===
+                "function"
+        ) {
+            return Promise.resolve();
+        }
+
+
+        return new Promise(
+            function (resolve, reject) {
+
+                let script =
+                    document.querySelector(
+                        'script[src^="https://oauth.telegram.org/js/telegram-login.js"]'
+                    );
+
+
+                if (!script) {
+
+                    script =
+                        document.createElement(
+                            "script"
+                        );
+
+                    script.async = true;
+
+                    script.src =
+                        "https://oauth.telegram.org/js/telegram-login.js?6";
+
+                    document.head.appendChild(
+                        script
+                    );
+                }
+
+
+                const check =
+                    function () {
+
+                        if (
+                            window.Telegram &&
+                            window.Telegram.Login &&
+                            typeof window.Telegram.Login.auth ===
+                                "function"
+                        ) {
+                            resolve();
+                        } else {
+                            reject(
+                                new Error(
+                                    "Telegram Login не загрузился"
+                                )
+                            );
+                        }
+                    };
+
+
+                if (
+                    window.Telegram &&
+                    window.Telegram.Login
+                ) {
+                    check();
+                    return;
+                }
+
+
+                script.addEventListener(
+                    "load",
+                    check,
+                    { once: true }
+                );
+
+                script.addEventListener(
+                    "error",
+                    function () {
+                        reject(
+                            new Error(
+                                "Не удалось загрузить Telegram Login"
+                            )
+                        );
+                    },
+                    { once: true }
+                );
+            }
+        );
+    }
+
+
+    window.linkTelegramAccount =
+        async function () {
+
+            setTelegramLinkStatus(
+                "Открываем Telegram…",
+                false
+            );
+
+
+            try {
+
+                await loadTelegramLoginLibrary();
+
+
+                window.Telegram.Login.auth(
+                    {
+                        client_id:
+                            TELEGRAM_CLIENT_ID,
+
+                        scope: [
+                            "profile"
+                        ],
+
+                        lang:
+                            "ru"
+                    },
+
+                    async function (data) {
+
+                        if (data?.error) {
+
+                            setTelegramLinkStatus(
+                                data.error,
+                                true
+                            );
+
+                            return;
+                        }
+
+
+                        if (!data?.id_token) {
+
+                            setTelegramLinkStatus(
+                                "Telegram не вернул данные авторизации",
+                                true
+                            );
+
+                            return;
+                        }
+
+
+                        setTelegramLinkStatus(
+                            "Подтверждаем привязку…",
+                            false
+                        );
+
+
+                        try {
+
+                            const result =
+                                await api(
+                                    "/account/telegram/oidc-link",
+                                    {
+                                        method:
+                                            "POST",
+
+                                        body:
+                                            JSON.stringify({
+                                                id_token:
+                                                    data.id_token
+                                            })
+                                    }
+                                );
+
+
+                            if (
+                                !result.data ||
+                                !result.data.ok
+                            ) {
+
+                                setTelegramLinkStatus(
+                                    result.data?.error ||
+                                    "Не удалось привязать Telegram",
+                                    true
+                                );
+
+                                return;
+                            }
+
+
+                            const me =
+                                await api(
+                                    "/auth/me"
+                                );
+
+
+                            if (
+                                me.data &&
+                                me.data.ok
+                            ) {
+
+                                currentUser =
+                                    me.data.user;
+
+                                updateProfile();
+                                updateSettings();
+                            }
+
+
+                            setTelegramLinkStatus(
+                                "",
+                                false
+                            );
+
+
+                            alert(
+                                "Telegram успешно привязан"
+                            );
+
+
+                        } catch (error) {
+
+                            console.error(
+                                "Telegram account link:",
+                                error
+                            );
+
+                            setTelegramLinkStatus(
+                                "Нет соединения с сервером",
+                                true
+                            );
+                        }
+                    }
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Telegram Login load:",
+                    error
+                );
+
+                setTelegramLinkStatus(
+                    "Не удалось открыть Telegram Login",
+                    true
+                );
+            }
+        };
+
+})();
+</script>
+
 </body>
 </html>
 

@@ -7,6 +7,7 @@ import {
   tableExists,
 } from "./school-core.js";
 import { getSchoolSettings } from "./commerce.js";
+import { verifyTelegramIdToken } from "./telegram-oidc.js";
 const TTL = 10 * 60 * 1000;
 const digest = async (value) =>
   Array.from(
@@ -42,6 +43,7 @@ export async function handleAccountRequest(request, env, ctx) {
     ![
       "/api/account/connections",
       "/api/account/telegram/link",
+      "/api/account/telegram/oidc-link",
       "/api/account/telegram/unlink",
     ].includes(path)
   )
@@ -59,6 +61,303 @@ export async function handleAccountRequest(request, env, ctx) {
     );
   if (request.method !== "POST")
     throw new HttpError(405, "Метод не поддерживается");
+
+  if (path === "/api/account/telegram/oidc-link") {
+    if (!env.TELEGRAM_CLIENT_ID)
+      throw new HttpError(503, "Telegram Client ID не настроен");
+
+    const body = await request.json();
+
+    let verification;
+
+    try {
+      verification = await verifyTelegramIdToken(
+        body?.id_token,
+        env.TELEGRAM_CLIENT_ID,
+      );
+    } catch (error) {
+      console.error("Telegram OIDC link verify:", error);
+      throw new HttpError(
+        401,
+        "Не удалось подтвердить Telegram",
+      );
+    }
+
+    const telegramId =
+      Number(verification?.user?.id);
+
+    if (
+      !Number.isSafeInteger(telegramId) ||
+      telegramId <= 0
+    )
+      throw new HttpError(
+        401,
+        "Некорректный Telegram ID",
+      );
+
+    const target = await first(
+      env.DB,
+      "SELECT * FROM users WHERE id=?",
+      [user.id],
+    );
+
+    if (!target || target.status !== "active")
+      throw new HttpError(
+        403,
+        "Аккаунт недоступен",
+      );
+
+    if (Number(target.telegram_id) > 0) {
+      if (
+        Number(target.telegram_id) ===
+        telegramId
+      )
+        return ctx.json(
+          {
+            ok: true,
+            ...(await connectionState(
+              env.DB,
+              target.id,
+            )),
+          },
+          200,
+          env,
+        );
+
+      throw new HttpError(
+        409,
+        "К аккаунту уже привязан другой Telegram",
+      );
+    }
+
+    const source = await first(
+      env.DB,
+      "SELECT * FROM users WHERE telegram_id=?",
+      [telegramId],
+    );
+
+    if (
+      source &&
+      source.id !== target.id &&
+      (
+        source.role !== "student" ||
+        source.status !== "active" ||
+        source.login ||
+        source.email_verified_at
+      )
+    )
+      throw new HttpError(
+        409,
+        "Этот Telegram уже связан с отдельным аккаунтом RAUDA ILM",
+      );
+
+    const statements = [];
+
+    /*
+     * Если Telegram уже использовался только
+     * как Telegram-аккаунт без отдельного
+     * логина/почты, переносим его учебные данные.
+     */
+    if (
+      source &&
+      source.id !== target.id
+    ) {
+      const composite = {
+        user_courses: ["course_id"],
+        user_semesters: ["semester_id"],
+        user_program_access: ["program_id"],
+        user_programs: ["program_id"],
+        user_groups: ["group_id"],
+        lesson_progress: ["lesson_id"],
+        school_playback: ["lesson_id"],
+        school_media_progress: [
+          "lesson_id",
+          "file_id",
+        ],
+        assessment_access: [
+          "assessment_type",
+          "assessment_id",
+        ],
+        assessment_retake_permissions: [
+          "assessment_type",
+          "assessment_id",
+        ],
+      };
+
+      for (
+        const [table, keys]
+        of Object.entries(composite)
+      ) {
+        if (
+          !(await tableExists(
+            env.DB,
+            table,
+          ))
+        )
+          continue;
+
+        const cols =
+          (
+            await columns(
+              env.DB,
+              table,
+            )
+          ).filter(
+            c => c !== "id",
+          );
+
+        if (
+          !cols.includes("user_id") ||
+          keys.some(
+            k => !cols.includes(k),
+          )
+        )
+          continue;
+
+        const select =
+          cols.map(
+            c =>
+              c === "user_id"
+                ? "?"
+                : `s.${c}`,
+          );
+
+        statements.push(
+          env.DB.prepare(
+            `INSERT OR IGNORE INTO ${table}(${cols.join(",")})
+             SELECT ${select.join(",")}
+             FROM ${table} s
+             WHERE s.user_id=?`,
+          ).bind(
+            target.id,
+            source.id,
+          ),
+        );
+      }
+
+      for (const table of [
+        "payments",
+        "tribute_orders",
+        "yookassa_orders",
+        "test_attempts",
+        "exam_attempts",
+        "certificates",
+        "school_entitlements",
+        "school_checkout_intents",
+        "school_exam_attempts",
+        "school_certificate_issues",
+        "school_tribute_enrollments",
+        "school_tribute_subscription_checkouts",
+        "school_tribute_group_memberships",
+        "school_orders",
+      ]) {
+        if (
+          (await tableExists(
+            env.DB,
+            table,
+          )) &&
+          (
+            await columns(
+              env.DB,
+              table,
+            )
+          ).includes("user_id")
+        ) {
+          statements.push(
+            env.DB.prepare(
+              `UPDATE ${table}
+               SET user_id=?
+               WHERE user_id=?`,
+            ).bind(
+              target.id,
+              source.id,
+            ),
+          );
+        }
+      }
+
+      const min = await first(
+        env.DB,
+        "SELECT MIN(telegram_id) AS value FROM users",
+      );
+
+      const synthetic =
+        Math.min(
+          -1,
+          Number(min?.value || 0) - 1,
+        );
+
+      statements.push(
+        env.DB.prepare(
+          `UPDATE users
+           SET
+             telegram_id=?,
+             status='blocked',
+             blocked_reason='Аккаунт перенесён при подтверждённой привязке',
+             updated_at=CURRENT_TIMESTAMP
+           WHERE id=?
+             AND role='student'`,
+        ).bind(
+          synthetic,
+          source.id,
+        ),
+      );
+
+      statements.push(
+        env.DB.prepare(
+          "DELETE FROM auth_sessions WHERE user_id=?",
+        ).bind(source.id),
+      );
+    }
+
+    statements.push(
+      env.DB.prepare(
+        `UPDATE users
+         SET
+           telegram_id=?,
+           updated_at=CURRENT_TIMESTAMP
+         WHERE id=?`,
+      ).bind(
+        telegramId,
+        target.id,
+      ),
+    );
+
+    statements.push(
+      env.DB.prepare(
+        `INSERT INTO school_account_events(
+           user_id,
+           action,
+           telegram_id
+         )
+         VALUES(
+           ?,
+           'telegram_linked',
+           ?
+         )`,
+      ).bind(
+        target.id,
+        telegramId,
+      ),
+    );
+
+    await env.DB.batch(
+      statements,
+    );
+
+    return ctx.json(
+      {
+        ok: true,
+        ...(await connectionState(
+          env.DB,
+          target.id,
+        )),
+      },
+      200,
+      env,
+    );
+  }
+
   if (path.endsWith("/link")) {
     if (Number(user.telegram_id) > 0)
       throw new HttpError(409, "Telegram уже привязан");
