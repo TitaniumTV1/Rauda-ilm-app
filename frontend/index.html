@@ -7195,6 +7195,40 @@ a,
 
 </style>
         
+
+<style id="rauda-student-group-v1">
+.rauda-group-page{display:grid;gap:14px}
+.rauda-group-head{padding:18px;border:1px solid #e4dbc7;border-radius:17px;background:linear-gradient(145deg,#183d2c,#214d39);color:#fff}
+.rauda-group-kicker{font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:#ddc27d}
+.rauda-group-title{margin-top:5px;font-size:21px;font-weight:850}
+.rauda-group-subtitle{margin-top:5px;font-size:12px;line-height:1.45;color:rgba(255,255,255,.68)}
+.rauda-group-selector{display:flex;gap:8px;overflow-x:auto;padding:1px 1px 5px;scrollbar-width:none}
+.rauda-group-selector::-webkit-scrollbar{display:none}
+.rauda-group-chip{flex:0 0 auto;border:1px solid #ded3bb;border-radius:999px;padding:8px 12px;background:#fffdf8;color:#6f654f;font-size:12px;font-weight:750}
+.rauda-group-chip.active{border-color:#c6a45f;background:#183d2c;color:#fff}
+.rauda-group-tabs{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+.rauda-group-tabs::-webkit-scrollbar{display:none}
+.rauda-group-tab{flex:0 0 auto;border:1px solid #e2d8c3;border-radius:10px;padding:10px 12px;background:#fffdf8;color:#777166;font-size:12px;font-weight:750}
+.rauda-group-tab.active{border-color:#183d2c;background:#183d2c;color:#fff}
+.rauda-group-panel{display:none}
+.rauda-group-panel.active{display:block}
+.rauda-group-card{padding:16px;border:1px solid #e5dcc8;border-radius:15px;background:#fffdf8}
+.rauda-group-empty{padding:28px 16px;border:1px dashed #d9ccb1;border-radius:15px;background:#faf6ed;text-align:center;color:#858078;font-size:13px;line-height:1.55}
+.rauda-group-empty strong{display:block;margin-bottom:5px;color:#183d2c;font-size:15px}
+.rauda-group-info-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #eee6d7;font-size:12px}
+.rauda-group-info-row:last-child{border-bottom:0}
+.rauda-group-info-row span:first-child{color:#908a7d}
+.rauda-group-info-row span:last-child{color:#183d2c;font-weight:750;text-align:right}
+.rauda-group-stat{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.rauda-group-stat-number{font-size:30px;font-weight:850;color:#183d2c}
+.rauda-group-stat-label{color:#8b867b;font-size:12px;text-align:right}
+@media(max-width:420px){
+  .rauda-group-head{padding:16px}
+  .rauda-group-title{font-size:19px}
+  .rauda-group-tab{padding:9px 10px;font-size:11px}
+}
+</style>
+
 </head>
     <body>
 <div id="authApp" class="auth-screen">
@@ -7824,6 +7858,161 @@ a,
     >
         Выйти из аккаунта
     </button>
+
+</section>
+
+
+<!-- GROUP -->
+
+<section id="groupScreen" class="screen">
+
+    <button
+        class="back-button"
+        onclick="showScreen('homeScreen')"
+    >
+        ← Назад
+    </button>
+
+    <div class="rauda-group-page">
+
+        <div
+            id="groupScreenState"
+            class="rauda-group-empty"
+        >
+            Загружаем информацию о группе...
+        </div>
+
+        <div
+            id="groupScreenContent"
+            style="display:none"
+        >
+
+            <div class="rauda-group-head">
+                <div class="rauda-group-kicker">
+                    RAUDA ILM · учебная группа
+                </div>
+
+                <div
+                    id="groupScreenTitle"
+                    class="rauda-group-title"
+                >
+                    Группа
+                </div>
+
+                <div
+                    id="groupScreenSubtitle"
+                    class="rauda-group-subtitle"
+                ></div>
+            </div>
+
+            <div
+                id="groupSelector"
+                class="rauda-group-selector"
+                style="margin-top:12px"
+            ></div>
+
+            <div
+                class="rauda-group-tabs"
+                style="margin-top:12px"
+            >
+
+                <button
+                    type="button"
+                    class="rauda-group-tab active"
+                    data-group-tab="questions"
+                    onclick="switchGroupTab('questions')"
+                >
+                    Вопросы
+                </button>
+
+                <button
+                    type="button"
+                    class="rauda-group-tab"
+                    data-group-tab="notes"
+                    onclick="switchGroupTab('notes')"
+                >
+                    Конспекты
+                </button>
+
+                <button
+                    type="button"
+                    class="rauda-group-tab"
+                    data-group-tab="rating"
+                    onclick="switchGroupTab('rating')"
+                >
+                    Рейтинг
+                </button>
+
+                <button
+                    type="button"
+                    class="rauda-group-tab"
+                    data-group-tab="info"
+                    onclick="switchGroupTab('info')"
+                >
+                    Орг. информация
+                </button>
+
+            </div>
+
+            <div
+                id="groupPanelQuestions"
+                class="rauda-group-panel active"
+                style="margin-top:12px"
+            >
+                <div class="rauda-group-empty">
+                    <strong>Вопросы группы</strong>
+                    Здесь будут отображаться вопросы и сообщения учебной группы.
+                </div>
+            </div>
+
+            <div
+                id="groupPanelNotes"
+                class="rauda-group-panel"
+                style="margin-top:12px"
+            >
+                <div class="rauda-group-empty">
+                    <strong>Конспекты</strong>
+                    Материалы и конспекты группы будут доступны здесь.
+                </div>
+            </div>
+
+            <div
+                id="groupPanelRating"
+                class="rauda-group-panel"
+                style="margin-top:12px"
+            >
+                <div class="rauda-group-card">
+                    <div class="rauda-group-stat">
+
+                        <div
+                            id="groupMemberCount"
+                            class="rauda-group-stat-number"
+                        >
+                            0
+                        </div>
+
+                        <div class="rauda-group-stat-label">
+                            участников<br>в группе
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div
+                id="groupPanelInfo"
+                class="rauda-group-panel"
+                style="margin-top:12px"
+            >
+                <div
+                    id="groupInfoCard"
+                    class="rauda-group-card"
+                ></div>
+            </div>
+
+        </div>
+
+    </div>
 
 </section>
 
@@ -8539,6 +8728,13 @@ a,
     onclick="openScience()"
 >
     🔬 Научные материалы
+</button>
+
+<button
+    class="menu-item"
+    onclick="openGroup()"
+>
+    👥 Группа
 </button>
 
 <button
@@ -11116,6 +11312,320 @@ await loadCourses();
         showScreen(
             "scienceScreen"
         );
+    }
+
+
+    let raudaStudentGroups = [];
+    let raudaCurrentGroupId = null;
+
+
+    async function openGroup() {
+
+        closeMenu();
+
+        showScreen(
+            "groupScreen"
+        );
+
+        await loadGroupScreen();
+    }
+
+
+    function switchGroupTab(tab) {
+
+        document
+            .querySelectorAll(
+                "[data-group-tab]"
+            )
+            .forEach(
+                button =>
+                    button.classList.toggle(
+                        "active",
+                        button.dataset.groupTab === tab
+                    )
+            );
+
+
+        const panels = {
+            questions: "groupPanelQuestions",
+            notes: "groupPanelNotes",
+            rating: "groupPanelRating",
+            info: "groupPanelInfo"
+        };
+
+
+        Object.entries(
+            panels
+        ).forEach(
+            ([key, id]) => {
+
+                document
+                    .getElementById(
+                        id
+                    )
+                    ?.classList.toggle(
+                        "active",
+                        key === tab
+                    );
+            }
+        );
+    }
+
+
+    function renderStudentGroup(
+        group
+    ) {
+
+        if (!group) {
+            return;
+        }
+
+
+        raudaCurrentGroupId =
+            Number(
+                group.id
+            );
+
+
+        document
+            .getElementById(
+                "groupScreenTitle"
+            )
+            .textContent =
+            group.name ||
+            "Группа";
+
+
+        const subtitle = [
+            group.cohort || "",
+            group.semester_id
+                ? "Семестр " +
+                  group.semester_id
+                : ""
+        ]
+            .filter(Boolean)
+            .join(" · ");
+
+
+        document
+            .getElementById(
+                "groupScreenSubtitle"
+            )
+            .textContent =
+            subtitle ||
+            "Учебная группа RAUDA ILM";
+
+
+        document
+            .getElementById(
+                "groupMemberCount"
+            )
+            .textContent =
+            Number(
+                group.member_count
+            ) || 0;
+
+
+        const info = [
+            [
+                "Название",
+                group.name || "—"
+            ],
+            [
+                "Поток",
+                group.cohort || "—"
+            ],
+            [
+                "Курс",
+                group.course_id || "—"
+            ],
+            [
+                "Программа",
+                group.program_id || "—"
+            ],
+            [
+                "Семестр",
+                group.semester_id || "—"
+            ]
+        ];
+
+
+        document
+            .getElementById(
+                "groupInfoCard"
+            )
+            .innerHTML =
+            info
+                .map(
+                    ([label, value]) => `
+                        <div class="rauda-group-info-row">
+                            <span>${escapeHtml(label)}</span>
+                            <span>${escapeHtml(value)}</span>
+                        </div>
+                    `
+                )
+                .join("");
+
+
+        document
+            .querySelectorAll(
+                "#groupSelector .rauda-group-chip"
+            )
+            .forEach(
+                button =>
+                    button.classList.toggle(
+                        "active",
+                        Number(
+                            button.dataset.groupId
+                        ) ===
+                        Number(
+                            group.id
+                        )
+                    )
+            );
+    }
+
+
+    async function loadGroupScreen() {
+
+        const state =
+            document.getElementById(
+                "groupScreenState"
+            );
+
+        const content =
+            document.getElementById(
+                "groupScreenContent"
+            );
+
+
+        state.style.display =
+            "block";
+
+        content.style.display =
+            "none";
+
+        state.innerHTML =
+            "Загружаем информацию о группе...";
+
+
+        try {
+
+            const result =
+                await api(
+                    "/learning/groups"
+                );
+
+
+            if (
+                !result.data ||
+                !result.data.ok
+            ) {
+
+                throw new Error(
+                    result.data?.error ||
+                    "Не удалось загрузить группу"
+                );
+            }
+
+
+            raudaStudentGroups =
+                Array.isArray(
+                    result.data.groups
+                )
+                    ? result.data.groups
+                    : [];
+
+
+            if (
+                !raudaStudentGroups.length
+            ) {
+
+                state.innerHTML = `
+                    <strong>
+                        Пользователь не привязан к группе / потоку
+                    </strong>
+
+                    После привязки к учебной группе
+                    информация появится здесь.
+                `;
+
+                return;
+            }
+
+
+            const selector =
+                document.getElementById(
+                    "groupSelector"
+                );
+
+
+            selector.innerHTML =
+                raudaStudentGroups
+                    .map(
+                        group => `
+                            <button
+                                type="button"
+                                class="rauda-group-chip"
+                                data-group-id="${Number(group.id)}"
+                                onclick="renderStudentGroup(
+                                    raudaStudentGroups.find(
+                                        item =>
+                                            Number(item.id) ===
+                                            ${Number(group.id)}
+                                    )
+                                )"
+                            >
+                                ${escapeHtml(
+                                    group.name ||
+                                    "Группа"
+                                )}
+                            </button>
+                        `
+                    )
+                    .join("");
+
+
+            state.style.display =
+                "none";
+
+            content.style.display =
+                "block";
+
+
+            renderStudentGroup(
+                raudaStudentGroups.find(
+                    group =>
+                        Number(group.id) ===
+                        Number(
+                            raudaCurrentGroupId
+                        )
+                ) ||
+                raudaStudentGroups[0]
+            );
+
+
+            switchGroupTab(
+                "questions"
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Group screen error:",
+                error
+            );
+
+
+            state.innerHTML = `
+                <strong>
+                    Не удалось загрузить группу
+                </strong>
+
+                Попробуйте открыть раздел ещё раз.
+            `;
+        }
     }
 
 
