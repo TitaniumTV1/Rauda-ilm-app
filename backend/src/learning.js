@@ -14,7 +14,17 @@ const schema = [
     `CREATE TABLE IF NOT EXISTS school_certificate_rules (course_id INTEGER PRIMARY KEY REFERENCES courses(id) ON DELETE CASCADE, require_progress INTEGER NOT NULL DEFAULT 1, title TEXT NOT NULL DEFAULT 'Сертификат об окончании', issuer TEXT NOT NULL DEFAULT 'RAUDA ILM', accent TEXT NOT NULL DEFAULT '#126b55', footer TEXT NOT NULL DEFAULT 'Выдан по результатам обучения')`,
     `CREATE TABLE IF NOT EXISTS school_learning_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
     `CREATE TABLE IF NOT EXISTS school_telegram_exam_answers (telegram_id TEXT NOT NULL, attempt_id INTEGER NOT NULL REFERENCES school_exam_attempts(attempt_id) ON DELETE CASCADE, answers_json TEXT NOT NULL DEFAULT '{}', question_index INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(telegram_id,attempt_id))`,
-    `CREATE TABLE IF NOT EXISTS assessment_access (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, assessment_type TEXT NOT NULL CHECK(assessment_type IN ('test','exam')), assessment_id INTEGER NOT NULL, is_open INTEGER, extra_attempts INTEGER NOT NULL DEFAULT 0, opens_at TEXT, closes_at TEXT, reason TEXT, granted_by INTEGER REFERENCES users(id) ON DELETE SET NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id,assessment_type,assessment_id))`
+    `CREATE TABLE IF NOT EXISTS assessment_access (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, assessment_type TEXT NOT NULL CHECK(assessment_type IN ('test','exam')), assessment_id INTEGER NOT NULL, is_open INTEGER, extra_attempts INTEGER NOT NULL DEFAULT 0, opens_at TEXT, closes_at TEXT, reason TEXT, granted_by INTEGER REFERENCES users(id) ON DELETE SET NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id,assessment_type,assessment_id))`,
+    `CREATE TABLE IF NOT EXISTS school_group_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        body TEXT NOT NULL,
+        is_deleted INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE INDEX IF NOT EXISTS school_group_messages_group_id
+        ON school_group_messages(group_id,id)`
 ];
 const initialized = new WeakMap();
 export async function ensureLearningSchema(db) {
@@ -243,6 +253,188 @@ export async function listLearningGroups(db, user, admin = false) {
         ${admin ? '' : 'WHERE COALESCE(s.is_active,1)=1 AND EXISTS(SELECT 1 FROM user_groups ug WHERE ug.group_id=g.id AND ug.user_id=?)'} ORDER BY g.id DESC`, admin ? [] : [user.id]);
     return admin?filterAdminCourses(db,user,rows):rows;
 }
+
+async function studentGroup(
+    db,
+    user,
+    id
+) {
+    const groupId =
+        positive(
+            id,
+            "группы"
+        );
+
+    const group =
+        await first(
+            db,
+            `
+            SELECT
+                g.*,
+                s.program_id,
+                s.semester_id,
+                s.cohort,
+                COALESCE(
+                    s.is_active,
+                    1
+                ) AS is_active
+            FROM groups g
+            LEFT JOIN school_group_scopes s
+                ON s.group_id = g.id
+            JOIN user_groups ug
+                ON ug.group_id = g.id
+            WHERE
+                g.id = ?
+                AND ug.user_id = ?
+                AND COALESCE(
+                    s.is_active,
+                    1
+                ) = 1
+            LIMIT 1
+            `,
+            [
+                groupId,
+                user.id
+            ]
+        );
+
+    if (!group) {
+        throw new HttpError(
+            404,
+            "Группа не найдена или доступ закрыт"
+        );
+    }
+
+    return group;
+}
+
+
+async function listGroupMessages(
+    db,
+    user,
+    id
+) {
+    const group =
+        await studentGroup(
+            db,
+            user,
+            id
+        );
+
+    const messages =
+        await all(
+            db,
+            `
+            SELECT *
+            FROM (
+                SELECT
+                    m.id,
+                    m.group_id,
+                    m.user_id,
+                    m.body,
+                    m.created_at,
+                    u.first_name,
+                    u.last_name,
+                    u.username,
+                    u.role
+                FROM school_group_messages m
+                JOIN users u
+                    ON u.id = m.user_id
+                WHERE
+                    m.group_id = ?
+                    AND m.is_deleted = 0
+                ORDER BY m.id DESC
+                LIMIT 100
+            )
+            ORDER BY id ASC
+            `,
+            [
+                group.id
+            ]
+        );
+
+    return messages;
+}
+
+
+async function createGroupMessage(
+    db,
+    user,
+    id,
+    input
+) {
+    const group =
+        await studentGroup(
+            db,
+            user,
+            id
+        );
+
+    const message =
+        String(
+            input?.body ?? ""
+        ).trim();
+
+    if (!message) {
+        throw new HttpError(
+            400,
+            "Введите сообщение"
+        );
+    }
+
+    if (message.length > 3000) {
+        throw new HttpError(
+            400,
+            "Сообщение не должно превышать 3000 символов"
+        );
+    }
+
+    const result =
+        await run(
+            db,
+            `
+            INSERT INTO school_group_messages (
+                group_id,
+                user_id,
+                body
+            )
+            VALUES (?, ?, ?)
+            `,
+            [
+                group.id,
+                user.id,
+                message
+            ]
+        );
+
+    return first(
+        db,
+        `
+        SELECT
+            m.id,
+            m.group_id,
+            m.user_id,
+            m.body,
+            m.created_at,
+            u.first_name,
+            u.last_name,
+            u.username,
+            u.role
+        FROM school_group_messages m
+        JOIN users u
+            ON u.id = m.user_id
+        WHERE m.id = ?
+        LIMIT 1
+        `,
+        [
+            Number(
+                result.meta.last_row_id
+            )
+        ]
+    );
+}
+
+
 async function saveGroup(db, user, input, id) {
     await requirePermission(db, user, 'groups');
     const existing = id ? (await listLearningGroups(db, user, true)).find(g => g.id === id) : {};
@@ -607,6 +799,34 @@ export async function handleLearningRequest(request,env,ctx={}) {
             if(method==='DELETE'&&id){const item=await record(db,table,id);await scopePermission(db,user,'courses',table==='courses'?item.id:item.course_id);await run(db,`UPDATE ${table} SET ${table==='lessons'?'is_visible':'is_active'}=0 WHERE id=?`,[id]);await audit(db,user,'learning.hide',table,id);return response({archived:true});}
         }
         if(path==='/api/learning/groups'&&method==='GET')return response({groups:await listLearningGroups(db,user)});
+
+        if((match=path.match(/^\/api\/learning\/groups\/(\d+)\/messages$/))){
+            const id=Number(match[1]);
+
+            if(method==='GET')
+                return response({
+                    messages:
+                        await listGroupMessages(
+                            db,
+                            user,
+                            id
+                        )
+                });
+
+            if(method==='POST')
+                return response(
+                    {
+                        message:
+                            await createGroupMessage(
+                                db,
+                                user,
+                                id,
+                                await body(request)
+                            )
+                    },
+                    201
+                );
+        }
         if(path==='/api/admin/learning/groups'&&method==='GET')return response({groups:await listLearningGroups(db,user,true)});
         if(path==='/api/admin/learning/groups'&&method==='POST')return response({item:await saveGroup(db,user,await body(request),null)},201);
         if((match=path.match(/^\/api\/admin\/learning\/groups\/(\d+)$/))){

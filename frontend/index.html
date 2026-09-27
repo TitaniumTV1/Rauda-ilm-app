@@ -7229,6 +7229,78 @@ a,
 }
 </style>
 
+
+<style id="rauda-group-messages-v1">
+
+.rauda-group-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    max-height: 460px;
+    overflow-y: auto;
+
+    padding-right: 2px;
+}
+
+.rauda-group-message {
+    padding: 12px 13px;
+
+    border: 1px solid #e2d7bf;
+    border-radius: 12px;
+
+    background: #fffdf8;
+}
+
+.rauda-group-message-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-bottom: 6px;
+
+    font-size: 12px;
+}
+
+.rauda-group-message-author {
+    color: #183d2c;
+    font-weight: 750;
+}
+
+.rauda-group-message-time {
+    color: #969287;
+    white-space: nowrap;
+}
+
+.rauda-group-message-body {
+    color: #2a342e;
+
+    font-size: 14px;
+    line-height: 1.55;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.rauda-group-compose {
+    margin-top: 14px;
+
+    padding-top: 14px;
+
+    border-top: 1px solid #e5dcc8;
+}
+
+.rauda-group-compose textarea {
+    resize: vertical;
+    min-height: 82px;
+}
+
+.rauda-group-compose .primary-button {
+    width: 100%;
+}
+
+</style>
+
 </head>
     <body>
 <div id="authApp" class="auth-screen">
@@ -7959,9 +8031,38 @@ a,
                 class="rauda-group-panel active"
                 style="margin-top:12px"
             >
-                <div class="rauda-group-empty">
-                    <strong>Вопросы группы</strong>
-                    Здесь будут отображаться вопросы и сообщения учебной группы.
+                <div class="rauda-group-card">
+
+                    <div
+                        id="groupMessagesList"
+                        class="rauda-group-messages"
+                    >
+                        <div class="rauda-group-empty">
+                            Загружаем сообщения...
+                        </div>
+                    </div>
+
+                    <div class="rauda-group-compose">
+
+                        <textarea
+                            id="groupMessageInput"
+                            class="input"
+                            rows="3"
+                            maxlength="3000"
+                            placeholder="Напишите вопрос или сообщение..."
+                        ></textarea>
+
+                        <button
+                            type="button"
+                            class="primary-button"
+                            id="groupMessageSendButton"
+                            onclick="sendGroupMessage()"
+                        >
+                            Отправить
+                        </button>
+
+                    </div>
+
                 </div>
             </div>
 
@@ -11460,6 +11561,332 @@ await loadCourses();
     }
 
 
+
+    function groupMessageAuthor(message) {
+
+        const fullName =
+            [
+                message.first_name || "",
+                message.last_name || ""
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .trim();
+
+        if (fullName) {
+            return fullName;
+        }
+
+        if (message.username) {
+            return "@" + message.username;
+        }
+
+        return "Ученик";
+    }
+
+
+    function groupMessageDate(value) {
+
+        if (!value) {
+            return "";
+        }
+
+        const date =
+            new Date(
+                String(value).replace(
+                    " ",
+                    "T"
+                ) + "Z"
+            );
+
+        if (
+            !Number.isFinite(
+                date.getTime()
+            )
+        ) {
+            return "";
+        }
+
+        return date.toLocaleString(
+            "ru-RU",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+    }
+
+
+    function renderGroupMessages(messages) {
+
+        const container =
+            document.getElementById(
+                "groupMessagesList"
+            );
+
+        if (!container) {
+            return;
+        }
+
+
+        if (
+            !Array.isArray(messages) ||
+            !messages.length
+        ) {
+
+            container.innerHTML = `
+                <div class="rauda-group-empty">
+                    <strong>Пока нет сообщений</strong>
+                    Задайте первый вопрос в своей группе.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        container.innerHTML =
+            messages
+                .map(
+                    message => `
+                        <div class="rauda-group-message">
+
+                            <div class="rauda-group-message-head">
+
+                                <span class="rauda-group-message-author">
+                                    ${escapeHtml(
+                                        groupMessageAuthor(
+                                            message
+                                        )
+                                    )}
+                                </span>
+
+                                <span class="rauda-group-message-time">
+                                    ${escapeHtml(
+                                        groupMessageDate(
+                                            message.created_at
+                                        )
+                                    )}
+                                </span>
+
+                            </div>
+
+                            <div class="rauda-group-message-body">${escapeHtml(
+                                message.body || ""
+                            )}</div>
+
+                        </div>
+                    `
+                )
+                .join("");
+
+
+        container.scrollTop =
+            container.scrollHeight;
+    }
+
+
+    async function loadGroupMessages(
+        groupId
+    ) {
+
+        const id =
+            Number(groupId);
+
+        if (
+            !Number.isSafeInteger(id) ||
+            id <= 0
+        ) {
+            return;
+        }
+
+
+        const container =
+            document.getElementById(
+                "groupMessagesList"
+            );
+
+        if (container) {
+            container.innerHTML = `
+                <div class="rauda-group-empty">
+                    Загружаем сообщения...
+                </div>
+            `;
+        }
+
+
+        try {
+
+            const result =
+                await api(
+                    "/learning/groups/" +
+                    id +
+                    "/messages"
+                );
+
+
+            if (
+                !result.data ||
+                !result.data.ok
+            ) {
+                throw new Error(
+                    result.data?.error ||
+                    "Не удалось загрузить сообщения"
+                );
+            }
+
+
+            /*
+             * Защита от переключения на другой поток,
+             * пока предыдущий запрос ещё выполнялся.
+             */
+            if (
+                Number(
+                    raudaCurrentGroupId
+                ) !== id
+            ) {
+                return;
+            }
+
+
+            renderGroupMessages(
+                result.data.messages || []
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Group messages:",
+                error
+            );
+
+
+            if (container) {
+                container.innerHTML = `
+                    <div class="rauda-group-empty">
+                        <strong>
+                            Не удалось загрузить сообщения
+                        </strong>
+                        Попробуйте открыть вкладку ещё раз.
+                    </div>
+                `;
+            }
+        }
+    }
+
+
+    async function sendGroupMessage() {
+
+        const groupId =
+            Number(
+                raudaCurrentGroupId
+            );
+
+        if (
+            !Number.isSafeInteger(
+                groupId
+            ) ||
+            groupId <= 0
+        ) {
+            return;
+        }
+
+
+        const input =
+            document.getElementById(
+                "groupMessageInput"
+            );
+
+        const button =
+            document.getElementById(
+                "groupMessageSendButton"
+            );
+
+        const message =
+            input
+                ? input.value.trim()
+                : "";
+
+
+        if (!message) {
+            return;
+        }
+
+
+        if (button) {
+            button.disabled = true;
+            button.textContent =
+                "Отправляем...";
+        }
+
+
+        try {
+
+            const result =
+                await api(
+                    "/learning/groups/" +
+                    groupId +
+                    "/messages",
+                    {
+                        method: "POST",
+
+                        body:
+                            JSON.stringify({
+                                body:
+                                    message
+                            })
+                    }
+                );
+
+
+            if (
+                !result.data ||
+                !result.data.ok
+            ) {
+                throw new Error(
+                    result.data?.error ||
+                    "Не удалось отправить сообщение"
+                );
+            }
+
+
+            if (input) {
+                input.value = "";
+            }
+
+
+            await loadGroupMessages(
+                groupId
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Send group message:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Не удалось отправить сообщение"
+            );
+
+
+        } finally {
+
+            if (button) {
+                button.disabled = false;
+                button.textContent =
+                    "Отправить";
+            }
+        }
+    }
+
+
     function renderStudentGroup(
         group
     ) {
@@ -11473,6 +11900,10 @@ await loadCourses();
             Number(
                 group.id
             );
+
+        loadGroupMessages(
+            raudaCurrentGroupId
+        );
 
 
         document
@@ -11631,11 +12062,11 @@ await loadCourses();
 
                 state.innerHTML = `
                     <strong>
-                        Пользователь не привязан к группе / потоку
+                        Пользователь не привязан к потоку
                     </strong>
 
-                    После привязки к учебной группе
-                    информация появится здесь.
+                    После привязки к потоку
+                    здесь появятся материалы группы.
                 `;
 
                 return;
