@@ -13139,6 +13139,9 @@ function setRegisterMethod(method) {
         science:
             "\u041d\u0430\u0443\u0447\u043d\u044b\u0435 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b",
 
+        group:
+            "\u0413\u0440\u0443\u043f\u043f\u0430",
+
         settings:
             "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438",
 
@@ -13270,6 +13273,13 @@ function setRegisterMethod(method) {
             }
 
             else if (
+                section === "group" &&
+                typeof openGroup === "function"
+            ) {
+                openGroup();
+            }
+
+            else if (
                 section === "settings" &&
                 typeof openSettings === "function"
             ) {
@@ -13323,6 +13333,15 @@ function setRegisterMethod(method) {
                 '<path d="M9 3h6"></path>' +
                 '<path d="M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3"></path>' +
                 '<path d="M8 15h8"></path>'
+            );
+
+
+        var groupIcon =
+            svg(
+                '<circle cx="9" cy="8" r="3"></circle>' +
+                '<circle cx="17" cy="9" r="2.5"></circle>' +
+                '<path d="M3 20c0-4 2.5-6 6-6s6 2 6 6"></path>' +
+                '<path d="M15 15c3 0 5 1.7 5 5"></path>'
             );
 
 
@@ -13435,6 +13454,19 @@ function setRegisterMethod(method) {
                     scienceIcon +
                     '<span>' +
                         TXT.science +
+                    '</span>' +
+
+                '</button>' +
+
+
+                '<button ' +
+                    'type="button" ' +
+                    'class="rauda-menu-item" ' +
+                    'onclick="raudaMenuGo(this, \'group\')">' +
+
+                    groupIcon +
+                    '<span>' +
+                        TXT.group +
                     '</span>' +
 
                 '</button>' +
