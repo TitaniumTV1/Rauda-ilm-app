@@ -233,6 +233,10 @@ async function handleMessage(env, message) {
 
     await ensureBotStates(env);
 
+    if (command === "/support" || command === "/paysupport") {
+        return handleCallback(env, {from: message.from, message, data: "support"}, true);
+    }
+
     if (command === "/start") {
     await setTributeProductEditWaiting(
         env,
@@ -259,6 +263,10 @@ async function handleMessage(env, message) {
         chatId,
         message.message_id
     );
+
+    if (text.split(/\s+/)[1] === "support") {
+        return handleCallback(env, {from: message.from, message, data: "support"}, true);
+    }
 
     return sendWelcome(
         env,
