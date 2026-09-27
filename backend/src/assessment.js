@@ -2024,11 +2024,7 @@ async function handleAdminAssessmentDashboard(
             {
                 ok: true,
 
-                students,
-                books,
-                tests,
-                exams,
-                overrides
+                ...await scopeAssessmentDashboard(env.DB, auth.user, {students,books,tests,exams,overrides})
             },
             200,
             env
@@ -3976,4 +3972,14 @@ async function handleDetailedGrades(
             env
         );
     }
+}
+
+async function scopeAssessmentDashboard(db,user,data) {
+    if(user.role !== 'admin') return data;
+    const scopes=await dbAll(db,'SELECT course_id FROM admin_courses WHERE admin_id=?',[user.id]);
+    if(!scopes.length) return data;
+    const allowed=row=>scopes.some(s=>Number(s.course_id)===Number(row.course_id));
+    const tests=data.tests.filter(allowed),exams=data.exams.filter(allowed);
+    return {...data,books:data.books.filter(allowed),tests,exams,
+        overrides:data.overrides.filter(r=>(r.assessment_type==='test'?tests:exams).some(a=>Number(a.id)===Number(r.assessment_id)))};
 }
