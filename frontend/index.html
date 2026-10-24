@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rauda Ilm — Онлайн-школа</title>
+  <title>Рауда Ильм — Онлайн-школа</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -90,25 +90,11 @@
       user-select: none;
     }
 
-    .brand-logo-box {
-      border: 2px solid var(--gold-primary);
-      background: var(--bg-pill-active);
-      border-radius: 8px;
-      padding: 4px 12px;
-      color: var(--gold-dark);
-      font-weight: 800;
-      font-size: 15px;
-      letter-spacing: 1.5px;
-      line-height: 1.1;
-    }
-
-    .brand-sub {
-      font-size: 9px;
-      color: var(--gold-primary);
-      letter-spacing: 2px;
-      margin-top: 3px;
-      font-weight: 700;
-      text-transform: uppercase;
+    .brand img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      display: block;
     }
 
     .nav-links {
@@ -1370,8 +1356,7 @@
   <header class="navbar">
     <div class="navbar-inner">
       <div class="brand" onclick="navigate('home')">
-        <div class="brand-logo-box">Rauda</div>
-        <div class="brand-sub">Ilm</div>
+        <img src="./img/logo.png" alt="Rauda Ilm" />
       </div>
 
       <nav class="nav-links">
