@@ -1,3 +1,21 @@
+import {hasPermission as sharedPermission} from './school-core.js';
+// null courseIds means all courses; otherwise the administrator is scoped.
+export async function getBotCourseScope(env, telegramId) {
+    const user = await getTelegramUser(env, telegramId);
+    if (!user || !await sharedPermission(env.DB, user, 'courses')) return { allowed: false, courseIds: [], user };
+    if (user.role === 'owner' || user.role === 'superadmin') return { allowed: true, courseIds: null, user };
+    const result = await env.DB.prepare('SELECT course_id FROM admin_courses WHERE admin_id=?').bind(user.id).all();
+    const ids = (result.results || []).map(row => Number(row.course_id));
+    return { allowed: true, courseIds: ids.length ? ids : null, user };
+}
+export async function hasBotCourseAccess(env, telegramId, courseId) {
+    const scope = await getBotCourseScope(env, telegramId);
+    return scope.allowed && (scope.courseIds === null || scope.courseIds.includes(Number(courseId)));
+}
+export async function canCreateBotCourse(env, telegramId) {
+    const scope = await getBotCourseScope(env, telegramId);
+    return scope.allowed && scope.courseIds === null;
+}
 export async function syncTelegramUser(env, telegramUser) {
     if (!env.DB || !telegramUser?.id) {
         return null;
@@ -119,33 +137,8 @@ export async function getBotAccess(
     env,
     telegramId
 ) {
-    const isOwner =
-        String(telegramId) ===
-        String(env.OWNER_TELEGRAM_ID);
-
-    if (isOwner) {
-        return {
-            allowed: true,
-            isOwner: true,
-            isAdmin: true,
-            role: "owner"
-        };
-    }
-
-    const user = await getTelegramUser(
-        env,
-        telegramId
-    );
-
-    if (!user) {
-        return {
-            allowed: false,
-            isOwner: false,
-            isAdmin: false,
-            role: "student"
-        };
-    }
-
+    const user = await getTelegramUser(env,telegramId);
+    if(!user || user.status!=='active') return {allowed:false,isOwner:false,isAdmin:false,role:'student',user};
     const isAdmin =
         user.role === "admin" ||
         user.role === "superadmin" ||
@@ -313,34 +306,8 @@ export async function hasPermission(
     telegramId,
     permission
 ) {
-    const access = await getBotAccess(
-        env,
-        telegramId
-    );
-
-    if (access.isOwner) {
-        return true;
-    }
-
-    if (!access.isAdmin || !access.user?.id) {
-        return false;
-    }
-
-    const row = await env.DB
-        .prepare(`
-            SELECT permission
-            FROM admin_permissions
-            WHERE admin_id = ?
-              AND permission = ?
-            LIMIT 1
-        `)
-        .bind(
-            access.user.id,
-            permission
-        )
-        .first();
-
-    return Boolean(row);
+    const user=await getTelegramUser(env,telegramId);
+    return sharedPermission(env.DB,user,permission);
 }
 
 

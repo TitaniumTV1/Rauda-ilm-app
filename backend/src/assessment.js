@@ -3557,6 +3557,11 @@ async function handleDetailedGrades(
                         row.course_id
                     ),
 
+                semester_id:
+                    row.semester_id === null || row.semester_id === undefined
+                        ? null
+                        : Number(row.semester_id),
+
                 course_name:
                     row.course_name ||
                     null,
@@ -3688,6 +3693,11 @@ async function handleDetailedGrades(
                         row.course_id
                     ),
 
+                semester_id:
+                    row.semester_id === null || row.semester_id === undefined
+                        ? null
+                        : Number(row.semester_id),
+
                 course_name:
                     row.course_name ||
                     null,
@@ -3786,6 +3796,9 @@ async function handleDetailedGrades(
                 course_id:
                     first.course_id,
 
+                semester_id:
+                    first.semester_id,
+
                 subject_id:
                     first.subject_id,
 
@@ -3841,6 +3854,9 @@ async function handleDetailedGrades(
 
                 title:
                     first.title,
+
+                semester_id:
+                    first.semester_id,
 
                 course: {
                     id:
