@@ -21,6 +21,7 @@ export const CORE_COLUMNS = {
     users: {account_id:'INTEGER',login:'TEXT',password_hash:'TEXT',email:'TEXT',email_verified_at:'TEXT',avatar_key:'TEXT',avatar_source:'TEXT'},
     lesson_progress: {is_completed:'INTEGER NOT NULL DEFAULT 0',completed:'INTEGER NOT NULL DEFAULT 0',progress_percent:'INTEGER NOT NULL DEFAULT 0'},
     lessons: {video_url:'TEXT',audio_url:'TEXT'},
+    subjects: {author:"TEXT NOT NULL DEFAULT ''",cover_image:"TEXT NOT NULL DEFAULT ''"},
     auth_sessions: {auth_method:"TEXT NOT NULL DEFAULT 'legacy'"}
 };
 const ready = new WeakMap();

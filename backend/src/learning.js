@@ -45,6 +45,12 @@ export async function ensureLearningSchema(db) {
 
 const bool = value => value === true || value === 1 || value === '1';
 const clean = (value, max = 5000) => String(value ?? '').trim().slice(0, max);
+const imageSource = value => {
+    const source = clean(value, 1000);
+    if (!source) return '';
+    if (source.startsWith('/') && !source.startsWith('//')) return source;
+    try { const url = new URL(source); return url.protocol === 'https:' ? url.href : ''; } catch { return ''; }
+};
 const parse = (value, fallback) => { try { return JSON.parse(value); } catch { return fallback; } };
 const positive = (value, name = 'ID') => {
     const n = Number(value);
@@ -168,9 +174,32 @@ export async function learningLesson(db, user, id) {
     const lesson = await record(db, 'lessons', id);
     await assertLessonAccess(db, user, lesson);
     const files = await all(db, 'SELECT * FROM lesson_files WHERE lesson_id=? ORDER BY sort_order,id', [lesson.id]);
-    return { ...lesson, files: files.map(f => ({ id: f.id, file_name: f.file_name, mime_type: f.mime_type,
-        file_size: f.file_size, url: `/api/lesson-files/${f.id}` })),
+    return { ...lesson, files: files.map(f => ({ id: f.id, file_name: f.file_name || f.original_name || f.name,
+        mime_type: f.mime_type || f.content_type || f.file_type, file_size: f.file_size ?? f.size,
+        caption: f.caption || null, media_role: f.media_role || null, media_language: f.media_language || null,
+        url: `/api/lesson-files/${f.id}` })),
         progress: await first(db, 'SELECT * FROM lesson_progress WHERE user_id=? AND lesson_id=?', [user.id, lesson.id]) };
+}
+export async function listLearningMaterials(db, user, courseId) {
+    active(user);
+    const id = positive(courseId, 'курса');
+    if (!await canReadLearningScope(db, user, { course_id: id })) throw new HttpError(403, 'Нет доступа к материалам курса');
+    const rows = await all(db, `SELECT f.*,l.id AS _lesson_id,l.title AS lesson_title,l.course_id,l.program_id,l.semester_id,l.subject_id,l.is_visible
+        FROM lesson_files f JOIN lessons l ON l.id=f.lesson_id WHERE l.course_id=? AND l.is_visible=1 ORDER BY l.sort_order,l.id,f.sort_order,f.id`, [id]);
+    const result = [];
+    for (const row of rows) {
+        if (!await visibleScope(db, 'subjects', row)) continue;
+        try { await assertLessonAccess(db, user, { id: row._lesson_id, course_id: row.course_id, program_id: row.program_id,
+            semester_id: row.semester_id, subject_id: row.subject_id, is_visible: row.is_visible }); }
+        catch (error) { if ([403, 404, 409].includes(error.status)) continue; throw error; }
+        const fileName = row.file_name || row.original_name || row.name || 'Материал';
+        const type = String(row.mime_type || row.content_type || row.file_type || '').toLowerCase();
+        const textFile = /\.(pdf|txt|md|doc|docx|rtf|odt)$/i.test(fileName) || /^application\/(pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document|rtf|vnd\.oasis\.opendocument\.text)/.test(type) || type === 'text/plain' || type === 'text/markdown';
+        if (String(row.media_role || '').toLowerCase() !== 'notes' && !textFile) continue;
+        result.push({ id: row.id, lesson_id: row._lesson_id, lesson_title: row.lesson_title, file_name: fileName,
+            mime_type: type, media_role: row.media_role || 'notes', url: `/api/lesson-files/${row.id}` });
+    }
+    return result;
 }
 export async function completeLearningLesson(db, user, id) {
     const lesson = await record(db, 'lessons', id);
@@ -192,6 +221,10 @@ export async function saveLearningContent(db, user, table, input, id = null) {
     const name = clean(merged[nameKey], 200);
     if (name.length < 2) throw new HttpError(400, 'Название должно содержать не менее двух символов');
     const data = { [nameKey]: name, description: clean(merged.description) };
+    if (table === 'subjects') {
+        data.author = clean(merged.author, 200);
+        data.cover_image = imageSource(merged.cover_image);
+    }
     if (table === 'courses' || table === 'programs') data.purpose = clean(merged.purpose);
     if (table !== 'courses') {
         // Resolve every parent from the closest canonical parent and reject
@@ -786,6 +819,7 @@ export async function handleLearningRequest(request,env,ctx={}) {
         let match;
         if(['/api/learning/catalog','/api/learning/tree','/api/admin/learning/catalog','/api/admin/learning/tree'].includes(path)&&method==='GET')return response(await learningCatalog(db,user,path.includes('/admin/')));
         if(path==='/api/learning/lessons'&&method==='GET')return response({lessons:await listLearningLessons(db,user,Object.fromEntries(url.searchParams))});
+        if(path==='/api/learning/materials'&&method==='GET')return response({materials:await listLearningMaterials(db,user,url.searchParams.get('course_id'))});
         if((match=path.match(/^\/api\/learning\/lessons\/(\d+)$/))&&method==='GET')return response({lesson:await learningLesson(db,user,Number(match[1]))});
         if((match=path.match(/^\/api\/learning\/lessons\/(\d+)\/complete$/))&&method==='POST')return response(await completeLearningLesson(db,user,Number(match[1])));
         if((match=path.match(/^\/api\/admin\/learning\/(courses|programs|semesters|subjects|lessons)(?:\/(\d+))?$/))){

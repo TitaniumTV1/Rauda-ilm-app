@@ -22,6 +22,9 @@ required = [
   "TRIBUTE_API_KEY"
 ]
 
+# Configure YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY as Worker secrets before
+# enabling YooKassa in school settings. They remain optional until credentials exist.
+
 [[d1_databases]]
 binding = "DB"
 database_name = "rauda-ilm-db"

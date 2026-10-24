@@ -8387,7 +8387,7 @@ async function handleLessonFileUpload(request, env, lessonId) {
 
     try {
         await ensureLessonFilesTable(env.DB);
-        const lesson = await first(env.DB, "SELECT id FROM lessons WHERE id = ? LIMIT 1", [lessonId]);
+        const lesson = await first(env.DB, "SELECT id, course_id FROM lessons WHERE id = ? LIMIT 1", [lessonId]);
         if (!lesson) return json({ ok: false, error: "Урок не найден" }, 404, env);
 
         const form = await request.formData();
@@ -8402,7 +8402,37 @@ async function handleLessonFileUpload(request, env, lessonId) {
         }
 
         const fileName = safeFileName(uploaded.name || "file");
-        const contentType = uploaded.type || "application/octet-stream";
+        const mediaRole = String(form.get("media_role") || "auto").trim().toLowerCase();
+        const mediaLanguage = cleanText(form.get("media_language")).slice(0, 16).toLowerCase();
+        const fileExtension = fileName.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] || "";
+        const inferredTypes = {
+            ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime", ".m4v": "video/x-m4v",
+            ".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".aac": "audio/aac", ".ogg": "audio/ogg",
+            ".opus": "audio/opus", ".wav": "audio/wav", ".flac": "audio/flac"
+        };
+        const declaredContentType = uploaded.type && uploaded.type !== "application/octet-stream"
+            ? uploaded.type
+            : inferredTypes[fileExtension] || uploaded.type || "application/octet-stream";
+        const isAudio = declaredContentType.startsWith("audio/") || /\.(mp3|m4a|aac|ogg|opus|wav|flac)$/.test(fileExtension);
+        const isVideo = declaredContentType.startsWith("video/") || /\.(mp4|webm|mov|m4v)$/.test(fileExtension);
+        if (!["auto", "subtitle", "voiceover", "audio", "attachment", "notes"].includes(mediaRole)) {
+            return json({ ok: false, error: "Выберите допустимый тип материала" }, 400, env);
+        }
+        if (fileExtension === ".vtt") {
+            return json({ ok: false, error: "Загрузите видео с субтитрами, файл .vtt не требуется" }, 400, env);
+        }
+        if (["subtitle", "voiceover"].includes(mediaRole) && !isVideo) {
+            return json({ ok: false, error: mediaRole === "subtitle"
+                ? "Для видео с субтитрами загрузите видеофайл"
+                : "Для видео с озвучкой загрузите видеофайл" }, 400, env);
+        }
+        if (mediaRole === "audio" && !isAudio) {
+            return json({ ok: false, error: "Для отдельного аудио загрузите аудиофайл" }, 400, env);
+        }
+        if (mediaRole === "notes" && !/\.(pdf|txt|md|doc|docx|rtf|odt)$/i.test(fileName)) {
+            return json({ ok: false, error: "Для конспекта загрузите PDF, TXT, Markdown, DOC, DOCX, RTF или ODT" }, 400, env);
+        }
+        const contentType = declaredContentType;
         const key = `lessons/${lessonId}/${crypto.randomUUID()}-${fileName}`;
         const sortOrder = nonNegativeNumber(form.get("sort_order"));
         const caption = cleanText(form.get("caption"));
@@ -8415,12 +8445,15 @@ async function handleLessonFileUpload(request, env, lessonId) {
         try {
             const file = await insertLessonFile(env.DB, {
                 lessonId,
+                courseId: lesson.course_id,
                 key,
                 fileName,
                 contentType,
                 size: uploaded.size,
                 sortOrder,
                 caption,
+                mediaRole,
+                mediaLanguage,
                 uploadedBy: auth.user.id
             });
             return json({ ok: true, file }, 201, env);
@@ -8479,7 +8512,7 @@ async function handleLessonFileGet(request, env, fileId) {
             "Referrer-Policy": "same-origin",
             "Accept-Ranges": "bytes",
             "Content-Length": String(requestedRange ? requestedRange.length : head.size),
-            "Content-Disposition": contentDisposition(contentType, name)
+            "Content-Disposition": contentDisposition(contentType, name, new URL(request.url).searchParams.get("download") === "1")
         };
         if (object.httpEtag) headers.ETag = object.httpEtag;
         if (requestedRange) {
@@ -10348,11 +10381,14 @@ async function insertLessonFile(db, data) {
         }
     };
     add(["lesson_id"], data.lessonId);
+    add(["course_id"], data.courseId);
     add(["file_key", "r2_key", "storage_key", "object_key", "key"], data.key);
     add(["original_name", "file_name", "name"], data.fileName);
     add(["content_type", "mime_type", "file_type"], data.contentType);
     add(["size", "file_size", "size_bytes"], data.size);
     add(["caption", "description"], data.caption);
+    add(["media_role"], data.mediaRole);
+    add(["media_language"], data.mediaLanguage);
     add(["sort_order", "position", "order_index"], data.sortOrder);
     add(["uploaded_by", "user_id", "created_by"], data.uploadedBy);
     if (!firstColumn(columns, ["lesson_id"]) || !firstColumn(columns, ["file_key", "r2_key", "storage_key", "object_key", "key"])) {
@@ -11958,8 +11994,8 @@ function safeFileName(name) {
     return (normalized || "file").slice(0, 180);
 }
 
-function contentDisposition(contentType, fileName) {
-    const disposition = /^(image\/(png|jpe?g|webp|gif|avif)$|audio\/|video\/|application\/pdf$)/i.test(contentType) ? "inline" : "attachment";
+function contentDisposition(contentType, fileName, forceDownload = false) {
+    const disposition = forceDownload ? "attachment" : /^(image\/(png|jpe?g|webp|gif|avif)$|audio\/|video\/|application\/pdf$|text\/(plain|markdown)(;|$))/i.test(contentType) ? "inline" : "attachment";
     return `${disposition}; filename*=UTF-8''${encodeURIComponent(fileName)}`;
 }
 
