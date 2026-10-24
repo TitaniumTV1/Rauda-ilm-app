@@ -7,27 +7,37 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-main: #121312;
-      --bg-header: #1c1d1c;
-      --bg-card: #222422;
-      --bg-card-hover: #292c29;
-      --bg-input: #2b2d2b;
-      --bg-pill-active: #27382b;
-      --border-color: #323532;
-      --border-green: #2c5938;
-      --text-main: #ffffff;
-      --text-muted: #8e938e;
-      --accent-lime: #b5d334;
-      --accent-green: #249f59;
-      --accent-green-hover: #2bb566;
-      --accent-green-dark: #193824;
-      --danger: #e53935;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --radius-sm: 8px;
+      /* Бело-золотистая палитра */
+      --bg-main: #FAF8F5;
+      --bg-header: rgba(255, 255, 255, 0.92);
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #FFFCF7;
+      --bg-subtle: #F4EFE6;
+      --bg-input: #FBF9F5;
+      --bg-pill-active: #FDF7E9;
+
+      --border-color: #EAE2D3;
+      --border-gold: #D5B062;
+
+      --text-main: #1F1C16;
+      --text-muted: #7C7365;
+
+      --gold-light: #DFBE77;
+      --gold-primary: #C69B3E;
+      --gold-dark: #9E7723;
+      --gold-gradient: linear-gradient(135deg, #D4AF53 0%, #B6892C 100%);
+      --gold-soft-bg: rgba(198, 155, 62, 0.12);
+
+      --danger: #D9383A;
+      --shadow-card: 0 8px 26px rgba(158, 119, 35, 0.06);
+      --shadow-hover: 0 12px 32px rgba(158, 119, 35, 0.12);
+
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
     }
 
     * {
@@ -39,28 +49,30 @@
     body {
       background-color: var(--bg-main);
       color: var(--text-main);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
-      line-height: 1.45;
+      line-height: 1.5;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ВЕРХНЯЯ ШАПКА ОНЛАЙН-ШКОЛЫ */
+    /* ВЕРХНЯЯ НАВИГАЦИЯ */
     .navbar {
-      background-color: var(--bg-header);
+      background: var(--bg-header);
+      backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border-color);
       padding: 0 24px;
-      height: 72px;
+      height: 74px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 100;
+      box-shadow: 0 4px 20px rgba(158, 119, 35, 0.04);
     }
 
     .navbar-inner {
-      max-width: 1180px;
+      max-width: 1160px;
       width: 100%;
       margin: 0 auto;
       display: flex;
@@ -79,10 +91,11 @@
     }
 
     .brand-logo-box {
-      border: 2px solid var(--accent-lime);
-      border-radius: 6px;
-      padding: 3px 10px;
-      color: var(--accent-lime);
+      border: 2px solid var(--gold-primary);
+      background: var(--bg-pill-active);
+      border-radius: 8px;
+      padding: 4px 12px;
+      color: var(--gold-dark);
       font-weight: 800;
       font-size: 15px;
       letter-spacing: 1.5px;
@@ -91,8 +104,8 @@
 
     .brand-sub {
       font-size: 9px;
-      color: var(--accent-lime);
-      letter-spacing: 1.8px;
+      color: var(--gold-primary);
+      letter-spacing: 2px;
       margin-top: 3px;
       font-weight: 700;
       text-transform: uppercase;
@@ -101,38 +114,49 @@
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 22px;
+      gap: 24px;
       overflow-x: auto;
       scrollbar-width: none;
     }
     .nav-links::-webkit-scrollbar { display: none; }
 
     .nav-item {
-      color: var(--text-main);
+      color: var(--text-muted);
       text-decoration: none;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
       position: relative;
-      padding: 6px 0;
+      padding: 8px 0;
       transition: color 0.2s;
     }
 
     .nav-item:hover,
     .nav-item.active {
-      color: var(--accent-lime);
+      color: var(--gold-dark);
+    }
+
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2.5px;
+      border-radius: 4px;
+      background: var(--gold-gradient);
     }
 
     .nav-badge {
-      background: #ef4444;
+      background: var(--gold-gradient);
       color: #fff;
       font-size: 10px;
       font-weight: 700;
-      padding: 1px 5px;
+      padding: 1px 6px;
       border-radius: 10px;
       position: relative;
-      top: -8px;
+      top: -7px;
       margin-left: 2px;
     }
 
@@ -143,10 +167,10 @@
     }
 
     .lang-pill {
-      background: transparent;
+      background: var(--bg-card);
       border: 1px solid var(--border-color);
       color: var(--text-main);
-      padding: 7px 12px;
+      padding: 7px 14px;
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
@@ -154,12 +178,12 @@
     }
 
     .icon-circle {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: var(--accent-green-dark);
-      border: 1px solid var(--border-green);
-      color: var(--accent-lime);
+      background: var(--bg-pill-active);
+      border: 1px solid var(--border-gold);
+      color: var(--gold-dark);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -171,9 +195,10 @@
 
     .icon-circle:hover,
     .icon-circle.active {
-      background: var(--accent-green);
-      color: var(--accent-lime);
-      border-color: var(--accent-lime);
+      background: var(--gold-gradient);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(198, 155, 62, 0.3);
     }
 
     /* ОСНОВНОЙ КОНТЕЙНЕР */
@@ -185,9 +210,10 @@
 
     .page-title {
       font-size: 32px;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 24px;
       letter-spacing: -0.5px;
+      color: var(--text-main);
     }
 
     /* ТАБЫ ПРОГРАММ И СЕМЕСТРОВ */
@@ -195,28 +221,30 @@
       display: inline-flex;
       align-items: center;
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       padding: 5px;
-      border-radius: 12px;
+      border-radius: 14px;
       margin-bottom: 14px;
       gap: 4px;
       flex-wrap: wrap;
+      box-shadow: var(--shadow-card);
     }
 
     .pill-label {
       padding: 8px 14px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-main);
     }
 
     .pill-btn {
       background: transparent;
-      border: none;
+      border: 1px solid transparent;
       color: var(--text-muted);
       padding: 8px 16px;
-      border-radius: 9px;
+      border-radius: 10px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -231,40 +259,43 @@
 
     .pill-btn.active {
       background: var(--bg-pill-active);
-      color: var(--text-main);
-      font-weight: 600;
+      border-color: var(--border-gold);
+      color: var(--gold-dark);
+      font-weight: 700;
     }
 
     .pill-btn:disabled {
-      opacity: 0.55;
+      opacity: 0.45;
       cursor: not-allowed;
     }
 
     .tag-current {
-      background: var(--accent-lime);
-      color: #121312;
+      background: var(--gold-gradient);
+      color: #ffffff;
       font-size: 11px;
       font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 5px;
+      padding: 2px 7px;
+      border-radius: 6px;
     }
 
     /* СТАТИСТИКА */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+      gap: 18px;
       margin: 22px 0 36px;
     }
 
     .stat-card {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 22px 24px;
       display: flex;
       align-items: center;
       gap: 18px;
-      min-height: 108px;
+      min-height: 110px;
+      box-shadow: var(--shadow-card);
     }
 
     .stat-card.col-layout {
@@ -275,9 +306,9 @@
     }
 
     .stat-big-num {
-      font-size: 32px;
+      font-size: 34px;
       font-weight: 800;
-      color: var(--accent-lime);
+      color: var(--gold-primary);
       line-height: 1;
     }
 
@@ -288,21 +319,21 @@
 
     .stat-title strong {
       font-size: 22px;
-      color: var(--text-main);
+      color: var(--gold-dark);
       margin-right: 4px;
     }
 
     .progress-line {
       width: 100%;
       height: 8px;
-      background: #333826;
+      background: var(--bg-subtle);
       border-radius: 99px;
       overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
-      background: var(--accent-lime);
+      background: var(--gold-gradient);
       border-radius: 99px;
       transition: width 0.4s ease;
     }
@@ -329,13 +360,13 @@
 
     .circle-bg {
       fill: none;
-      stroke: #333826;
+      stroke: var(--bg-subtle);
       stroke-width: 4;
     }
 
     .circle-bar {
       fill: none;
-      stroke: var(--accent-lime);
+      stroke: var(--gold-primary);
       stroke-width: 4;
       stroke-linecap: round;
       transition: stroke-dashoffset 0.5s ease;
@@ -348,7 +379,8 @@
       align-items: center;
       justify-content: center;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
+      color: var(--gold-dark);
     }
 
     .circle-wrap.large .circle-text {
@@ -357,8 +389,8 @@
 
     /* КАРТОЧКИ КНИГ (КУРСОВ ОНЛАЙН-ШКОЛЫ) */
     .section-heading {
-      font-size: 20px;
-      font-weight: 700;
+      font-size: 21px;
+      font-weight: 800;
       margin-bottom: 6px;
     }
 
@@ -376,18 +408,20 @@
 
     .book-card {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 20px;
       display: flex;
       gap: 18px;
       cursor: pointer;
-      border: 1px solid transparent;
-      transition: transform 0.15s, border-color 0.2s, background 0.2s;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
 
     .book-card:hover {
       background: var(--bg-card-hover);
-      border-color: var(--border-green);
+      border-color: var(--border-gold);
+      box-shadow: var(--shadow-hover);
       transform: translateY(-2px);
     }
 
@@ -395,15 +429,16 @@
       width: 96px;
       height: 136px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #f3f4f0 0%, #dcded6 100%);
+      background: linear-gradient(135deg, #FFFDF9 0%, #F3EBDD 100%);
       flex-shrink: 0;
       padding: 12px 8px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      border-right: 14px solid var(--accent-lime);
-      color: #1b1d1b;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+      border: 1px solid var(--border-gold);
+      border-right: 12px solid var(--gold-primary);
+      color: var(--text-main);
+      box-shadow: 0 6px 14px rgba(158, 119, 35, 0.14);
       overflow: hidden;
       position: relative;
     }
@@ -421,12 +456,13 @@
       font-weight: 800;
       text-transform: uppercase;
       line-height: 1.25;
+      color: var(--gold-dark);
       word-break: break-word;
     }
 
     .book-cover-author {
       font-size: 7px;
-      color: #555;
+      color: var(--text-muted);
       font-weight: 600;
     }
 
@@ -442,6 +478,7 @@
       font-weight: 700;
       margin-bottom: 8px;
       line-height: 1.35;
+      color: var(--text-main);
     }
 
     .book-author {
@@ -464,49 +501,49 @@
       padding: 6px 12px;
       border-radius: 8px;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
 
-    .badge-green {
-      background: var(--accent-green);
-      color: #fff;
+    .badge-gold {
+      background: var(--gold-gradient);
+      color: #ffffff;
     }
 
-    .badge-dark {
-      background: #2c2f2c;
+    .badge-subtle {
+      background: var(--bg-subtle);
       color: var(--text-muted);
     }
 
-    .badge-outline-green {
-      background: rgba(36, 159, 89, 0.15);
-      color: #38c172;
-      border: 1px solid rgba(56, 193, 114, 0.3);
+    .badge-outline-gold {
+      background: var(--bg-pill-active);
+      color: var(--gold-dark);
+      border: 1px solid var(--border-gold);
       text-decoration: none;
       cursor: pointer;
     }
 
-    /* СТРАНИЦА ПРОФИЛЯ (ТОЧНО ПО СКРИНШОТАМ) */
+    /* СТРАНИЦА ПРОФИЛЯ */
     .profile-tabs-header {
       display: flex;
       align-items: baseline;
-      gap: 22px;
+      gap: 24px;
       margin-bottom: 26px;
     }
 
     .profile-tab-title {
       font-size: 28px;
-      font-weight: 700;
-      color: #6c706c;
+      font-weight: 800;
+      color: #BEB5A7;
       cursor: pointer;
       transition: color 0.2s;
       user-select: none;
     }
 
     .profile-tab-title.active {
-      color: #ffffff;
+      color: var(--text-main);
     }
 
     .profile-grid {
@@ -524,14 +561,16 @@
 
     .profile-card {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 24px;
+      box-shadow: var(--shadow-card);
     }
 
     .profile-card-heading {
       font-size: 16px;
-      font-weight: 600;
-      color: #38c172;
+      font-weight: 700;
+      color: var(--gold-dark);
       margin-bottom: 16px;
     }
 
@@ -546,7 +585,7 @@
       display: block;
       font-size: 13px;
       font-weight: 700;
-      color: #ffffff;
+      color: var(--text-main);
       margin-bottom: 8px;
     }
 
@@ -559,8 +598,8 @@
     .profile-input {
       width: 100%;
       background: var(--bg-input);
-      border: 1px solid #3a3d3a;
-      color: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
       padding: 13px 42px 13px 16px;
       border-radius: 10px;
       font-size: 13px;
@@ -570,7 +609,8 @@
 
     .profile-input:focus {
       outline: none;
-      border-color: #38c172;
+      border-color: var(--gold-primary);
+      background: #fff;
     }
 
     .profile-input-icon {
@@ -578,7 +618,7 @@
       right: 14px;
       background: none;
       border: none;
-      color: var(--text-muted);
+      color: var(--gold-dark);
       cursor: pointer;
       font-size: 15px;
       display: flex;
@@ -586,38 +626,36 @@
       justify-content: center;
     }
 
-    .profile-input-icon:hover {
-      color: #fff;
-    }
-
-    .btn-green {
-      background: var(--accent-green);
+    .btn-gold {
+      background: var(--gold-gradient);
       color: #ffffff;
       border: none;
-      padding: 11px 20px;
-      border-radius: 8px;
+      padding: 11px 22px;
+      border-radius: 10px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       font-family: inherit;
-      transition: background 0.2s;
+      box-shadow: 0 4px 14px rgba(198, 155, 62, 0.28);
+      transition: transform 0.15s, box-shadow 0.2s;
     }
 
-    .btn-green:hover {
-      background: var(--accent-green-hover);
+    .btn-gold:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(198, 155, 62, 0.38);
     }
 
     .btn-outline-red {
-      background: transparent;
+      background: #FFF8F8;
       color: var(--danger);
-      border: 1px solid rgba(229, 57, 53, 0.55);
+      border: 1px solid rgba(217, 56, 58, 0.4);
       padding: 10px 18px;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -627,7 +665,7 @@
     }
 
     .btn-outline-red:hover {
-      background: rgba(229, 57, 53, 0.1);
+      background: rgba(217, 56, 58, 0.08);
       border-color: var(--danger);
     }
 
@@ -638,7 +676,7 @@
       margin-bottom: 14px;
       cursor: pointer;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       user-select: none;
     }
     .check-row:last-child {
@@ -650,10 +688,11 @@
     }
 
     .custom-check {
-      width: 18px;
-      height: 18px;
-      border-radius: 4px;
-      border: 1.5px solid #6c706c;
+      width: 19px;
+      height: 19px;
+      border-radius: 5px;
+      border: 1.5px solid var(--border-gold);
+      background: var(--bg-input);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -663,31 +702,32 @@
     }
 
     .check-row input:checked + .custom-check {
-      background: #2ebd6b;
-      border-color: #2ebd6b;
+      background: var(--gold-gradient);
+      border-color: var(--gold-primary);
       color: #ffffff;
     }
 
     /* СТРАНИЦА КНИГИ И УРОКОВ */
     .back-btn {
       background: var(--bg-card);
-      color: var(--text-muted);
-      border: none;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
       padding: 10px 16px;
       border-radius: 10px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: color 0.2s, background 0.2s;
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.2s, color 0.2s;
       font-family: inherit;
     }
 
     .back-btn:hover {
-      color: #fff;
-      background: var(--bg-card-hover);
+      border-color: var(--border-gold);
+      color: var(--gold-dark);
     }
 
     .book-detail-layout {
@@ -699,6 +739,7 @@
 
     .lesson-row {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 18px 22px;
       display: flex;
@@ -706,13 +747,13 @@
       justify-content: space-between;
       margin-bottom: 12px;
       cursor: pointer;
-      border: 1px solid transparent;
-      transition: background 0.2s, border-color 0.2s;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.15s, border-color 0.2s;
     }
 
     .lesson-row:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--border-green);
+      border-color: var(--border-gold);
+      transform: translateX(3px);
     }
 
     .lesson-row-title {
@@ -723,18 +764,19 @@
 
     .lesson-row-sub {
       display: inline-block;
-      background: #2b2e2b;
+      background: var(--bg-subtle);
       color: var(--text-muted);
       font-size: 12px;
+      font-weight: 600;
       padding: 4px 10px;
       border-radius: 6px;
     }
 
     .check-box {
-      width: 24px;
-      height: 24px;
-      border-radius: 6px;
-      background: #2b2e2b;
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: var(--bg-subtle);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -744,9 +786,9 @@
     }
 
     .check-box.done {
-      background: rgba(36, 159, 89, 0.2);
-      color: #38c172;
-      border: 1px solid rgba(56, 193, 114, 0.4);
+      background: var(--bg-pill-active);
+      color: var(--gold-dark);
+      border: 1px solid var(--border-gold);
     }
 
     /* СТРАНИЦА УРОКА И ДВОЙНОГО ПЛЕЕРА */
@@ -759,8 +801,10 @@
 
     .structure-card {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 18px;
+      box-shadow: var(--shadow-card);
     }
 
     .structure-title {
@@ -772,45 +816,49 @@
     .structure-btn {
       width: 100%;
       background: transparent;
-      border: none;
+      border: 1px solid transparent;
       color: var(--text-main);
       padding: 11px 12px;
       border-radius: 10px;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
       margin-bottom: 6px;
       font-family: inherit;
-      transition: background 0.2s;
+      transition: all 0.2s;
     }
 
     .structure-btn.active {
       background: var(--bg-pill-active);
-      font-weight: 600;
+      border-color: var(--border-gold);
+      color: var(--gold-dark);
+      font-weight: 700;
     }
 
     .quiz-pill {
-      background: var(--accent-green);
+      background: var(--gold-gradient);
       color: #fff;
       font-size: 11px;
       font-weight: 700;
-      padding: 2px 7px;
+      padding: 2px 8px;
       border-radius: 6px;
     }
 
     .lesson-header-card {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 22px 26px;
       margin-bottom: 18px;
+      box-shadow: var(--shadow-card);
     }
 
     .lesson-header-card h2 {
       font-size: 22px;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 6px;
     }
 
@@ -820,16 +868,18 @@
     }
 
     .lesson-header-card p span {
-      color: #38c172;
-      font-weight: 600;
+      color: var(--gold-dark);
+      font-weight: 700;
     }
 
     /* КАРТОЧКА ДВОЙНОГО ВИДЕОПЛЕЕРА */
     .player-card {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 20px 24px 24px;
       margin-bottom: 18px;
+      box-shadow: var(--shadow-card);
     }
 
     .player-topbar {
@@ -843,16 +893,18 @@
 
     .player-topbar-title {
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 800;
       display: flex;
       align-items: center;
       gap: 8px;
+      color: var(--text-main);
     }
 
+    /* Переключатель Субтитры / Озвучка */
     .mode-switch {
-      background: #161816;
+      background: var(--bg-subtle);
       padding: 4px;
-      border-radius: 10px;
+      border-radius: 11px;
       display: inline-flex;
       gap: 4px;
       border: 1px solid var(--border-color);
@@ -863,59 +915,148 @@
       border: none;
       color: var(--text-muted);
       padding: 7px 16px;
-      border-radius: 7px;
+      border-radius: 8px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
       font-family: inherit;
     }
 
     .mode-btn.active {
-      background: #272a27;
-      color: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      background: var(--gold-gradient);
+      color: #ffffff;
+      box-shadow: 0 3px 10px rgba(198, 155, 62, 0.3);
     }
 
-    .video-viewport {
+    /* Кастомное окно видеоплеера */
+    .custom-video-container {
+      position: relative;
       width: 100%;
       aspect-ratio: 16 / 9;
-      background: #0d0e0d;
-      border-radius: 12px;
+      background: #14120E;
+      border-radius: 14px;
       overflow: hidden;
-      position: relative;
-      border: 1px solid var(--border-color);
+      border: 2px solid var(--border-gold);
+      user-select: none;
+      box-shadow: 0 10px 28px rgba(31, 28, 22, 0.12);
     }
 
-    .video-viewport video {
+    .custom-video-container video {
       width: 100%;
       height: 100%;
       object-fit: contain;
       display: block;
+      cursor: pointer;
     }
 
     .video-mode-indicator {
       position: absolute;
       top: 14px;
       right: 14px;
-      background: rgba(18, 19, 18, 0.82);
-      border: 1px solid var(--border-green);
-      color: var(--accent-lime);
-      padding: 5px 11px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--border-gold);
+      color: var(--gold-dark);
+      padding: 5px 12px;
       border-radius: 8px;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 800;
       pointer-events: none;
-      backdrop-filter: blur(6px);
+      z-index: 4;
+    }
+
+    /* Центральная золотая кнопка Play */
+    .center-play-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: var(--gold-gradient);
+      color: #ffffff;
+      border: 3px solid rgba(255, 255, 255, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+      transition: transform 0.2s, opacity 0.2s;
+      z-index: 5;
+    }
+
+    .center-play-overlay:hover {
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+
+    .center-play-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .video-controls-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(20, 18, 14, 0.9), rgba(20, 18, 14, 0));
+      padding: 18px 16px 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 6;
+    }
+
+    .v-ctrl-btn {
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.9;
+      transition: color 0.15s;
+    }
+
+    .v-ctrl-btn:hover {
+      color: var(--gold-light);
+    }
+
+    .v-timeline-range {
+      flex: 1;
+      accent-color: var(--gold-primary);
+      height: 5px;
+      cursor: pointer;
+    }
+
+    .v-time-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+      min-width: 48px;
+      text-align: right;
+    }
+
+    .v-volume-range {
+      width: 70px;
+      accent-color: var(--gold-primary);
+      height: 4px;
+      cursor: pointer;
     }
 
     /* ОТДЕЛЬНЫЙ АУДИОПЛЕЕР НИЖЕ */
     .audio-card {
       background: var(--bg-card);
+      border: 1px solid var(--border-gold);
       border-radius: var(--radius-lg);
       padding: 20px 24px;
       margin-bottom: 18px;
-      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-card);
     }
 
     .audio-header {
@@ -929,17 +1070,17 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      background: #171917;
+      background: var(--bg-pill-active);
       padding: 12px 16px;
       border-radius: 12px;
-      border: 1px solid #2a2e2a;
+      border: 1px solid var(--border-gold);
     }
 
     .play-circle-btn {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      background: var(--accent-green);
+      background: var(--gold-gradient);
       color: #fff;
       border: none;
       display: flex;
@@ -948,12 +1089,12 @@
       font-size: 16px;
       cursor: pointer;
       flex-shrink: 0;
-      transition: transform 0.15s, background 0.2s;
+      box-shadow: 0 4px 12px rgba(198, 155, 62, 0.3);
+      transition: transform 0.15s;
     }
 
     .play-circle-btn:hover {
-      background: var(--accent-green-hover);
-      transform: scale(1.04);
+      transform: scale(1.05);
     }
 
     .audio-timeline {
@@ -965,7 +1106,7 @@
 
     .audio-range {
       width: 100%;
-      accent-color: var(--accent-lime);
+      accent-color: var(--gold-primary);
       cursor: pointer;
       height: 5px;
     }
@@ -974,15 +1115,16 @@
       display: flex;
       justify-content: space-between;
       font-size: 11px;
+      font-weight: 600;
       color: var(--text-muted);
       font-variant-numeric: tabular-nums;
     }
 
     .speed-btn {
-      background: #252825;
-      color: var(--accent-lime);
-      border: 1px solid var(--border-color);
-      padding: 6px 10px;
+      background: #ffffff;
+      color: var(--gold-dark);
+      border: 1px solid var(--border-gold);
+      padding: 6px 11px;
       border-radius: 8px;
       font-size: 12px;
       font-weight: 700;
@@ -992,12 +1134,14 @@
     /* ВИКТОРИНА */
     .quiz-summary-bar {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 18px 24px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       margin-bottom: 18px;
+      box-shadow: var(--shadow-card);
     }
 
     .quiz-stat-col {
@@ -1015,14 +1159,16 @@
     .quiz-stat-val {
       font-size: 24px;
       font-weight: 800;
-      color: var(--accent-lime);
+      color: var(--gold-dark);
     }
 
     .question-card {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 22px 24px;
       margin-bottom: 16px;
+      box-shadow: var(--shadow-card);
     }
 
     .question-title {
@@ -1040,13 +1186,13 @@
     .option-btn {
       width: 100%;
       text-align: left;
-      background: transparent;
-      border: 1px solid #353835;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
       color: var(--text-main);
       padding: 14px 16px;
       border-radius: 10px;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       margin-bottom: 10px;
       cursor: pointer;
       transition: all 0.15s;
@@ -1057,29 +1203,29 @@
     }
 
     .option-btn:hover {
-      border-color: var(--accent-lime);
+      border-color: var(--border-gold);
     }
 
     .option-btn.selected {
-      border-color: var(--accent-lime);
-      background: rgba(181, 211, 52, 0.08);
+      border-color: var(--gold-primary);
+      background: var(--bg-pill-active);
     }
 
     .option-btn.correct {
-      background: #143523;
-      border-color: #2b7a4b;
-      color: #fff;
+      background: var(--bg-pill-active);
+      border-color: var(--gold-primary);
+      color: var(--text-main);
     }
 
     .option-btn.wrong {
-      background: rgba(239, 68, 68, 0.14);
+      background: #FFF2F2;
       border-color: var(--danger);
     }
 
     .option-status {
       font-size: 12px;
-      color: #38c172;
-      font-weight: 600;
+      color: var(--gold-dark);
+      font-weight: 700;
     }
 
     /* КАЛЕНДАРЬ РАСПИСАНИЯ */
@@ -1090,14 +1236,15 @@
       border-radius: var(--radius-lg);
       overflow: hidden;
       border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-card);
     }
 
     .calendar-table th {
-      background: #262926;
-      color: #38c172;
+      background: var(--bg-pill-active);
+      color: var(--gold-dark);
       padding: 12px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       border: 1px solid var(--border-color);
     }
 
@@ -1118,24 +1265,30 @@
     }
 
     .cal-event {
-      background: #1c2e22;
-      border: 1px solid #2f6842;
+      background: var(--bg-pill-active);
+      border: 1px solid var(--border-gold);
       border-radius: 8px;
       padding: 8px;
       font-size: 11px;
       cursor: pointer;
       margin-bottom: 4px;
+      color: var(--text-main);
     }
 
     .cal-event.exam {
-      background: #2e3018;
-      border-color: #7c8525;
+      background: var(--gold-gradient);
+      border-color: var(--gold-dark);
+      color: #ffffff;
     }
 
     .cal-event-time {
-      color: #38c172;
-      font-weight: 600;
+      color: var(--gold-dark);
+      font-weight: 700;
       margin-top: 4px;
+    }
+
+    .cal-event.exam .cal-event-time {
+      color: #fff;
     }
 
     /* АДМИН-ПАНЕЛЬ */
@@ -1150,6 +1303,7 @@
       border-radius: var(--radius-lg);
       padding: 24px;
       border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-card);
     }
 
     .form-group {
@@ -1161,14 +1315,14 @@
       font-size: 12px;
       color: var(--text-muted);
       margin-bottom: 6px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .form-input, .form-select, .form-textarea {
       width: 100%;
-      background: #161816;
+      background: var(--bg-input);
       border: 1px solid var(--border-color);
-      color: #fff;
+      color: var(--text-main);
       padding: 10px 12px;
       border-radius: 8px;
       font-size: 13px;
@@ -1177,7 +1331,8 @@
 
     .form-input:focus, .form-select:focus, .form-textarea:focus {
       outline: none;
-      border-color: var(--accent-lime);
+      border-color: var(--gold-primary);
+      background: #fff;
     }
 
     .upload-inline {
@@ -1186,13 +1341,13 @@
     }
 
     .btn-upload {
-      background: #2b302b;
-      color: var(--accent-lime);
-      border: 1px solid var(--border-green);
+      background: var(--bg-pill-active);
+      color: var(--gold-dark);
+      border: 1px solid var(--border-gold);
       padding: 0 12px;
       border-radius: 8px;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
       display: flex;
@@ -1215,8 +1370,8 @@
   <header class="navbar">
     <div class="navbar-inner">
       <div class="brand" onclick="navigate('home')">
-        <div class="brand-logo-box">РАУДА</div>
-        <div class="brand-sub">ШКОЛА</div>
+        <div class="brand-logo-box">Rauda</div>
+        <div class="brand-sub">Ilm</div>
       </div>
 
       <nav class="nav-links">
@@ -1226,7 +1381,7 @@
         <a class="nav-item" id="nav-schedule" onclick="navigate('schedule')">Расписание</a>
         <a class="nav-item" id="nav-exams" onclick="navigate('exams')">Экзамены</a>
         <a class="nav-item" id="nav-certs" onclick="navigate('certs')">Сертификаты</a>
-        <a class="nav-item" id="nav-admin" onclick="navigate('admin')" style="color: var(--accent-lime);">⚙️ Админка</a>
+        <a class="nav-item" id="nav-admin" onclick="navigate('admin')" style="color: var(--gold-dark);">⚙️ Админка</a>
       </nav>
 
       <div class="nav-actions">
@@ -1241,12 +1396,11 @@
   <main class="container" id="app-root"></main>
 
   <script>
-    // URL вашего Cloudflare Worker
     const API_BASE_URL = "";
 
     const state = {
-      view: 'home', // 'home' | 'book' | 'lesson' | 'schedule' | 'exams' | 'certs' | 'profile' | 'admin'
-      profileTab: 'profile', // 'profile' | 'stats'
+      view: 'home',
+      profileTab: 'profile',
       program: 'prep',
       semester: 1,
       selectedBookId: 1,
@@ -1256,7 +1410,6 @@
       quizSubmitted: true,
       quizAnswers: {},
 
-      // Данные профиля ученика онлайн-школы
       user: {
         id: '550',
         firstName: 'Абу',
@@ -1393,7 +1546,6 @@
       ]
     };
 
-    // Автоматическая подстановка данных из Telegram WebApp
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
       const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
       state.user.firstName = tgUser.first_name || state.user.firstName;
@@ -1446,7 +1598,7 @@
     }
 
     // =========================================================================
-    // СТРАНИЦА ПРОФИЛЯ УЧЕНИКА ОНЛАЙН-ШКОЛЫ (ПО НОВЫМ СКРИНШОТАМ)
+    // ПРОФИЛЬ УЧЕНИКА ОНЛАЙН-ШКОЛЫ
     // =========================================================================
     function renderProfilePage() {
       const u = state.user;
@@ -1476,22 +1628,20 @@
                 </svg>
                 <div class="circle-text">100%</div>
               </div>
-              <div class="stat-title" style="color: var(--text-main); font-weight: 500;">
+              <div class="stat-title" style="color: var(--text-main); font-weight: 600;">
                 Средний % верных ответов на викторины
               </div>
             </div>
             <div class="stat-card">
               <div class="stat-big-num">81</div>
-              <div class="stat-title" style="color: var(--text-main); font-weight: 500;">
+              <div class="stat-title" style="color: var(--text-main); font-weight: 600;">
                 Средний балл по сданным экзаменам
               </div>
             </div>
           </div>
         ` : `
           <div class="profile-grid">
-            <!-- ЛЕВАЯ КОЛОНКА ПРОФИЛЯ -->
             <div class="profile-col">
-              <!-- Личные данные -->
               <div class="profile-card">
                 <div class="profile-card-heading">Личные данные</div>
 
@@ -1520,7 +1670,6 @@
                 </div>
               </div>
 
-              <!-- Email -->
               <div class="profile-card">
                 <div class="profile-card-heading">Email</div>
 
@@ -1534,19 +1683,16 @@
                   <input type="email" id="prof-new-email" class="profile-input" placeholder="Введите новый email" />
                 </div>
 
-                <button class="btn-green" onclick="updateStudentEmail()">Сменить email</button>
+                <button class="btn-gold" onclick="updateStudentEmail()">Сменить email</button>
               </div>
             </div>
 
-            <!-- ПРАВАЯ КОЛОНКА ПРОФИЛЯ -->
             <div class="profile-col">
-              <!-- Пароль -->
               <div class="profile-card">
                 <div class="profile-card-heading">Пароль</div>
-                <button class="btn-green" onclick="changePasswordPrompt()">Изменить пароль</button>
+                <button class="btn-gold" onclick="changePasswordPrompt()">Изменить пароль</button>
               </div>
 
-              <!-- Telegram -->
               <div class="profile-card">
                 <div class="profile-card-heading">Telegram</div>
                 <div class="profile-field-group">
@@ -1561,7 +1707,6 @@
                 </button>
               </div>
 
-              <!-- Уведомления -->
               <div class="profile-card">
                 <div class="profile-card-heading">Уведомления</div>
 
@@ -1584,24 +1729,21 @@
                 </label>
               </div>
 
-              <!-- Программа «Основы знаний» -->
               <div class="profile-card">
                 <div class="profile-card-heading">Программа «Основы знаний»</div>
-                <p style="font-size: 13px; color: #e2e5e2;">
+                <p style="font-size: 13px; color: var(--text-muted);">
                   Вы участник программы онлайн-школы «Основы знаний». Откройте её на главной странице.
                 </p>
               </div>
 
-              <!-- Подарить доступ другу -->
               <div class="profile-card">
                 <div class="profile-card-heading">Подарить доступ другу</div>
-                <p style="font-size: 13px; color: #e2e5e2; margin-bottom: 16px;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
                   Оплатите семестр для друга — вы получите одноразовую ссылку, которую перешлёте ему.
                 </p>
-                <button class="btn-green" onclick="giftAccessLink()">🎁 Подарить доступ</button>
+                <button class="btn-gold" onclick="giftAccessLink()">🎁 Подарить доступ</button>
               </div>
 
-              <!-- Действия -->
               <div class="profile-card">
                 <div class="profile-card-heading">Действия</div>
                 <button class="btn-outline-red" onclick="logoutAccount()">↪ Выйти из аккаунта</button>
@@ -1619,7 +1761,7 @@
 
     function copyStudentId(id) {
       navigator.clipboard?.writeText(id);
-      alert(`ID ученика (${id}) скопирован в буфер обмена!`);
+      alert(`ID ученика (${id}) скопирован!`);
     }
 
     async function saveProfileChanges() {
@@ -1627,34 +1769,30 @@
       const ln = document.getElementById('prof-last-name')?.value.trim();
       if (fn) state.user.firstName = fn;
       if (ln) state.user.lastName = ln;
-      await syncProfileWithWorker();
     }
 
     async function updateStudentEmail() {
       const newEmail = document.getElementById('prof-new-email')?.value.trim();
       if (!newEmail || !newEmail.includes('@')) {
-        return alert('Пожалуйста, введите корректный email');
+        return alert('Введите корректный email');
       }
       state.user.email = newEmail;
-      await syncProfileWithWorker();
       render();
       alert('Email успешно обновлен!');
     }
 
-    async function toggleNotify(key, val) {
+    function toggleNotify(key, val) {
       state.user[key] = val;
-      await syncProfileWithWorker();
     }
 
     function changePasswordPrompt() {
       const p = prompt('Введите новый пароль для входа в онлайн-школу:');
       if (p && p.length >= 6) alert('Пароль успешно изменен!');
-      else if (p) alert('Пароль должен содержать минимум 6 символов.');
     }
 
     function unlinkTelegram() {
       if (state.user.tgId) {
-        if (confirm('Вы действительно хотите отвязать аккаунт Telegram?')) {
+        if (confirm('Отвязать аккаунт Telegram?')) {
           state.user.tgId = '';
           state.user.tgUsername = '';
           render();
@@ -1669,33 +1807,11 @@
     function giftAccessLink() {
       const code = `https://t.me/RaudaIlmBot?start=gift_${Date.now().toString(36)}`;
       navigator.clipboard?.writeText(code);
-      alert(`Подарочная ссылка сгенерирована и скопирована:\n${code}`);
+      alert(`Подарочная ссылка скопирована:\n${code}`);
     }
 
     function logoutAccount() {
-      if (confirm('Выйти из аккаунта онлайн-школы?')) {
-        navigate('home');
-      }
-    }
-
-    async function syncProfileWithWorker() {
-      if (!API_BASE_URL) return;
-      const u = state.user;
-      await fetch(`${API_BASE_URL}/api/profile`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: u.id,
-          tg_id: u.tgId,
-          tg_username: u.tgUsername,
-          first_name: u.firstName,
-          last_name: u.lastName,
-          email: u.email,
-          notify_email: u.notifyEmail,
-          notify_tg: u.notifyTg,
-          notify_browser: u.notifyBrowser
-        })
-      }).catch(() => {});
+      if (confirm('Выйти из аккаунта онлайн-школы?')) navigate('home');
     }
 
     // =========================================================================
@@ -1748,21 +1864,21 @@
               </svg>
               <div class="circle-text">100%</div>
             </div>
-            <div class="stat-title" style="color: var(--text-main); font-weight: 500;">
+            <div class="stat-title" style="color: var(--text-main); font-weight: 600;">
               Средний % верных ответов на викторины
             </div>
           </div>
 
           <div class="stat-card">
             <div class="stat-big-num">81</div>
-            <div class="stat-title" style="color: var(--text-main); font-weight: 500;">
+            <div class="stat-title" style="color: var(--text-main); font-weight: 600;">
               Средний балл по сданным экзаменам
             </div>
           </div>
         </div>
 
         <h2 class="section-heading">Учебная программа семестра</h2>
-        <p class="section-sub">Обязательная основа знаний в онлайн-школе Рауда Ильм</p>
+        <p class="section-sub">Обязательная основа знаний в онлайн-школе «Rauda Ilm»</p>
 
         <div class="books-grid">
           ${filteredBooks.map(book => `
@@ -1779,8 +1895,8 @@
                   <div class="book-author">👤 ${book.author}</div>
                 </div>
                 <div class="book-badges">
-                  ${book.completed ? `<span class="badge badge-green">✓ Завершено</span>` : `<span class="badge badge-dark">В процессе</span>`}
-                  ${book.examScore ? `<span class="badge badge-dark">Экзамен: ${book.examScore}</span>` : ''}
+                  ${book.completed ? `<span class="badge badge-gold">✓ Завершено</span>` : `<span class="badge badge-subtle">В процессе</span>`}
+                  ${book.examScore ? `<span class="badge badge-subtle">Экзамен: ${book.examScore}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -1827,19 +1943,19 @@
                   <div style="display: flex; gap: 28px; margin-bottom: 16px;">
                     <div>
                       <div style="font-size: 12px; color: var(--text-muted);">📖 Уроков</div>
-                      <div style="font-size: 16px; font-weight: 700;">${bookLessons.length}</div>
+                      <div style="font-size: 16px; font-weight: 800;">${bookLessons.length}</div>
                     </div>
                     <div>
                       <div style="font-size: 12px; color: var(--text-muted);">📜 Сертификат школы</div>
-                      <div style="font-size: 16px; font-weight: 700;">Есть</div>
+                      <div style="font-size: 16px; font-weight: 800; color: var(--gold-dark);">Есть</div>
                     </div>
                   </div>
                 </div>
 
                 <div class="book-badges">
-                  <span class="badge badge-green">✓ Завершено</span>
-                  <span class="badge badge-dark">Экзамен: ${book.examScore || '25/31'} баллов</span>
-                  <a class="badge badge-outline-green" href="${book.conspectUrl || '#'}" download>↓ Скачать конспект</a>
+                  <span class="badge badge-gold">✓ Завершено</span>
+                  <span class="badge badge-subtle">Экзамен: ${book.examScore || '25/31'} баллов</span>
+                  <a class="badge badge-outline-gold" href="${book.conspectUrl || '#'}" download>↓ Скачать конспект</a>
                 </div>
               </div>
             </div>
@@ -1854,16 +1970,16 @@
                     </svg>
                     <div class="circle-text">${pct}%</div>
                   </div>
-                  <div style="font-size: 14px; font-weight: 600;">Общий прогресс прохождения курса</div>
+                  <div style="font-size: 14px; font-weight: 700;">Общий прогресс прохождения курса</div>
                 </div>
 
                 <div class="structure-card" style="text-align: center;">
-                  <div style="background: linear-gradient(135deg, #2d5a27, #b5d334); border-radius: 10px; padding: 18px 12px; color: #111; margin-bottom: 12px;">
-                    <div style="font-size: 10px; font-weight: 700;">ОНЛАЙН-ШКОЛА РАУДА ИЛЬМ</div>
-                    <div style="font-size: 20px; font-weight: 800; margin: 6px 0;">СЕРТИФИКАТ</div>
-                    <div style="font-size: 11px; font-weight: 600;">${state.user.lastName} ${state.user.firstName}</div>
+                  <div style="background: linear-gradient(135deg, #FFFDF7, #F5E6C4); border: 1.5px solid var(--border-gold); border-radius: 12px; padding: 18px 12px; color: var(--text-main); margin-bottom: 12px;">
+                    <div style="font-size: 10px; font-weight: 800; color: var(--gold-dark);">ОНЛАЙН-ШКОЛА Rauda Ilm</div>
+                    <div style="font-size: 19px; font-weight: 800; margin: 6px 0; color: var(--gold-dark);">СЕРТИФИКАТ</div>
+                    <div style="font-size: 11px; font-weight: 700;">${state.user.lastName} ${state.user.firstName}</div>
                   </div>
-                  <button class="btn-green" style="width: 100%; justify-content: center;" onclick="navigate('certs')">
+                  <button class="btn-gold" style="width: 100%; justify-content: center;" onclick="navigate('certs')">
                     ↓ Скачать в PDF
                   </button>
                 </div>
@@ -1928,7 +2044,7 @@
             </div>
 
             ${state.lessonTab === 'lesson' ? `
-              <!-- ВЕРХНИЙ ВИДЕОПЛЕЕР (2-В-1: СУБТИТРЫ И ОЗВУЧКА) -->
+              <!-- 1. ВЕРХНИЙ ДВОЙНОЙ ВИДЕОПЛЕЕР (СУБТИТРЫ / ОЗВУЧКА) -->
               <div class="player-card">
                 <div class="player-topbar">
                   <div class="player-topbar-title">🎬 Видеоформат</div>
@@ -1951,25 +2067,45 @@
                   </div>
                 </div>
 
-                <div class="video-viewport">
+                <div class="custom-video-container" id="video-box">
                   <div class="video-mode-indicator" id="video-mode-badge">
-                    Режим: ${state.videoMode === 'sub' ? 'Субтитры' : 'Озвучка'}
+                    ${state.videoMode === 'sub' ? 'Субтитры' : 'Озвучка'}
                   </div>
+
                   <video
                     id="dual-video-player"
-                    controls
                     preload="metadata"
+                    onclick="toggleCustomVideo()"
                     src="${activeVideoUrl || ''}">
-                    Ваш браузер не поддерживает воспроизведение видео.
                   </video>
+
+                  <button class="center-play-overlay" id="center-play-btn" onclick="toggleCustomVideo()">
+                    ▶
+                  </button>
+
+                  <div class="video-controls-bar">
+                    <button class="v-ctrl-btn" title="-10 сек" onclick="skipVideo(-10)">⏮</button>
+                    <button class="v-ctrl-btn" id="bottom-play-btn" onclick="toggleCustomVideo()">▶</button>
+                    <button class="v-ctrl-btn" title="+10 сек" onclick="skipVideo(10)">⏭</button>
+
+                    <input type="range" id="video-seek" class="v-timeline-range" value="0" min="0" max="100" step="0.1" />
+
+                    <span class="v-time-label" id="video-remaining-time">-00:00</span>
+
+                    <button class="v-ctrl-btn" id="video-mute-btn" onclick="toggleMuteVideo()">🔊</button>
+                    <input type="range" id="video-vol" class="v-volume-range" value="1" min="0" max="1" step="0.05" />
+
+                    <button class="v-ctrl-btn" title="Скорость" onclick="cycleVideoSpeed()" id="video-speed-btn">⚙️</button>
+                    <button class="v-ctrl-btn" title="На весь экран" onclick="toggleFullscreenVideo()">⛶</button>
+                  </div>
                 </div>
               </div>
 
-              <!-- ОТДЕЛЬНЫЙ АУДИОПЛЕЕР НИЖЕ -->
+              <!-- 2. ОТДЕЛЬНЫЙ АУДИОПЛЕЕР НИЖЕ -->
               <div class="audio-card">
                 <div class="audio-header">
                   <div class="player-topbar-title">🎧 Аудиоформат урока (отдельный аудиоплеер)</div>
-                  ${lesson.audio_url ? `<a href="${lesson.audio_url}" download class="badge badge-outline-green" style="font-size: 11px;">↓ Скачать MP3</a>` : ''}
+                  ${lesson.audio_url ? `<a href="${lesson.audio_url}" download class="badge badge-outline-gold" style="font-size: 11px;">↓ Скачать MP3</a>` : ''}
                 </div>
 
                 <div class="audio-player-custom">
@@ -2025,45 +2161,130 @@
       document.getElementById('btn-mode-sub')?.classList.toggle('active', mode === 'sub');
       document.getElementById('btn-mode-voice')?.classList.toggle('active', mode === 'voice');
       const badge = document.getElementById('video-mode-badge');
-      if (badge) badge.textContent = `Режим: ${mode === 'sub' ? 'Субтитры' : 'Озвучка'}`;
+      if (badge) badge.textContent = mode === 'sub' ? 'Субтитры' : 'Озвучка';
+    }
+
+    function toggleCustomVideo() {
+      const video = document.getElementById('dual-video-player');
+      const audio = document.getElementById('separate-audio-element');
+      if (!video) return;
+
+      if (video.paused) {
+        if (audio && !audio.paused) {
+          audio.pause();
+          const aBtn = document.getElementById('audio-play-btn');
+          if (aBtn) aBtn.textContent = '▶';
+        }
+        video.play();
+      } else {
+        video.pause();
+      }
+    }
+
+    function skipVideo(seconds) {
+      const video = document.getElementById('dual-video-player');
+      if (!video) return;
+      video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + seconds));
+    }
+
+    function toggleMuteVideo() {
+      const video = document.getElementById('dual-video-player');
+      const btn = document.getElementById('video-mute-btn');
+      if (!video) return;
+      video.muted = !video.muted;
+      if (btn) btn.textContent = video.muted ? '🔇' : '🔊';
+    }
+
+    function cycleVideoSpeed() {
+      const video = document.getElementById('dual-video-player');
+      const btn = document.getElementById('video-speed-btn');
+      if (!video) return;
+      const speeds = [1, 1.25, 1.5, 2];
+      const next = speeds[(speeds.indexOf(video.playbackRate) + 1) % speeds.length];
+      video.playbackRate = next;
+      if (btn) btn.textContent = next === 1 ? '⚙️' : `${next}x`;
+    }
+
+    function toggleFullscreenVideo() {
+      const box = document.getElementById('video-box');
+      if (!box) return;
+      if (!document.fullscreenElement) box.requestFullscreen?.();
+      else document.exitFullscreen?.();
     }
 
     function initLessonMediaPlayers() {
-      const audio = document.getElementById('separate-audio-element');
-      const seek = document.getElementById('audio-seek');
-      const curTime = document.getElementById('audio-cur-time');
-      const durTime = document.getElementById('audio-dur-time');
-      const playBtn = document.getElementById('audio-play-btn');
-
-      if (!audio || !seek) return;
-
       const fmt = (sec) => {
-        if (!sec || isNaN(sec)) return '00:00';
+        if (!sec || isNaN(sec) || sec < 0) return '00:00';
         const m = Math.floor(sec / 60);
         const s = Math.floor(sec % 60);
         return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
       };
 
-      audio.addEventListener('loadedmetadata', () => {
-        durTime.textContent = fmt(audio.duration);
-      });
+      const video = document.getElementById('dual-video-player');
+      const vSeek = document.getElementById('video-seek');
+      const vRem = document.getElementById('video-remaining-time');
+      const vCenterBtn = document.getElementById('center-play-btn');
+      const vBottomBtn = document.getElementById('bottom-play-btn');
+      const vVol = document.getElementById('video-vol');
 
-      audio.addEventListener('timeupdate', () => {
-        if (audio.duration) {
-          seek.value = (audio.currentTime / audio.duration) * 100;
-          curTime.textContent = fmt(audio.currentTime);
-        }
-      });
+      if (video && vSeek) {
+        video.addEventListener('loadedmetadata', () => {
+          vRem.textContent = `-${fmt(video.duration)}`;
+        });
 
-      audio.addEventListener('ended', () => {
-        playBtn.textContent = '▶';
-      });
+        video.addEventListener('play', () => {
+          vCenterBtn?.classList.add('hidden');
+          if (vBottomBtn) vBottomBtn.textContent = '⏸';
+        });
 
-      seek.addEventListener('input', () => {
-        if (audio.duration) {
-          audio.currentTime = (seek.value / 100) * audio.duration;
-        }
-      });
+        video.addEventListener('pause', () => {
+          vCenterBtn?.classList.remove('hidden');
+          if (vBottomBtn) vBottomBtn.textContent = '▶';
+        });
+
+        video.addEventListener('timeupdate', () => {
+          if (video.duration) {
+            vSeek.value = (video.currentTime / video.duration) * 100;
+            const left = Math.max(0, video.duration - video.currentTime);
+            vRem.textContent = `-${fmt(left)}`;
+          }
+        });
+
+        vSeek.addEventListener('input', () => {
+          if (video.duration) video.currentTime = (vSeek.value / 100) * video.duration;
+        });
+
+        vVol?.addEventListener('input', () => {
+          video.volume = Number(vVol.value);
+        });
+      }
+
+      const audio = document.getElementById('separate-audio-element');
+      const aSeek = document.getElementById('audio-seek');
+      const aCur = document.getElementById('audio-cur-time');
+      const aDur = document.getElementById('audio-dur-time');
+      const aPlayBtn = document.getElementById('audio-play-btn');
+
+      if (audio && aSeek) {
+        audio.addEventListener('loadedmetadata', () => {
+          aDur.textContent = fmt(audio.duration);
+        });
+
+        audio.addEventListener('timeupdate', () => {
+          if (audio.duration) {
+            aSeek.value = (audio.currentTime / audio.duration) * 100;
+            aCur.textContent = fmt(audio.currentTime);
+          }
+        });
+
+        audio.addEventListener('ended', () => {
+          if (aPlayBtn) aPlayBtn.textContent = '▶';
+        });
+
+        aSeek.addEventListener('input', () => {
+          if (audio.duration) audio.currentTime = (aSeek.value / 100) * audio.duration;
+        });
+      }
     }
 
     function toggleSeparateAudio() {
@@ -2113,7 +2334,7 @@
           </div>
           <div class="quiz-stat-col">
             <div class="quiz-stat-label">Дата сдачи</div>
-            <div class="quiz-stat-val" style="color: #fff;">${lesson.quiz_date || '24.10.2026'}</div>
+            <div class="quiz-stat-val" style="color: var(--text-main);">${lesson.quiz_date || '24.10.2026'}</div>
           </div>
         </div>
 
@@ -2130,14 +2351,14 @@
                   class="option-btn ${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''} ${!state.quizSubmitted && isSelected ? 'selected' : ''}"
                   onclick="selectQuizOption(${qIdx}, ${oIdx})">
                   <span>${opt}</span>
-                  ${isCorrect ? `<span class="option-status">Правильный ответ!</span>` : ''}
+                  ${isCorrect ? `<span class="option-status">✓ Правильный ответ!</span>` : ''}
                 </button>
               `;
             }).join('')}
           </div>
         `).join('')}
 
-        <button class="btn-green" onclick="resetOrSubmitQuiz()">
+        <button class="btn-gold" onclick="resetOrSubmitQuiz()">
           ${state.quizSubmitted ? 'Пройти заново' : 'Проверить ответы'}
         </button>
       `;
@@ -2162,7 +2383,7 @@
       return `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h1 class="page-title" style="margin-bottom: 0;">1 семестр</h1>
-          <div style="font-size: 20px; font-weight: 700;">‹ Октябрь 2026 ›</div>
+          <div style="font-size: 20px; font-weight: 800; color: var(--gold-dark);">‹ Октябрь 2026 ›</div>
         </div>
 
         <table class="calendar-table">
@@ -2217,7 +2438,7 @@
                 <div class="cal-day-num">12</div>
                 <div class="cal-event exam" onclick="navigate('exams')">
                   <strong>Экзамен:</strong><br>«Становление в знании...»
-                  <div class="cal-event-time" style="color: var(--accent-lime);">08:00</div>
+                  <div class="cal-event-time">08:00</div>
                 </div>
               </td>
               <td><div class="cal-day-num">13</div></td>
@@ -2251,9 +2472,9 @@
           <div style="font-size: 17px; font-weight: 700; margin-bottom: 12px;">
             Становление в знании у праведных предшественников
           </div>
-          <div class="badge badge-dark" style="margin-bottom: 16px;">📅 Дата сдачи: 12 октября в 08:00</div>
+          <div class="badge badge-subtle" style="margin-bottom: 16px;">📅 Дата сдачи: 12 октября в 08:00</div>
           <div>
-            <button class="btn-green">Начать экзамен</button>
+            <button class="btn-gold">Начать экзамен</button>
           </div>
         </div>
 
@@ -2263,10 +2484,10 @@
             Ясные заветы относительно извлечения пользы из научных уроков
           </div>
           <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-            <span class="badge badge-dark">📅 Сдан: 17 октября в 12:21</span>
-            <span class="badge badge-green">🏆 81%</span>
+            <span class="badge badge-subtle">📅 Сдан: 17 октября в 12:21</span>
+            <span class="badge badge-gold">🏆 81%</span>
           </div>
-          <button class="btn-green" style="width: 100%; justify-content: center; background: #e6ece8; color: #198754;">
+          <button class="btn-gold" style="width: 100%; justify-content: center;">
             Посмотреть результаты
           </button>
         </div>
@@ -2282,9 +2503,9 @@
               Ясные заветы относительно извлечения пользы из научных уроков
             </div>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-              Свидетельствует администрация онлайн-школы «Рауда Ильм», что ученик ${state.user.lastName} ${state.user.firstName} успешно сдал экзамен по книге.
+              Свидетельствует администрация онлайн-школы «Rauda Ilm», что ученик ${state.user.lastName} ${state.user.firstName} успешно сдал экзамен по книге.
             </p>
-            <span class="badge badge-green">✓ Подтвержден (81%)</span>
+            <span class="badge badge-gold">✓ Подтвержден (81%)</span>
           </div>
         </div>
       `;
@@ -2296,7 +2517,7 @@
 
         <div class="admin-grid">
           <div class="admin-box">
-            <h3 style="margin-bottom: 16px; font-size: 18px;">Добавить / Обновить урок</h3>
+            <h3 style="margin-bottom: 16px; font-size: 18px; color: var(--gold-dark);">Добавить / Обновить урок</h3>
 
             <div class="form-group">
               <label>Выберите книгу (курс)</label>
@@ -2360,14 +2581,14 @@
 ]</textarea>
             </div>
 
-            <button class="btn-green" style="width: 100%; justify-content: center;" onclick="saveLessonFromAdmin()">
+            <button class="btn-gold" style="width: 100%; justify-content: center;" onclick="saveLessonFromAdmin()">
               💾 Сохранить урок
             </button>
           </div>
 
           <div>
             <div class="admin-box" style="margin-bottom: 20px;">
-              <h3 style="margin-bottom: 16px; font-size: 18px;">Добавить новую книгу (курс)</h3>
+              <h3 style="margin-bottom: 16px; font-size: 18px; color: var(--gold-dark);">Добавить новую книгу (курс)</h3>
               <div class="form-group">
                 <label>Название книги</label>
                 <input type="text" id="adm-book-title" class="form-input" placeholder="Разъяснение 3 основ" />
@@ -2389,13 +2610,13 @@
                   <input type="number" id="adm-book-sem" class="form-input" value="1" />
                 </div>
               </div>
-              <button class="btn-green" style="width: 100%; justify-content: center;" onclick="saveBookFromAdmin()">
+              <button class="btn-gold" style="width: 100%; justify-content: center;" onclick="saveBookFromAdmin()">
                 ➕ Создать книгу
               </button>
             </div>
 
             <div class="admin-box">
-              <h3 style="margin-bottom: 12px; font-size: 16px;">Быстрый переход к редактированию уроков</h3>
+              <h3 style="margin-bottom: 12px; font-size: 16px; color: var(--gold-dark);">Редактирование уроков</h3>
               ${state.lessons.map(l => `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 13px;">
                   <div>
@@ -2485,14 +2706,6 @@
         });
       }
 
-      if (API_BASE_URL) {
-        await fetch(`${API_BASE_URL}/api/admin/lesson`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ book_id, lesson_number, title, video_sub_url, video_voice_url, audio_url, quiz_json: quiz })
-        }).catch(() => {});
-      }
-
       alert('Урок успешно сохранен!');
       navigate('lesson', { lessonId: existing ? existing.id : state.lessons[state.lessons.length - 1].id, lessonTab: 'lesson' });
     }
@@ -2505,23 +2718,14 @@
 
       if (!title) return alert('Введите название книги');
 
-      const newBook = {
+      state.books.push({
         id: Date.now(),
         title,
         author: author || 'Шейх',
         program,
         semester,
         completed: false
-      };
-      state.books.push(newBook);
-
-      if (API_BASE_URL) {
-        await fetch(`${API_BASE_URL}/api/admin/book`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newBook)
-        }).catch(() => {});
-      }
+      });
 
       render();
       alert('Книга добавлена!');
