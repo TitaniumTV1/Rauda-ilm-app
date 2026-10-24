@@ -1,3 +1,5 @@
+import { addColumn } from './school-core.js';
+
 // Payments never write legacy user_semesters/checkout_orders. A purchase owns one
 // immutable entitlement; retries and refunds cannot change another purchase.
 const YOO_API = "https://api.yookassa.ru/v3";
@@ -45,6 +47,7 @@ export const COMMERCE_SCHEMA = [
         access_days INTEGER CHECK(access_days>0), access_unlimited INTEGER NOT NULL DEFAULT 0 CHECK(access_unlimited IN(0,1)),
         is_active INTEGER NOT NULL DEFAULT 0 CHECK(is_active IN(0,1)), yookassa_enabled INTEGER NOT NULL DEFAULT 0,
         tribute_product_id INTEGER UNIQUE, tribute_stars_amount INTEGER, tribute_link TEXT, tribute_web_link TEXT,
+        payment_links_json TEXT NOT NULL DEFAULT '[]',
         created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
         CHECK((access_unlimited=1 AND access_days IS NULL) OR (access_unlimited=0 AND access_days IS NOT NULL)))`,
     `CREATE TABLE IF NOT EXISTS school_tribute_products (
@@ -104,9 +107,14 @@ export const COMMERCE_SCHEMA = [
     `CREATE INDEX IF NOT EXISTS school_orders_user ON school_orders(user_id,created_at)`
 ];
 
+const commerceReady = new WeakMap();
 export async function ensureCommerceSchema(db) {
     if (!db) fail(503, "База данных не настроена");
-    await db.batch(COMMERCE_SCHEMA.map(sql => db.prepare(sql)));
+    if (!commerceReady.has(db)) commerceReady.set(db,(async()=>{
+        await db.batch(COMMERCE_SCHEMA.map(sql => db.prepare(sql)));
+        await addColumn(db,"school_offers","payment_links_json","TEXT NOT NULL DEFAULT '[]'");
+    })().catch(error=>{commerceReady.delete(db);throw error;}));
+    await commerceReady.get(db);
 }
 
 export const SCHOOL_SETTING_DEFAULTS = Object.freeze({
@@ -130,6 +138,24 @@ function httpsUrl(value, label) {
     let u; try { u = new URL(value); } catch { fail(400, `Укажите HTTPS-ссылку: ${label}`); }
     if (u.protocol !== "https:" || u.username || u.password || !u.hostname || u.hash) fail(400, `Недопустимая ссылка: ${label}`);
     return u.href;
+}
+function normalizePaymentLinks(value) {
+    let links=value;
+    if(typeof links==='string')links=parse(links);
+    if(links==null)links=[];
+    if(!Array.isArray(links)||links.length>6)fail(400,"Добавьте не больше шести ссылок на оплату к тарифу");
+    return links.map((row,index)=>{
+        if(!row||typeof row!=="object"||Array.isArray(row))fail(400,`Некорректный вариант оплаты ${index+1}`);
+        const name=text(row.name,64),url=text(row.url,2048),instructions=text(row.instructions,300);
+        if(!name)fail(400,`Укажите название варианта оплаты ${index+1}`);
+        if(!url)fail(400,`Добавьте ссылку для варианта «${name}»`);
+        return {name,url:paymentLinkUrl(url,`ссылка оплаты «${name}»`),instructions};
+    });
+}
+function paymentLinkUrl(value,label) {
+    let url;try{url=new URL(value)}catch{fail(400,`Укажите HTTPS-ссылку: ${label}`)}
+    if(url.protocol!=="https:"||url.username||url.password||!url.hostname)fail(400,`Недопустимая ссылка: ${label}`);
+    return url.href;
 }
 function validateSettings(input, base) {
     if (!input || typeof input !== "object" || Array.isArray(input)) fail(400, "Нужен объект settings");
@@ -205,7 +231,11 @@ export async function updateSchoolSettings(env, user, input) {
     const state = paymentProviderStatus(env, settings);
     if (settings.yookassa_enabled && (!state.yookassa.configured || !fiscalReady(settings) || !settings.public_app_url)) fail(400, "Перед включением ЮKassa настройте секреты, HTTPS-адрес сайта и все параметры чека");
     if (settings.tribute_enabled && !state.tribute.configured) fail(400, "Сначала настройте секрет TRIBUTE_API_KEY");
-    if (settings.payments_enabled && !settings.yookassa_enabled && !settings.tribute_enabled) fail(400, "Включите хотя бы один настроенный способ оплаты");
+    if (settings.payments_enabled && !settings.yookassa_enabled && !settings.tribute_enabled) {
+        const offers=await all(env.DB,"SELECT payment_links_json FROM school_offers WHERE is_active=1");
+        const manualAvailable=offers.some(o=>{const links=parse(o.payment_links_json);return Array.isArray(links)&&links.length>0});
+        if(!manualAvailable)fail(400, "Включите настроенный способ оплаты или добавьте ссылку к активному тарифу");
+    }
     const stamp = now();
     await env.DB.batch(Object.entries(settings).flatMap(([key,value]) => [
         env.DB.prepare(`INSERT INTO school_settings(key,value_json,updated_by,updated_at) VALUES(?,?,?,?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json,updated_by=excluded.updated_by,updated_at=excluded.updated_at`).bind(key,JSON.stringify(value),user.id,stamp),
@@ -290,10 +320,11 @@ export async function saveOffer(env, user, input, id = null) {
     const days = unlimited ? null : integer(merged.access_days,1,36500,"access_days");
     if (unlimited && input.access_days != null) fail(400,"При бессрочном доступе access_days должен быть null");
     const productId = merged.tribute_product_id ? integer(merged.tribute_product_id,1,Number.MAX_SAFE_INTEGER,"tribute_product_id") : null;
+    const paymentLinks=normalizePaymentLinks(own(input,"payment_links")?input.payment_links:merged.payment_links_json);
     let provider = {tribute_product_id:null,tribute_stars_amount:null,tribute_link:null,tribute_web_link:null};
     if (productId) provider = await validatedTributeProduct(env,productId,amount);
     const stamp=now(); const offer={ id:id || crypto.randomUUID(),name,...scope,amount_minor:amount,currency:"RUB",access_days:days,access_unlimited:unlimited?1:0,
-        is_active:bool(merged.is_active)?1:0,yookassa_enabled:bool(merged.yookassa_enabled)?1:0,...provider,created_at:existing?.created_at || stamp,updated_at:stamp };
+        is_active:bool(merged.is_active)?1:0,yookassa_enabled:bool(merged.yookassa_enabled)?1:0,...provider,payment_links_json:JSON.stringify(paymentLinks),created_at:existing?.created_at || stamp,updated_at:stamp };
     if (existing?.tribute_product_id && productId !== existing.tribute_product_id) fail(409,"Для другого товара Tribute создайте новый тариф; старые покупки сохраняют прежние условия");
     const mapping = productId ? await first(env.DB,"SELECT * FROM school_tribute_products WHERE product_id=?",[productId]) : null;
     const snapshot=JSON.stringify(offerSnapshot(offer));
@@ -307,10 +338,16 @@ export async function listOffers(env, user, channel="web") {
     activeUser(user); if (!["web","telegram"].includes(channel)) fail(400,"Неизвестный канал оплаты");
     const settings=await getSchoolSettings(env.DB); const status=paymentProviderStatus(env,settings);
     const offers=await all(env.DB,"SELECT * FROM school_offers WHERE is_active=1 ORDER BY created_at,id");
-    return offers.map(o=>({...o,access_unlimited:bool(o.access_unlimited),providers:!settings.payments_enabled || settings.maintenance_mode ? [] : [
-        channel === "web" && bool(o.yookassa_enabled) && settings.yookassa_enabled && status.yookassa.configured && fiscalReady(settings) ? "yookassa":null,
-        o.tribute_product_id && settings.tribute_enabled && status.tribute.configured && (channel === "web" || o.tribute_stars_amount>0) ? "tribute":null
-    ].filter(Boolean),receipt_required:true}));
+    return offers.map(o=>{
+        const {payment_links_json,...publicOffer}=o;
+        const links=normalizePaymentLinks(payment_links_json);
+        const providers=!settings.payments_enabled || settings.maintenance_mode ? [] : [
+            channel === "web" && bool(o.yookassa_enabled) && settings.yookassa_enabled && status.yookassa.configured && fiscalReady(settings) ? "yookassa":null,
+            o.tribute_product_id && settings.tribute_enabled && status.tribute.configured && (channel === "web" || o.tribute_stars_amount>0) ? "tribute":null,
+            ...links.map((link,index)=>({id:`payment_link_${index+1}`,type:"external",...link}))
+        ].filter(Boolean);
+        return {...publicOffer,access_unlimited:bool(o.access_unlimited),payment_links:links,providers,receipt_required:true};
+    });
 }
 function decimal(minor) { return `${Math.floor(minor/100)}.${String(minor%100).padStart(2,"0")}`; }
 function minorUnits(value) {
@@ -363,7 +400,9 @@ export async function createOrder(env, user, input) {
         return tributeIntent(intent);
     }
     const offer=(await listOffers(env,user,channel)).find(o=>o.id===input.offer_id);
-    if (!offer || !offer.providers.includes(input.provider)) fail(400,"Этот тариф или способ оплаты сейчас недоступен");
+    const selectedProvider=offer?.providers.find(p=>(typeof p==="string"?p:p.id)===input.provider);
+    if (!offer || !selectedProvider) fail(400,"Этот тариф или способ оплаты сейчас недоступен");
+    if(typeof selectedProvider!=="string")fail(400,"Для этого способа оплаты перейдите по ссылке из тарифа");
     const snapshot=offerSnapshot(offer); const stamp=now();
     if (input.provider === "tribute") {
         if (!user.telegram_id || !/^[1-9]\d+$/.test(String(user.telegram_id))) fail(400,"Для Tribute сначала привяжите Telegram к аккаунту");
@@ -703,7 +742,10 @@ export async function handleCommerceRequest(request,env,ctx) {
         }
         if(path.startsWith("/api/admin/offers")) {
             ownerOnly(auth.user); const id=path.split("/")[4] ? decodeURIComponent(path.split("/")[4]) : null;
-            if(request.method==="GET" && !id) return respond({ok:true,offers:await all(env.DB,"SELECT * FROM school_offers ORDER BY created_at DESC,id")});
+            if(request.method==="GET" && !id) {
+                const offers=await all(env.DB,"SELECT * FROM school_offers ORDER BY created_at DESC,id");
+                return respond({ok:true,offers:offers.map(o=>({...o,payment_links:normalizePaymentLinks(o.payment_links_json)}))});
+            }
             if((request.method==="POST" && !id) || (request.method==="PUT" && id)) return respond({ok:true,offer:await saveOffer(env,auth.user,await readBody(request),id)},id?200:201);
             if(request.method==="DELETE" && id) { await run(env.DB,"UPDATE school_offers SET is_active=0,updated_at=? WHERE id=?",[now(),id]); return respond({ok:true}); }
             fail(405,"Метод не поддерживается");

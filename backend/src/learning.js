@@ -90,6 +90,16 @@ async function body(request) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new HttpError(400, 'Ожидается объект');
     return value;
 }
+function imageContentType(bytes) {
+    if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
+    if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a) return 'image/png';
+    if (bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP') return 'image/webp';
+    return '';
+}
+function coverVersion(value) {
+    const match = String(value || '').match(/[?&]v=([0-9a-f-]{36})$/i);
+    return match?.[1] || '';
+}
 async function record(db, table, id) {
     const item = await first(db, `SELECT * FROM ${table} WHERE id=?`, [positive(id)]);
     if (!item) throw new HttpError(404, 'Запись не найдена');
@@ -221,9 +231,9 @@ export async function saveLearningContent(db, user, table, input, id = null) {
     const name = clean(merged[nameKey], 200);
     if (name.length < 2) throw new HttpError(400, 'Название должно содержать не менее двух символов');
     const data = { [nameKey]: name, description: clean(merged.description) };
+    if (table === 'courses' || table === 'subjects') data.cover_image = imageSource(merged.cover_image);
     if (table === 'subjects') {
         data.author = clean(merged.author, 200);
-        data.cover_image = imageSource(merged.cover_image);
     }
     if (table === 'courses' || table === 'programs') data.purpose = clean(merged.purpose);
     if (table !== 'courses') {
@@ -817,6 +827,48 @@ export async function handleLearningRequest(request,env,ctx={}) {
         const auth=await ctx.requireUser(request,env);if(!auth.ok)return ctx.authError?ctx.authError(auth,env):json({ok:false,error:auth.error},auth.status||401);
         const user=auth.user;active(user);const db=env.DB;await ensureLearningSchema(db);
         let match;
+        if((match=path.match(/^\/api\/learning\/covers\/(courses|subjects)\/(\d+)$/))&&method==='GET'){
+            const table=match[1],id=positive(match[2]);
+            const item=await first(db,`SELECT id,course_id,is_active,cover_image FROM ${table} WHERE id=?`,[id]);
+            const version=coverVersion(item?.cover_image),requested=url.searchParams.get('v')||'';
+            if(!item||Number(item.is_active)!==1||!version||version!==requested||(table==='subjects'&&!await visibleScope(db,'subjects',item)))throw new HttpError(404,'Обложка не найдена');
+            if(!env.FILES)throw new HttpError(404,'Обложка не найдена');
+            const object=await env.FILES.get(`rauda-school-covers/${table}/${id}/${version}`);
+            if(!object)throw new HttpError(404,'Обложка не найдена');
+            const headers=new Headers();object.writeHttpMetadata(headers);headers.set('Cache-Control','private, max-age=31536000, immutable');headers.set('X-Content-Type-Options','nosniff');
+            return new Response(object.body,{headers});
+        }
+        if((match=path.match(/^\/api\/admin\/learning\/covers\/(courses|subjects)\/(\d+)$/))){
+            const table=match[1],id=positive(match[2]);
+            const item=await record(db,table,id);await scopePermission(db,user,'courses',table==='courses'?item.id:item.course_id);
+            if(method==='DELETE'){
+                const version=coverVersion(item.cover_image);
+                await run(db,`UPDATE ${table} SET cover_image='' WHERE id=?`,[id]);
+                if(version&&env.FILES)await env.FILES.delete(`rauda-school-covers/${table}/${id}/${version}`);
+                await audit(db,user,'learning.cover.delete',table,id);
+                return response({cover_image:''});
+            }
+            if(method==='POST'){
+                if(!env.FILES)throw new HttpError(503,'Хранилище файлов не подключено');
+                if(Number(request.headers.get('content-length')||0)>5*1024*1024+65536)throw new HttpError(413,'Обложка должна быть не больше 5 МБ');
+                let form;try{form=await request.formData()}catch{throw new HttpError(400,'Не удалось прочитать файл обложки')}
+                const file=form.get('file');
+                if(!file||typeof file.arrayBuffer!=='function'||!file.size)throw new HttpError(400,'Выберите файл обложки');
+                if(file.size>5*1024*1024)throw new HttpError(413,'Обложка должна быть не больше 5 МБ');
+                const bytes=new Uint8Array(await file.arrayBuffer()),contentType=imageContentType(bytes);
+                if(!contentType)throw new HttpError(400,'Поддерживаются JPG, PNG и WebP');
+                const version=crypto.randomUUID(),key=`rauda-school-covers/${table}/${id}/${version}`;
+                await env.FILES.put(key,bytes,{httpMetadata:{contentType,cacheControl:'private, max-age=31536000, immutable'}});
+                const cover_image=`/api/learning/covers/${table}/${id}?v=${version}`;
+                try{await run(db,`UPDATE ${table} SET cover_image=? WHERE id=?`,[cover_image,id])}
+                catch(error){await env.FILES.delete(key);throw error}
+                const previous=coverVersion(item.cover_image);
+                if(previous)try{await env.FILES.delete(`rauda-school-covers/${table}/${id}/${previous}`)}catch{}
+                await audit(db,user,'learning.cover.upload',table,id,{content_type:contentType,size:file.size});
+                return response({cover_image});
+            }
+            throw new HttpError(405,'Метод не поддерживается');
+        }
         if(['/api/learning/catalog','/api/learning/tree','/api/admin/learning/catalog','/api/admin/learning/tree'].includes(path)&&method==='GET')return response(await learningCatalog(db,user,path.includes('/admin/')));
         if(path==='/api/learning/lessons'&&method==='GET')return response({lessons:await listLearningLessons(db,user,Object.fromEntries(url.searchParams))});
         if(path==='/api/learning/materials'&&method==='GET')return response({materials:await listLearningMaterials(db,user,url.searchParams.get('course_id'))});
