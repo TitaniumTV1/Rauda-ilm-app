@@ -168,285 +168,203 @@ if (
 }
         
             
+
 async function handleEmailSendCode(request, env) {
     if (!env.DB) return databaseMissing(env);
 
     try {
         const body = await readJson(request);
+        const email = String(body?.email || "").trim().toLowerCase();
+        const requestedPurpose = String(body?.purpose || "").trim().toLowerCase();
 
-        const email = String(body?.email || "")
-            .trim()
-            .toLowerCase();
+        const purpose = ["register", "login", "link", "unlink"].includes(requestedPurpose)
+            ? requestedPurpose
+            : "login";
 
-        const requestedPurpose =
-    String(body?.purpose || "")
-        .trim()
-        .toLowerCase();
+        if (purpose === "link" || purpose === "unlink") {
+            const auth = await requireUser(request, env);
+            if (!auth.ok) return authError(auth, env);
 
-const purpose =
-    [
-        "register",
-        "login",
-        "link",
-        "unlink"
-    ].includes(requestedPurpose)
-        ? requestedPurpose
-        : "login";
-
-if (purpose === "link" || purpose === "unlink") {
-
-    const auth =
-        await requireUser(
-            request,
-            env
-        );
-
-    if (!auth.ok) {
-        return authError(
-            auth,
-            env
-        );
-    }
-    if (purpose === 'unlink' && (auth.user.email?.toLowerCase() !== email || !auth.user.email_verified_at)) {
-        return json({ok:false,error:'Для отвязки используйте подтверждённую почту аккаунта'},403,env);
-    }
-}
+            if (
+                purpose === "unlink" &&
+                (auth.user.email?.toLowerCase() !== email || !auth.user.email_verified_at)
+            ) {
+                return json({
+                    ok: false,
+                    error: "Для отвязки используйте подтверждённую почту аккаунта"
+                }, 403, env);
+            }
+        }
 
         if (!isValidEmail(email)) {
-            return json(
-                {
-                    ok: false,
-                    error: "Введите правильный адрес электронной почты"
-                },
-                400,
-                env
-            );
+            return json({
+                ok: false,
+                error: "Введите правильный адрес электронной почты"
+            }, 400, env);
         }
 
         await ensureEmailAuthSchema(env.DB);
 
         const existingUser = await first(
             env.DB,
-            `
-            SELECT id
-            FROM users
-            WHERE LOWER(email) = ?
-            LIMIT 1
-            `,
+            "SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1",
             [email]
         );
 
         if (purpose === "register" && existingUser) {
-            return json(
-                {
-                    ok: false,
-                    error: "Аккаунт с этой почтой уже существует"
-                },
-                409,
-                env
-            );
+            return json({
+                ok: false,
+                error: "Аккаунт с этой почтой уже существует"
+            }, 409, env);
         }
 
         if (purpose === "login" && !existingUser) {
-            return json(
-                {
-                    ok: false,
-                    error: "Аккаунт с такой почтой не найден"
-                },
-                404,
-                env
-            );
+            return json({
+                ok: false,
+                error: "Аккаунт с такой почтой не найден"
+            }, 404, env);
         }
 
         const recentCode = await first(
             env.DB,
-            `
-            SELECT created_at
-            FROM school_email_codes
-            WHERE email = ?
-              AND purpose = ?
-            ORDER BY id DESC
-            LIMIT 1
-            `,
+            `SELECT created_at
+             FROM school_email_codes
+             WHERE email = ? AND purpose = ?
+             ORDER BY id DESC
+             LIMIT 1`,
             [email, purpose]
         );
 
         const now = Math.floor(Date.now() / 1000);
 
-        if (
-            recentCode &&
-            now - Number(recentCode.created_at) < 60
-        ) {
-            return json(
-                {
-                    ok: false,
-                    error: "Подождите 60 секунд перед повторной отправкой"
-                },
-                429,
-                env
-            );
+        if (recentCode && now - Number(recentCode.created_at) < 60) {
+            return json({
+                ok: false,
+                error: "Подождите 60 секунд перед повторной отправкой"
+            }, 429, env);
         }
 
-       const code =
-    generateVerificationCode();
-
-        const codeHash = await hashEmailCode(
-            email,
-            purpose,
-            code,
-            env
-        );
-
+        const code = generateVerificationCode();
+        const codeHash = await hashEmailCode(email, purpose, code, env);
         const expiresAt = now + 5 * 60;
 
         await run(
             env.DB,
-            `
-            INSERT INTO school_email_codes (
-                email,
-                code_hash,
-                purpose,
-                expires_at,
-                used_at,
-                attempts,
-                created_at
-            )
-            VALUES (?, ?, ?, ?, NULL, 0, ?)
-            `,
-            [
-                email,
-                codeHash,
-                purpose,
-                expiresAt,
-                now
-            ]
+            `INSERT INTO school_email_codes
+                (email, code_hash, purpose, expires_at, used_at, attempts, created_at)
+             VALUES (?, ?, ?, ?, NULL, 0, ?)`,
+            [email, codeHash, purpose, expiresAt, now]
         );
 
-        if (!env.BREVO_API_KEY) {
-            return json(
-                {
-                    ok: false,
-                    error: "BREVO_API_KEY не настроен"
-                },
-                500,
-                env
-            );
-        }
+        const subject = "Код подтверждения RAUDA ILM";
+        const message = `RAUDA ILM
 
-        if (!env.EMAIL_FROM) {
-            return json(
-                {
-                    ok: false,
-                    error: "EMAIL_FROM не настроен"
-                },
-                500,
-                env
-            );
-        }
+Ваш код подтверждения: ${code}
 
-        const brevoResponse = await fetch(
-            "https://api.brevo.com/v3/smtp/email",
-            {
+Код действует 5 минут.
+
+Если вы не запрашивали этот код, проигнорируйте письмо.`;
+
+        // Основной способ: Google Apps Script.
+        if (env.GOOGLE_APPS_SCRIPT_URL) {
+            if (!env.GOOGLE_APPS_SCRIPT_SECRET) {
+                console.error("Google Apps Script secret is missing");
+                return json({
+                    ok: false,
+                    error: "Не настроен сервис отправки писем"
+                }, 500, env);
+            }
+
+            const response = await fetch(env.GOOGLE_APPS_SCRIPT_URL, {
                 method: "POST",
                 headers: {
-                    "api-key": env.BREVO_API_KEY,
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
+                    "Content-Type": "application/json"
                 },
+                redirect: "follow",
                 body: JSON.stringify({
-                    sender: {
-                        name: "RAUDA ILM",
-                        email: env.EMAIL_FROM
-                    },
-                    to: [
-                        {
-                            email: email
-                        }
-                    ],
-                    subject: "Код подтверждения RAUDA ILM",
-                    htmlContent: `
-                        <div style="
-                            max-width:480px;
-                            margin:auto;
-                            padding:32px;
-                            font-family:Arial,sans-serif;
-                        ">
-                            <h2>RAUDA ILM</h2>
-
-                            <p>Ваш код подтверждения:</p>
-
-                            <div style="
-                                margin:24px 0;
-                                font-size:32px;
-                                font-weight:800;
-                                letter-spacing:7px;
-                            ">
-                                ${code}
-                            </div>
-
-                            <p>
-                                Код действует 5 минут.
-                            </p>
-
-                            <p style="
-                                margin-top:28px;
-                                color:#777;
-                                font-size:13px;
-                            ">
-                                Если вы не запрашивали этот код,
-                                проигнорируйте письмо.
-                            </p>
-                        </div>
-                    `
+                    secret: env.GOOGLE_APPS_SCRIPT_SECRET,
+                    to: email,
+                    subject,
+                    body: message
                 })
-            }
-        );
+            });
 
-        if (!brevoResponse.ok) {
+            const result = (await response.text()).trim();
 
-            const brevoError =
-                await brevoResponse.text();
+            if (!response.ok || result !== "OK") {
+                console.error(
+                    "Google Apps Script email error:",
+                    response.status,
+                    result.slice(0, 300)
+                );
 
-            console.error(
-                "Brevo email error:",
-                brevoResponse.status,
-                brevoError
-            );
-
-            return json(
-                {
+                return json({
                     ok: false,
-                    error:
-                        "Не удалось отправить код. Проверьте настройки Brevo."
-                },
-                502,
-                env
+                    error: "Не удалось отправить код через почтовый сервис"
+                }, 502, env);
+            }
+        } else {
+            // Резервный старый способ: Brevo.
+            if (!env.BREVO_API_KEY || !env.EMAIL_FROM) {
+                return json({
+                    ok: false,
+                    error: "Не настроен сервис отправки писем"
+                }, 500, env);
+            }
+
+            const response = await fetch(
+                "https://api.brevo.com/v3/smtp/email",
+                {
+                    method: "POST",
+                    headers: {
+                        "api-key": env.BREVO_API_KEY,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        sender: {
+                            name: "RAUDA ILM",
+                            email: env.EMAIL_FROM
+                        },
+                        to: [{ email }],
+                        subject,
+                        htmlContent: `
+                            <div style="max-width:480px;margin:auto;padding:32px;font-family:Arial,sans-serif">
+                                <h2>RAUDA ILM</h2>
+                                <p>Ваш код подтверждения:</p>
+                                <div style="margin:24px 0;font-size:32px;font-weight:800;letter-spacing:7px">${code}</div>
+                                <p>Код действует 5 минут.</p>
+                                <p style="margin-top:28px;color:#777;font-size:13px">
+                                    Если вы не запрашивали этот код, проигнорируйте письмо.
+                                </p>
+                            </div>`
+                    })
+                }
             );
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Brevo email error:", response.status, errorText.slice(0, 300));
+
+                return json({
+                    ok: false,
+                    error: "Не удалось отправить код через Brevo"
+                }, 502, env);
+            }
         }
 
-        return json(
-            {
-                ok: true,
-                message: "Код отправлен на почту"
-            },
-            200,
-            env
-        );
+        return json({
+            ok: true,
+            message: "Код отправлен на почту"
+        }, 200, env);
 
     } catch (error) {
-        console.error(
-            "Email code error:",
-            error
-        );
+        console.error("Email code error:", error);
 
-        return json(
-            {
-                ok: false,
-                error: "Не удалось отправить код"
-            },
-            500,
-            env
-        );
+        return json({
+            ok: false,
+            error: "Не удалось отправить код"
+        }, 500, env);
     }
 }
 
