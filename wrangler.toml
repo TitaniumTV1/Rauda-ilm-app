@@ -2,16 +2,19 @@
 main = "backend/src/index.js"
 compatibility_date = "2026-08-30"
 
+# ...
 [vars]
 APP_NAME = "RAUDA ILM"
-EMAIL_PROVIDER = "brevo"
+CHECKOUT_CLAIM_TTL_HOURS = "72"
+CORS_ORIGIN = "https://rauda-ilm-app.team-rauda-ilm.workers.dev"
 EMAIL_FROM = "team.rauda.ilm@gmail.com"
+EMAIL_PROVIDER = "brevo"
+GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby573CHHp5DdQP0gFKVtxFJAxbC0v7oG0SqlWRNWoLhR240G8d4D83Dbeh3eynz0aa0/exec"
+OWNER_TELEGRAM_ID = "7714575966"
+PUBLIC_APP_URL = "https://app.rauda-ilm.com"
 TELEGRAM_BOT_USERNAME = "Rauda_ilmapp_bot"
 TELEGRAM_CLIENT_ID = "8961703841"
-PUBLIC_APP_URL = "https://app.rauda-ilm.com"
-CORS_ORIGIN = "https://app.rauda-ilm.com"
-CHECKOUT_CLAIM_TTL_HOURS = "72"
-OWNER_TELEGRAM_ID = "7714575966"
+# ... "7714575966"
 
 [secrets]
 required = [
