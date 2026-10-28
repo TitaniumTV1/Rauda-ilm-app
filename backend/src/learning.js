@@ -801,7 +801,12 @@ export async function issueLearningCertificate(db,user,input,admin=false) {
     await audit(db,user,'certificate.issue','certificate',certificate.id);
     return{...certificate,format:'html',download_url:`/api/learning/certificates/${certificate.id}/download`};
 }
-const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const escapeHtml = str => String(str ?? '')
+    .replace(/&/g, '&' + 'amp;')
+    .replace(/</g, '&' + 'lt;')
+    .replace(/>/g, '&' + 'gt;')
+    .replace(/"/g, '&' + 'quot;')
+    .replace(/'/g, '&' + '#39;');
 export async function learningCertificateDocument(db,user,id) {
     active(user);const certificate=await record(db,'certificates',id);
     if(Number(certificate.user_id)!==Number(user.id))await scopePermission(db,user,'certificates',certificate.course_id);
