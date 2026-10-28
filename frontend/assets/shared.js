@@ -1,6 +1,6 @@
-export const $=(s,root=document)=>root.querySelector(s);
-export const $$=(s,root=document)=>[...root.querySelectorAll(s)];
-export const esc = v => String(v ?? '').replace(/[&<>"']/g, s => {
+export const $ = (s, root = document) => root.querySelector(s);
+export const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+export const esc = v => String(v ?? "").replace(/[&<>"']/g, s => ({ "&": "&", "<": "<", ">": ">", '"': """, "'": "'" }[s]));
     if (s === '&') return '&';
     if (s === '<') return '<';
     if (s === '>') return '>';
