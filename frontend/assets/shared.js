@@ -1,14 +1,13 @@
 export const $ = (s, root = document) => root.querySelector(s);
 export const $$ = (s, root = document) => [...root.querySelectorAll(s)];
-
 export const esc = function(str) {
-    if (str === null || str === undefined) return "";
+    if (str === null || str === undefined) return '';
     return String(str)
-        .replace(/&/g, "&")
-        .replace(/</g, "<")
-        .replace(/>/g, ">")
-        .replace(/"/g, """)
-        .replace(/'/g, "'");
+        .replace(/&/g, '&')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, ''');
 };
 const paths={book:'M3 4h6a3 3 0 0 1 3 3v14a4 4 0 0 0-4-2H3z M12 7a3 3 0 0 1 3-3h6v15h-5a4 4 0 0 0-4 2',home:'m3 10 9-7 9 7 M5 9v12h14V9 M9 21v-7h6v7',users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M20 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75',exam:'M9 5H5v16h14V5h-4 M9 3h6v4H9z M8 12h8 M8 16h5',wallet:'M3 6h17v15H3z M3 6V3h15v3 M15 11h7v5h-7z',award:'M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12 M8 14l-1 8 5-3 5 3-1-8',settings:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M5 19l2-2 M17 7l2-2',arrow:'M5 12h14 M14 7l5 5-5 5',back:'M19 12H5 M10 17l-5-5 5-5',check:'m5 12 4 4L19 6',plus:'M12 5v14 M5 12h14',close:'m6 6 12 12 M6 18 18 6',menu:'M4 6h16 M4 12h16 M4 18h16',file:'M14 2H4v20h16V8z M14 2v6h6 M8 13h8 M8 17h5',play:'m8 4 12 8-12 8z',lock:'M5 10h14v12H5z M8 10V6a4 4 0 0 1 8 0v4',logout:'M9 3H4v18h5 M8 12h13 M17 8l4 4-4 4',clock:'M12 8v5l3 2 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20',refresh:'M20 11a8 8 0 1 0-2 7 M20 4v7h-7'};
 export const icon=name=>`<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name]||paths.book}"/></svg>`;
