@@ -2,3 +2,43 @@
 @media(max-width:1150px){.shell{grid-template-columns:214px 1fr}.sidebar{padding:25px 12px}.content{padding:28px 25px 55px}.topbar{padding:0 25px}.grid.four{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}.lesson-layout{grid-template-columns:minmax(0,1fr)}.auth-story{padding:35px}}@media(max-width:760px){.shell{display:block}.sidebar{position:fixed;left:0;top:0;z-index:90;width:260px;transform:translateX(-100%);transition:transform .2s}.sidebar.open{transform:translateX(0);box-shadow:0 0 0 100vmax #10261d70}.mobile-menu{display:inline-flex}.topbar{height:65px;padding:0 18px}.topbar .tag{display:none}.content{padding:25px 18px 45px}.pagehead{align-items:flex-start;flex-direction:column;gap:15px;margin-bottom:22px}.pagehead h1{font-size:28px}.card{padding:20px}.grid.two,.grid.three{grid-template-columns:minmax(0,1fr)}.grid.four{gap:10px}.metric{padding:17px}.metric strong{font-size:27px}.hero{padding:24px}.hero .logo-large{display:none}.formgrid{grid-template-columns:minmax(0,1fr)}.formgrid .wide{grid-column:auto}.auth-shell{display:block}.auth-story{padding:23px 25px}.auth-story>div:not(.brand),.auth-story footer{display:none}.auth-area{padding:32px 24px}.card .table-wrap{width:calc(100% + 20px);margin-right:-20px}.toolbar{gap:10px}.toolbar .field{min-width:130px}.dialog-body{padding:20px}.dialog-head{padding:17px 20px}.media-tools{padding:10px}.media-status{width:100%;margin:0}.hero h2{font-size:21px}.btn{white-space:normal}.course-card{padding:0}.list-row{padding:13px}.form-footer{flex-wrap:wrap}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 .subject-choice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:13px;margin-top:14px}.subject-choice{min-width:0;border:1px solid var(--line);border-radius:13px;background:#fff;padding:10px;display:flex;flex-direction:column;gap:12px;text-align:left;color:inherit}.subject-choice:hover,.subject-choice[aria-pressed=true]{border-color:#82966e;box-shadow:0 5px 20px #253b2310;background:#fbfcf8}.subject-cover{display:grid;place-items:center;overflow:hidden;width:100%;aspect-ratio:3/4;border-radius:9px;background:linear-gradient(145deg,#eff2e9,#e3eadc);color:var(--green)}.subject-cover .icon{width:36px;height:36px}.subject-cover img{display:block;width:100%;height:100%;object-fit:cover}.subject-choice-body{display:grid;gap:6px}.subject-choice-body strong{font-size:14px;line-height:1.45}.subject-choice-body small{font-size:11px}.subject-choice-body .tag{width:max-content;max-width:100%}.subject-lessons-prompt{padding:18px 0}.material-row{align-items:flex-start;gap:14px}.material-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:9px;background:#edf2e9;color:var(--green);flex:0 0 auto}.material-row .grow{min-width:0}.material-row .grow>p{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.material-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.media-card .material-actions{padding:0 16px 14px}.exam-result-head{display:flex;justify-content:space-between;align-items:center;gap:20px}.exam-result-score{text-align:right;flex:0 0 auto}.exam-result-score strong{display:block;font-size:clamp(30px,5vw,46px);line-height:1.1;margin-bottom:7px}.result-section{border-top:1px solid var(--line);padding-top:20px;margin-top:22px}.certificate-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}@media(max-width:600px){.subject-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.subject-choice{padding:8px}.subject-choice-body strong{font-size:12px}.exam-result-head{align-items:flex-start;flex-direction:column}.exam-result-score{text-align:left}}
 .subject-choice{cursor:pointer;text-decoration:none}.course-art{height:140px;position:relative;overflow:hidden;padding:0}.course-art img{width:100%;height:100%;object-fit:cover}.course-art>.icon{margin:24px}.course-art>.tag{position:absolute;top:12px;right:12px;background:#fff}
+
+/* === ДОПОЛНЕНИЯ: ШАПКА, ПРОЗРАЧНАЯ ОБЛАСТЬ МЕНЮ, ЛИНИИ ОБУЧЕНИЯ И КАСТОМНЫЙ ПЛЕЕР === */
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(16,38,29,.45);z-index:85}
+.sidebar-backdrop.open{display:block}
+.topbar-logo-link{display:inline-flex;align-items:center;text-decoration:none}
+.topbar-logo{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid var(--line);transition:transform .15s ease}
+.topbar-logo:hover{transform:scale(1.05)}
+
+/* Линейный список: Курс -> Семестр -> Книги вверху и Предметы ниже */
+.study-lines{display:grid;gap:12px}
+.study-course-block{display:grid;gap:10px}
+.study-line{transition:border-color .15s,background-color .15s}
+.study-course-block.open>.course-line{border-color:var(--green);background:#f3f6f0}
+.study-semesters-list{display:grid;gap:10px;padding-left:20px;border-left:2px solid var(--line);margin-left:16px}
+.study-semester-block{display:grid;gap:10px}
+.study-semester-block.open>.semester-line{border-color:var(--gold);background:#fbf9f2}
+.study-semester-content{display:grid;gap:16px;padding:14px 0 6px 18px;border-left:2px solid #e5dec9;margin-left:16px}
+.study-subhead{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold);margin-bottom:8px}
+.book-line{background:#fcfbf7;border-color:#e6dec8}
+
+/* Тематический кастомный видео- и аудиоплеер */
+.custom-video-section,.custom-audio-section{background:#192b22;color:#f5f7f4;border-color:#263e32;padding:0;user-select:none;-webkit-user-select:none}
+.player-header-bar{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 18px;background:#20362b;border-bottom:1px solid #314d3f;flex-wrap:wrap}
+.player-meta-info{display:flex;flex-direction:column;gap:2px}
+.player-subject-title{font-size:14px;font-weight:700;color:#fff}
+.player-sheikh-name{font-size:12px;color:#dac38c;font-weight:600}
+.player-variant-switch .media-track-control{display:flex;align-items:center;gap:8px;font-size:12px;color:#d1daca}
+.player-variant-switch select{background:#13221a;color:#fff;border:1px solid #456353;border-radius:8px;padding:6px 10px;font-size:12px}
+.custom-video-shell{position:relative;background:#0d1812}
+.custom-video-shell video{display:block;width:100%;max-height:68vh;background:#0d1812;cursor:pointer}
+.custom-player-controls{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#1d3127;border-top:1px solid #2e473b;flex-wrap:wrap}
+.custom-player-controls .player-btn{background:#294235;color:#fff;border-color:#3a5849;min-height:34px;padding:6px 10px}
+.custom-player-controls .player-btn:hover{background:#355740}
+.player-seek{flex:1;min-width:110px;accent-color:var(--gold);cursor:pointer;height:6px}
+.player-time{font-size:11px;color:#d1daca;font-variant-numeric:tabular-nums;min-width:78px;text-align:center}
+.player-speed{background:#13221a;color:#fff;border:1px solid #3a5849;border-radius:7px;padding:5px 8px;font-size:11px}
+.audio-format-header{padding:10px 16px;background:#20362b;border-bottom:1px solid #314d3f;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#dac38c}
+.media-footer{padding:8px 16px;background:#15251d;display:flex;justify-content:flex-end}
+.media-footer .media-status{color:#a9b9b0;font-size:11px}
+@media(max-width:760px){.study-semesters-list,.study-semester-content{padding-left:12px;margin-left:8px}}
