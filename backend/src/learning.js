@@ -30,7 +30,22 @@ const initialized = new WeakMap();
 export async function ensureLearningSchema(db) {
     if (!initialized.has(db)) initialized.set(db, (async () => {
         await db.batch(schema.map(sql => db.prepare(sql)));
-        // Transfer the legacy retake grant once, preserving both existing counts.
+        
+        const certCols = new Set((await all(db, 'PRAGMA table_info(school_certificate_rules)')).map(c => c.name));
+        const newRulesCols = [
+            ["name_color", "TEXT NOT NULL DEFAULT '#126b55'"],
+            ["name_size", "INTEGER NOT NULL DEFAULT 40"],
+            ["name_margin_top", "INTEGER NOT NULL DEFAULT 25"],
+            ["name_margin_bottom", "INTEGER NOT NULL DEFAULT 25"],
+            ["show_score", "INTEGER NOT NULL DEFAULT 1"],
+            ["score_margin_top", "INTEGER NOT NULL DEFAULT 20"],
+            ["font_family", "TEXT NOT NULL DEFAULT 'Georgia, serif'"],
+            ["font_url", "TEXT NOT NULL DEFAULT ''"]
+        ];
+        for (const [col, def] of newRulesCols) {
+            if (!certCols.has(col)) await run(db, `ALTER TABLE school_certificate_rules ADD COLUMN ${col} ${def}`);
+        }
+
         const legacy = await first(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='assessment_retake_permissions'");
         if (legacy) await db.batch([
             db.prepare(`INSERT INTO assessment_access(user_id,assessment_type,assessment_id,extra_attempts,granted_by)
@@ -118,8 +133,6 @@ async function filterAdminCourses(db,user,rows,courseField='course_id') {
     const filtered=[];for(const row of rows)if(await allowedAdminCourse(db,user,row[courseField]))filtered.push(row);return filtered;
 }
 async function audit(db, user, action, entity, id) {
-    // Audit storage is shared with the core; do not let missing optional columns
-    // in old production schemas change whether the learning operation succeeds.
     const columns = await all(db, 'PRAGMA table_info(audit_logs)');
     const known = new Set(columns.map(c => c.name));
     if (!known.has('action')) return;
@@ -137,8 +150,6 @@ export async function learningCatalog(db, user, admin = false) {
         result[table] = [];
         for (const row of rows) {
             if(admin && !await allowedAdminCourse(db,user,table==='courses'?row.id:row.course_id))continue;
-            // Ancestor visibility is checked separately from purchased access so
-            // the catalogue remains browsable without exposing learning content.
             if (!admin && !await visibleScope(db, table, row)) continue;
             const scope = { ...row };
             if (table === 'courses') scope.course_id = row.id;
@@ -237,8 +248,6 @@ export async function saveLearningContent(db, user, table, input, id = null) {
     }
     if (table === 'courses' || table === 'programs') data.purpose = clean(merged.purpose);
     if (table !== 'courses') {
-        // Resolve every parent from the closest canonical parent and reject
-        // inconsistent combinations rather than accepting unrelated foreign IDs.
         let parent = null;
         if (table === 'lessons' && merged.subject_id) parent = await record(db, 'subjects', merged.subject_id);
         else if (['subjects', 'lessons'].includes(table)) parent = await record(db, 'semesters', positive(merged.semester_id, 'семестра'));
@@ -255,7 +264,6 @@ export async function saveLearningContent(db, user, table, input, id = null) {
         for (const key of ['course_id', 'program_id', 'semester_id']) {
             if (has(input, key) && input[key] && data[key] && Number(input[key]) !== Number(data[key])) throw new HttpError(400, 'Родительские разделы не связаны между собой');
         }
-        // Moving an existing parent would silently orphan its descendants.
         if (id) for (const key of ['course_id','program_id','semester_id']) {
             if (current[key] && data[key] && Number(current[key]) !== Number(data[key]) && table !== 'lessons') throw new HttpError(400, 'Для переноса структуры создайте новый раздел');
         }
@@ -297,186 +305,53 @@ export async function listLearningGroups(db, user, admin = false) {
     return admin?filterAdminCourses(db,user,rows):rows;
 }
 
-async function studentGroup(
-    db,
-    user,
-    id
-) {
-    const groupId =
-        positive(
-            id,
-            "группы"
-        );
-
-    const group =
-        await first(
-            db,
-            `
-            SELECT
-                g.*,
-                s.program_id,
-                s.semester_id,
-                s.cohort,
-                COALESCE(
-                    s.is_active,
-                    1
-                ) AS is_active
-            FROM groups g
-            LEFT JOIN school_group_scopes s
-                ON s.group_id = g.id
-            JOIN user_groups ug
-                ON ug.group_id = g.id
-            WHERE
-                g.id = ?
-                AND ug.user_id = ?
-                AND COALESCE(
-                    s.is_active,
-                    1
-                ) = 1
-            LIMIT 1
-            `,
-            [
-                groupId,
-                user.id
-            ]
-        );
-
-    if (!group) {
-        throw new HttpError(
-            404,
-            "Группа не найдена или доступ закрыт"
-        );
-    }
-
+async function studentGroup(db, user, id) {
+    const groupId = positive(id, "группы");
+    const group = await first(db, `
+        SELECT g.*, s.program_id, s.semester_id, s.cohort, COALESCE(s.is_active, 1) AS is_active
+        FROM groups g
+        LEFT JOIN school_group_scopes s ON s.group_id = g.id
+        JOIN user_groups ug ON ug.group_id = g.id
+        WHERE g.id = ? AND ug.user_id = ? AND COALESCE(s.is_active, 1) = 1
+        LIMIT 1
+    `, [groupId, user.id]);
+    if (!group) throw new HttpError(404, "Группа не найдена или доступ закрыт");
     return group;
 }
 
-
-async function listGroupMessages(
-    db,
-    user,
-    id
-) {
-    const group =
-        await studentGroup(
-            db,
-            user,
-            id
-        );
-
-    const messages =
-        await all(
-            db,
-            `
-            SELECT *
-            FROM (
-                SELECT
-                    m.id,
-                    m.group_id,
-                    m.user_id,
-                    m.body,
-                    m.created_at,
-                    u.first_name,
-                    u.last_name,
-                    u.username,
-                    u.role
-                FROM school_group_messages m
-                JOIN users u
-                    ON u.id = m.user_id
-                WHERE
-                    m.group_id = ?
-                    AND m.is_deleted = 0
-                ORDER BY m.id DESC
-                LIMIT 100
-            )
-            ORDER BY id ASC
-            `,
-            [
-                group.id
-            ]
-        );
-
-    return messages;
+async function listGroupMessages(db, user, id) {
+    const group = await studentGroup(db, user, id);
+    return all(db, `
+        SELECT * FROM (
+            SELECT m.id, m.group_id, m.user_id, m.body, m.created_at, u.first_name, u.last_name, u.username, u.role
+            FROM school_group_messages m
+            JOIN users u ON u.id = m.user_id
+            WHERE m.group_id = ? AND m.is_deleted = 0
+            ORDER BY m.id DESC
+            LIMIT 100
+        ) ORDER BY id ASC
+    `, [group.id]);
 }
 
+async function createGroupMessage(db, user, id, input) {
+    const group = await studentGroup(db, user, id);
+    const message = String(input?.body ?? "").trim();
+    if (!message) throw new HttpError(400, "Введите сообщение");
+    if (message.length > 3000) throw new HttpError(400, "Сообщение не должно превышать 3000 символов");
 
-async function createGroupMessage(
-    db,
-    user,
-    id,
-    input
-) {
-    const group =
-        await studentGroup(
-            db,
-            user,
-            id
-        );
+    const result = await run(db, `
+        INSERT INTO school_group_messages (group_id, user_id, body)
+        VALUES (?, ?, ?)
+    `, [group.id, user.id, message]);
 
-    const message =
-        String(
-            input?.body ?? ""
-        ).trim();
-
-    if (!message) {
-        throw new HttpError(
-            400,
-            "Введите сообщение"
-        );
-    }
-
-    if (message.length > 3000) {
-        throw new HttpError(
-            400,
-            "Сообщение не должно превышать 3000 символов"
-        );
-    }
-
-    const result =
-        await run(
-            db,
-            `
-            INSERT INTO school_group_messages (
-                group_id,
-                user_id,
-                body
-            )
-            VALUES (?, ?, ?)
-            `,
-            [
-                group.id,
-                user.id,
-                message
-            ]
-        );
-
-    return first(
-        db,
-        `
-        SELECT
-            m.id,
-            m.group_id,
-            m.user_id,
-            m.body,
-            m.created_at,
-            u.first_name,
-            u.last_name,
-            u.username,
-            u.role
+    return first(db, `
+        SELECT m.id, m.group_id, m.user_id, m.body, m.created_at, u.first_name, u.last_name, u.username, u.role
         FROM school_group_messages m
-        JOIN users u
-            ON u.id = m.user_id
+        JOIN users u ON u.id = m.user_id
         WHERE m.id = ?
         LIMIT 1
-        `,
-        [
-            Number(
-                result.meta.last_row_id
-            )
-        ]
-    );
+    `, [Number(result.meta.last_row_id)]);
 }
-
 
 async function saveGroup(db, user, input, id) {
     await requirePermission(db, user, 'groups');
@@ -564,9 +439,6 @@ async function saveExam(db,user,input,id) {
     if(!id){const r=await run(db,`INSERT INTO exams(${keys.join(',')}) VALUES(${keys.map(()=>'?').join(',')})`,keys.map(k=>data[k]));examId=Number(r.meta.last_row_id);}
     const statements=[db.prepare(`UPDATE exams SET ${keys.map(k=>`${k}=?`).join(',')} WHERE id=?`).bind(...keys.map(k=>data[k]),examId),
         db.prepare('DELETE FROM exam_answers WHERE question_id IN(SELECT id FROM exam_questions WHERE exam_id=?)').bind(examId),db.prepare('DELETE FROM exam_questions WHERE exam_id=?').bind(examId)];
-    // Last insert ID links answer inserts to their own question within one batch.
-    // Answer rows themselves advance last_insert_rowid(), therefore select the
-    // freshly inserted question by its exam and unique sort position instead.
     questions.forEach((q,qi)=>{
         statements.push(db.prepare('INSERT INTO exam_questions(exam_id,question,question_type,points,sort_order) VALUES(?,?,?,?,?)').bind(examId,q.question,q.question_type,q.points,qi));
         q.answers.forEach((a,ai)=>statements.push(db.prepare(`INSERT INTO exam_answers(question_id,answer_text,is_correct,sort_order) SELECT id,?,?,? FROM exam_questions WHERE exam_id=? AND sort_order=?`).bind(a.answer_text,a.is_correct,ai,examId,qi)));
@@ -592,7 +464,6 @@ export async function examAccess(db,user,exam) {
             ((a.target_type='user' AND a.target_id=?) OR (a.target_type='group' AND EXISTS(SELECT 1 FROM user_groups ug LEFT JOIN school_group_scopes gs ON gs.group_id=ug.group_id WHERE ug.group_id=a.target_id AND ug.user_id=? AND COALESCE(gs.is_active,1)=1)))`,[exam.id,user.id,user.id]);
         const allowed=assignments.filter(a=>inWindow(a.opens_at,a.closes_at));
         if(!allowed.length)return{...state,reason:'Экзамен не назначен вам или вашей группе'};
-        // Any assignment can grant access; use the latest of their closing times.
         const assignmentEnd=allowed.some(a=>!a.closes_at)?null:new Date(Math.max(...allowed.map(a=>new Date(a.closes_at).getTime()))).toISOString();
         state.closes_at=endTime(state.closes_at,assignmentEnd);
     }
@@ -735,25 +606,53 @@ export async function certificateSettings(db,courseId) {
     const course=await record(db,'courses',courseId);
     const settings=await first(db,'SELECT * FROM certificate_settings WHERE course_id=?',[course.id]);
     const rules=await first(db,'SELECT * FROM school_certificate_rules WHERE course_id=?',[course.id]);
-    return{course_id:course.id,enabled:Number(course.certificate_enabled)!==0,
+    return{
+        course_id:course.id,
+        enabled:Number(course.certificate_enabled)!==0,
         template_key:settings?.template_key || course.certificate_template_key || 'html:rauda',
-        require_exam:settings ? Boolean(settings.require_exam) : true,require_passing_score:settings ? Boolean(settings.require_passing_score) : true,
+        require_exam:settings ? Boolean(settings.require_exam) : true,
+        require_passing_score:settings ? Boolean(settings.require_passing_score) : true,
         passing_score:Number(settings?.passing_score ?? course.certificate_passing_score ?? 60),
-        allow_student_name:settings ? Boolean(settings.allow_student_name) : true,require_progress:rules ? Boolean(rules.require_progress) : true,
-        title:rules?.title || 'Сертификат об окончании',issuer:rules?.issuer || 'RAUDA ILM',accent:rules?.accent || '#126b55',footer:rules?.footer || 'Выдан по результатам обучения'};
+        allow_student_name:settings ? Boolean(settings.allow_student_name) : true,
+        require_progress:rules ? Boolean(rules.require_progress) : true,
+        title:rules?.title || 'Сертификат об окончании',
+        issuer:rules?.issuer || 'RAUDA ILM',
+        accent:rules?.accent || '#126b55',
+        name_color:rules?.name_color || '#126b55',
+        name_size:Number(rules?.name_size || 40),
+        name_margin_top:Number(rules?.name_margin_top ?? 25),
+        name_margin_bottom:Number(rules?.name_margin_bottom ?? 25),
+        show_score:rules ? Boolean(rules.show_score) : true,
+        score_margin_top:Number(rules?.score_margin_top ?? 20),
+        font_family:rules?.font_family || 'Georgia, serif',
+        font_url:rules?.font_url || '',
+        footer:rules?.footer || 'Выдан по результатам обучения'
+    };
 }
 async function saveCertificateSettings(db,user,courseId,input) {
     await scopePermission(db,user,'certificates',courseId);
     const current=await certificateSettings(db,courseId);const v={...current,...input};
-    const accent=clean(v.accent,7);if(!/^#[0-9a-f]{6}$/i.test(accent))throw new HttpError(400,'Цвет должен быть в формате #126b55');
+    const accent=clean(v.accent,7);if(!/^#[0-9a-f]{6}$/i.test(accent))throw new HttpError(400,'Цвет рамки должен быть в формате #126b55');
+    
+    const colorAliases={black:'#111111',white:'#ffffff',gold:'#c5a059',green:'#126b55'};
+    const rawNameColor=clean(v.name_color||'#126b55',20).toLowerCase();
+    const nameColor=colorAliases[rawNameColor]||(/^#[0-9a-f]{6}$/i.test(rawNameColor)?rawNameColor:'#126b55');
+    const nameSize=integer(v.name_size,40,16,120,'размера шрифта');
+    const nameMarginTop=integer(v.name_margin_top,25,0,100,'отступа сверху');
+    const nameMarginBottom=integer(v.name_margin_bottom,25,0,100,'отступа снизу');
+    const scoreMarginTop=integer(v.score_margin_top,20,0,100,'отступа оценки');
+    const showScore=Number(bool(v.show_score));
+    const fontFamily=clean(v.font_family||'Georgia, serif',150).replace(/[;<>{}]/g,'')||'Georgia, serif';
+    const fontUrl=imageSource(v.font_url);
     const score=integer(v.passing_score,60,0,100,'проходного процента');
+
     await db.batch([
         db.prepare('UPDATE courses SET certificate_enabled=?,certificate_passing_score=? WHERE id=?').bind(Number(bool(v.enabled)),score,courseId),
         db.prepare(`INSERT INTO certificate_settings(course_id,template_key,require_exam,require_passing_score,passing_score,allow_student_name) VALUES(?,'html:rauda',?,?,?,?)
             ON CONFLICT(course_id) DO UPDATE SET template_key='html:rauda',require_exam=excluded.require_exam,require_passing_score=excluded.require_passing_score,passing_score=excluded.passing_score,allow_student_name=excluded.allow_student_name`)
             .bind(courseId,Number(bool(v.require_exam)),Number(bool(v.require_passing_score)),score,Number(bool(v.allow_student_name))),
-        db.prepare(`INSERT INTO school_certificate_rules(course_id,require_progress,title,issuer,accent,footer) VALUES(?,?,?,?,?,?) ON CONFLICT(course_id) DO UPDATE SET require_progress=excluded.require_progress,title=excluded.title,issuer=excluded.issuer,accent=excluded.accent,footer=excluded.footer`)
-            .bind(courseId,Number(bool(v.require_progress)),clean(v.title,150),clean(v.issuer,150),accent,clean(v.footer,500))
+        db.prepare(`INSERT INTO school_certificate_rules(course_id,require_progress,title,issuer,accent,name_color,name_size,name_margin_top,name_margin_bottom,show_score,score_margin_top,font_family,font_url,footer) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(course_id) DO UPDATE SET require_progress=excluded.require_progress,title=excluded.title,issuer=excluded.issuer,accent=excluded.accent,name_color=excluded.name_color,name_size=excluded.name_size,name_margin_top=excluded.name_margin_top,name_margin_bottom=excluded.name_margin_bottom,show_score=excluded.show_score,score_margin_top=excluded.score_margin_top,font_family=excluded.font_family,font_url=excluded.font_url,footer=excluded.footer`)
+            .bind(courseId,Number(bool(v.require_progress)),clean(v.title,150),clean(v.issuer,150),accent,nameColor,nameSize,nameMarginTop,nameMarginBottom,showScore,scoreMarginTop,fontFamily,fontUrl,clean(v.footer,500))
     ]);
     await audit(db,user,'certificate.settings','course',courseId);
     return certificateSettings(db,courseId);
@@ -813,13 +712,40 @@ export async function learningCertificateDocument(db,user,id) {
     if(!Number(certificate.is_valid))throw new HttpError(410,'Сертификат отозван');
     const course=await record(db,'courses',certificate.course_id);const settings=await certificateSettings(db,course.id);
     const accent=/^#[0-9a-f]{6}$/i.test(settings.accent)?settings.accent:'#126b55';
+    const nameColor=/^#[0-9a-f]{6}$/i.test(settings.name_color)?settings.name_color:'#126b55';
+    const nameSize=Number.isSafeInteger(Number(settings.name_size))&&Number(settings.name_size)>=16&&Number(settings.name_size)<=120?Number(settings.name_size):40;
+    const nameMarginTop=Number(settings.name_margin_top ?? 25);
+    const nameMarginBottom=Number(settings.name_margin_bottom ?? 25);
+    const scoreMarginTop=Number(settings.score_margin_top ?? 20);
+    const baseFont=String(settings.font_family||'Georgia, serif').replace(/[;<>{}]/g,'');
+    const fontUrl=imageSource(settings.font_url);
+    const fontFace=fontUrl?`@font-face{font-family:'RaudaCustomFont';src:url('${escapeHtml(fontUrl)}');font-display:swap}`:'';
+    const activeFont=fontUrl?`'RaudaCustomFont', ${baseFont}`:baseFont;
+
+    // Находим лучшую оценку ученика по экзаменам курса для вывода на сертификат
+    const bestAttempt = await first(db, `
+        SELECT ea.grade, ea.percentage FROM exam_attempts ea
+        JOIN exams e ON e.id = ea.exam_id
+        WHERE ea.user_id = ? AND e.course_id = ? AND ea.submitted_at IS NOT NULL
+        ORDER BY ea.percentage DESC LIMIT 1
+    `, [certificate.user_id, course.id]);
+
+    const gradeText = bestAttempt?.grade ? `Оценка: ${bestAttempt.grade} (${bestAttempt.percentage}%)` : '';
+
+    const scoreHtml = (settings.show_score && gradeText) ? `
+        <div class="score-block" style="margin-top:${scoreMarginTop}px; font-size:20px; color:${accent}; font-weight:600;">
+            ${escapeHtml(gradeText)}
+        </div>
+    ` : '';
+
     const html=`<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${escapeHtml(certificate.certificate_number)}</title>
-<style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{margin:0;background:#f4f1e9;color:#1b3029;font:18px Georgia,serif}.notice{padding:18px;text-align:center;font:14px Arial,sans-serif}.certificate{margin:24px auto;padding:48px;max-width:1060px;min-height:650px;border:7px double ${accent};background:#fffdf6;text-align:center}.issuer{letter-spacing:.25em;color:${accent};font:700 25px Arial,sans-serif}h1{font-size:42px;margin:45px 0 32px}.name{font-size:40px;color:${accent};margin:25px 0}.course{font-size:29px;margin:22px 0}.footer{margin-top:48px;font-size:17px}.number{font:13px Arial,sans-serif;margin-top:25px;overflow-wrap:anywhere}@media print{body{background:white}.notice{display:none}.certificate{margin:0;max-width:none;min-height:170mm;padding:15mm}}</style>
+<style>${fontFace}@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{margin:0;background:#f4f1e9;color:#1b3029;font:18px ${escapeHtml(activeFont)}}.notice{padding:18px;text-align:center;color:#1b3029;font:14px Arial,sans-serif}.certificate{margin:24px auto;padding:48px;max-width:1060px;min-height:650px;border:7px double ${accent};background:#fffdf6;text-align:center}.issuer{letter-spacing:.25em;color:${accent};font:700 25px Arial,sans-serif}h1{font-size:42px;margin:45px 0 32px}.name{font-size:${nameSize}px;color:${nameColor};font-family:${escapeHtml(activeFont)};font-weight:700;margin-top:${nameMarginTop}px;margin-bottom:${nameMarginBottom}px}.course{font-size:29px;margin:22px 0}.footer{margin-top:48px;font-size:17px}.number{font:13px Arial,sans-serif;margin-top:25px;overflow-wrap:anywhere}@media print{body{background:white}.notice{display:none}.certificate{margin:0;max-width:none;min-height:170mm;padding:15mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
 <div class="notice">Печатный сертификат HTML. Чтобы сохранить PDF, выберите «Печать» → «Сохранить как PDF» в браузере.</div><main class="certificate">
 <div class="issuer">${escapeHtml(settings.issuer)}</div><h1>${escapeHtml(settings.title)}</h1><p>Настоящим подтверждается, что</p>
 <div class="name">${escapeHtml(certificate.certificate_name)}</div><p>завершил(а) обучение по курсу</p><div class="course">${escapeHtml(course.name)}</div>
+${scoreHtml}
 <div class="footer">${escapeHtml(settings.footer)}</div><p>${escapeHtml(String(certificate.issued_at).slice(0,10))}</p><div class="number">№ ${escapeHtml(certificate.certificate_number)}</div></main></html>`;
-    return new Response(html,{headers:{'Content-Type':'text/html; charset=utf-8','Content-Disposition':`inline; filename="${certificate.certificate_number}.html"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"}});
+    return new Response(html,{headers:{'Content-Type':'text/html; charset=utf-8','Content-Disposition':`inline; filename="${certificate.certificate_number}.html"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline' https:; font-src 'self' https: data:; img-src 'self' https: data:; frame-ancestors 'none'"}});
 }
 
 /** Shared HTTP surface for both app and the replacement web administration. */
@@ -893,30 +819,8 @@ export async function handleLearningRequest(request,env,ctx={}) {
 
         if((match=path.match(/^\/api\/learning\/groups\/(\d+)\/messages$/))){
             const id=Number(match[1]);
-
-            if(method==='GET')
-                return response({
-                    messages:
-                        await listGroupMessages(
-                            db,
-                            user,
-                            id
-                        )
-                });
-
-            if(method==='POST')
-                return response(
-                    {
-                        message:
-                            await createGroupMessage(
-                                db,
-                                user,
-                                id,
-                                await body(request)
-                            )
-                    },
-                    201
-                );
+            if(method==='GET')return response({messages:await listGroupMessages(db,user,id)});
+            if(method==='POST')return response({message:await createGroupMessage(db,user,id,await body(request))},201);
         }
         if(path==='/api/admin/learning/groups'&&method==='GET')return response({groups:await listLearningGroups(db,user,true)});
         if(path==='/api/admin/learning/groups'&&method==='POST')return response({item:await saveGroup(db,user,await body(request),null)},201);
